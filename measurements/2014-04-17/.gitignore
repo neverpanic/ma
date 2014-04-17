@@ -1,0 +1,6 @@
+avg-*.txt
+depend.mk
+memory-*.txt
+time-*.txt
+relmemory-*.txt
+reltime-*.txt
