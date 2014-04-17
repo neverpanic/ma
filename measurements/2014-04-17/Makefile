@@ -7,7 +7,7 @@ ALLFILES=$(foreach suffix,$(SUFFIXES),$(wildcard $(suffix)[0-9].txt))
 
 .PHONY: all clean
 
-all: $(ALLFILES:%.txt=time-%.txt) $(ALLFILES:%.txt=memory-%.txt) $(SUFFIXES:%=avg-time-%.txt) $(SUFFIXES:%=avg-memory-%.txt) $(SUFFIXES:%=reltime-%.txt) $(SUFFIXES:%=relmemory-%.txt)
+all: time.svg memory.svg $(ALLFILES:%.txt=time-%.txt) $(ALLFILES:%.txt=memory-%.txt) $(SUFFIXES:%=avg-time-%.txt) $(SUFFIXES:%=avg-memory-%.txt) $(SUFFIXES:%=reltime-%.txt) $(SUFFIXES:%=relmemory-%.txt)
 
 -include depend.mk
 
@@ -34,7 +34,14 @@ reltime-%.txt: avg-time-plain.txt avg-time-%.txt
 relmemory-%.txt: avg-memory-plain.txt avg-memory-%.txt
 	$(RELATIVE) $@ $< $(@:relmemory-%.txt=avg-memory-%.txt)
 
+time.svg: $(SUFFIXES:%=reltime-%.txt)
+memory.svg: $(SUFFIXES:%=relmemory-%.txt)
+
+%.svg: %.p
+	gnuplot <$<
+
 clean:
 	rm -f depend.mk
 	rm -f $(ALLFILES:%.txt=reltime-%.txt) $(ALLFILES:%.txt=relmemory-%.txt)
 	rm -f $(SUFFIXES:%=avg-time-%.txt) $(SUFFIXES:%=avg-memory-%.txt)
+	rm -f time.svg memory.svg

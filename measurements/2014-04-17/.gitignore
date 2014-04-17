@@ -4,3 +4,5 @@ memory-*.txt
 time-*.txt
 relmemory-*.txt
 reltime-*.txt
+memory.svg
+time.svg
