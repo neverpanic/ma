@@ -1,43 +1,41 @@
 % vim:noet:sts=2:ts=2:sw=2:smarttab:tw=120
 
 \thispagestyle{empty}
-\selectlanguage{ngerman}
+
 \begin{titlepage}
-	\begin{flushright}
-		\vspace*{1.0cm}
-		\begin{large}\textbf{\batitle{}}\\\end{large}
-		\vspace*{0.2cm}
-		\begin{small}Masterarbeit im Fach \basubject{}\\\end{small}
-		\vspace*{3.0cm}
-		\begin{small}von\\\end{small}
-		\vspace*{0.5cm}
-		\begin{small}\textbf{\baauthor{}}\\\end{small}
-		\vspace*{.3cm}
-		\begin{small}
-			geboren am \babirthdate{} in \babirthlocation{}\\
-			\vspace*{4.0cm}
-			Lehrstuhl fÃ¼r Informatik 4\\
-			Friedrich-Alexander UniversitÃ¤t Erlangen-NÃ¼rnberg\\
-			\vspace*{1.2cm}
-			Betreut durch:\\
-			\vspace*{.3cm}
-			\baadvisors{}\\
-			\vspace*{1.2cm}
-			Beginn der Arbeit: \bastartdate{}\\
-			Ende der Arbeit: \baenddate{}\\
-			\flushleft
-			\begin{tikzpicture}[remember picture,overlay]
-				\node [xshift=3cm, yshift=3cm, scale=2] at (current page.south west){%
-					\begin{tikzpicture}
-						\foreach \x in {45, 135, 225, 315}
-							\draw[black!18, fill=black!18] (\x:1cm) rectangle (\x:0.1cm);
-						\draw[red!75!black, line width=0.15cm] (0,0) circle (0.45cm);
-						\draw[fill=black!18, black!18] (110:0.3cm) -- (110:0.7cm) -- (160:0.7cm);
-						\draw[fill=red!75!black, line width=0cm, red!75!black] (163:0.64cm) -- (122.5:0.5cm) -- (173.5:0.25cm) -- (160:0.44);
-					\end{tikzpicture}
-				};
-			\end{tikzpicture}
-		\end{small}
-	\end{flushright}
+	\begin{german}
+		\begin{flushright}
+			\rmfamily
+			\begin{Huge}\reword{\thesistitle{}}\end{Huge}\\
+			\begin{small}
+				Masterarbeit im Fach \thesissubject{}\\
+				\vspace*{5cm}
+				von \textbf{\thesisauthor{}}\\
+				geboren am \thesisbirthdate{} in \thesisbirthlocation{}\\
+				\vspace*{5cm}
+				\textbf{Lehrstuhl für Informatik 4}\\
+				Friedrich-Alexander Universität Erlangen-Nürnberg\\
+				\vspace*{2cm}
+				\textbf{Betreut durch}\\
+				\thesisadvisors{}\\
+				\vspace*{2cm}
+				\begin{tabular}{rr}
+					\textbf{Beginn:} & \thesisstartdate{} \\
+					\textbf{Abgabe:} & \thesisenddate{}
+				\end{tabular}
+				\flushleft{}
+				\begin{tikzpicture}[remember picture,overlay]
+					\node [xshift=3cm, yshift=3cm, scale=2] at (current page.south west){%
+						\begin{tikzpicture}
+							\foreach \x in {45, 135, 225, 315}
+								\draw[black!18, fill=black!18] (\x:1cm) rectangle (\x:0.1cm);
+							\draw[red!75!black, line width=0.15cm] (0,0) circle (0.45cm);
+							\draw[fill=black!18, black!18] (110:0.3cm) -- (110:0.7cm) -- (160:0.7cm);
+							\draw[fill=red!75!black, line width=0cm, red!75!black] (163:0.64cm) -- (122.5:0.5cm) -- (173.5:0.25cm) -- (160:0.44);
+						\end{tikzpicture}
+					};
+				\end{tikzpicture}
+			\end{small}
+		\end{flushright}
+	\end{german}
 \end{titlepage}
-\balanguage
