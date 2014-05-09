@@ -7,19 +7,22 @@
 
 	\bibliographystyle{alpha}
 	\bibliography{bibtex/bib}
-
 	\listoffigures
 	\listoftables
 	\listofalgorithms
 
-	%\renewcommand{\lstlistlistingname}{List of Listings}
-	%\lstlistoflistings
-	%\addcontentsline{toc}{section}{List of Listings}
+	\renewcommand\listoflistingscaption{List of Source Code Listings}
+	% don't use a full chapter, only a section
+	\let\chapter\section
+	\listoflistings
 
 	\renewcommand*{\glsclearpage}{\clearpage}
 	\printglossary[type=\acronymtype]
 
 	% ensure todonotes are rendered as a section
-	\makeatletter\let\chapter\@undefined\makeatother
+	\makeatletter
+	\let\chapter\@undefined
+	\makeatother
+
 	\todototoc
 	\listoftodos
