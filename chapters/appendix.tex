@@ -1,23 +1,25 @@
-% Jetzt noch das Literaturverzeichnis
-\clearpage
+% vim:noet:sts=2:ts=2:sw=2:smarttab:tw=120
 
-\bibliographystyle{alpha}
-%\bibliographystyle{ieeetr}
-\bibliography{bibtex/bib}
+\chapter{Appendix}
+	\label{chapter:appendix}
+	% number all tocbibind sections in the appendix
+	\tocsection
 
-\listoffigures
+	\bibliographystyle{alpha}
+	\bibliography{bibtex/bib}
 
-\listoftables
+	\listoffigures
+	\listoftables
+	\listofalgorithms
 
-\listofalgorithms
-\addcontentsline{toc}{chapter}{List of Algorithms}
+	%\renewcommand{\lstlistlistingname}{List of Listings}
+	%\lstlistoflistings
+	%\addcontentsline{toc}{section}{List of Listings}
 
-\renewcommand{\lstlistlistingname}{List of Listings}
-\lstlistoflistings
-\addcontentsline{toc}{chapter}{List of Listings}
+	\renewcommand*{\glsclearpage}{\clearpage}
+	\printglossary[type=\acronymtype]
 
-\renewcommand*{\glsclearpage}{\clearpage}
-\printglossary[type=\acronymtype]
-
-\todototoc
-\listoftodos
+	% ensure todonotes are rendered as a section
+	\makeatletter\let\chapter\@undefined\makeatother
+	\todototoc
+	\listoftodos

@@ -5,9 +5,9 @@
 \newcommand{\basubject}{Informatik}
 \newcommand{\babirthdate}{09.\,August~1988}
 \newcommand{\babirthlocation}{Lichtenfels}
-\newcommand{\baadvisors}{
-	Prof. Dr.-Ing. habil. Wolfgang Schröder-Preikschat\\
-	Dipl.-Inf. Isabella Stilkerich
+\newcommand{\baadvisors}{%
+	Prof.\ Dr.-Ing.\ habil.\ Wolfgang Schröder-Preikschat\\
+	Dipl.-Inf.\ Isabella Stilkerich
 }
 \newcommand{\bastartdate}{01.\,Januar~2014}
 \newcommand{\baenddate}{31.\,Juni~2014}
@@ -34,6 +34,7 @@
 \usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
 \usepackage{tikz}
 \usepackage{pgfplots}
+\pgfplotsset{compat=1.8}
 \usepackage{pgfplotstable}
 \usepackage{lmodern}
 \usepackage{xspace}
@@ -51,9 +52,9 @@
 \usepackage{paralist}
 \usepackage{listings}
 \usepackage[shortcuts]{extdash}
-\usepackage{todonotes}
-\usepackage{tocbibind}
-\usepackage[algoruled,linesnumbered,commentsnumbered,vlined]{algorithm2e}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[nottoc,section]{tocbibind}
+\usepackage[algoruled,linesnumbered,commentsnumbered,vlined,dotocloa]{algorithm2e}
 % Hyperref moeglichst als letztes Package laden!
 \usepackage{hyperref}
 \usepackage[nameinlink]{cleveref}
@@ -382,7 +383,7 @@
 	pdfstartpage=1%
 }
 
-% Some useful todonodes-macros
+% Some useful todonotes-macros
 \newcommand{\reword}[1]{%
 	\uwave{#1}\todo[color=GreenYellow]{Reword}%
 	\xspace%
