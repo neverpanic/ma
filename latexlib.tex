@@ -1,19 +1,5 @@
 % vim:noet:sts=2:ts=2:sw=2:smarttab:tw=120
 
-\newcommand{\batitle}{Compiler-Assisted Garbage Collection Using Escape Analysis in the KESO Multi-JVM}
-\newcommand{\baauthor}{Clemens Lang}
-\newcommand{\basubject}{Informatik}
-\newcommand{\babirthdate}{09.\,August~1988}
-\newcommand{\babirthlocation}{Lichtenfels}
-\newcommand{\baadvisors}{%
-	Prof.\ Dr.-Ing.\ habil.\ Wolfgang Schröder-Preikschat\\
-	Dipl.-Inf.\ Isabella Stilkerich
-}
-\newcommand{\bastartdate}{01.\,Januar~2014}
-\newcommand{\baenddate}{31.\,Juni~2014}
-% language of this document, in a form understood by the latex babel package, see `texdoc babel`, section 1.1
-\newcommand{\balanguage}{\selectlanguage{english}}
-
 % layout einstellungen
 \NeedsTeXFormat{LaTeX2e}
 \documentclass[
@@ -21,354 +7,70 @@
 	12pt,
 	a4paper,
 	headsepline,     % linie unter kopfzeilen
-%	headings=normal, % größe der überschriften, standard ist viel zu groß
+	headings=normal, % größe der überschriften, standard ist viel zu groß
 	abstract,        % Überschrift über dem Abstract
 	titlepage=false,
 	BCOR=1cm,
+	listof=numbered
 %	draft
 ]{scrreprt}
 
 \usepackage[pdftex]{graphicx}
-\usepackage{amsmath}
+% Bilder werden auch im Unterverzeichnis images/ gesucht
+\graphicspath{{images/}}
+
 \usepackage{standalone}
 \usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+
+% load tikz and pgfplots
 \usepackage{tikz}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.8}
 \usepackage{pgfplotstable}
-\usepackage{lmodern}
-\usepackage{xspace}
-\usepackage{makeidx}
-\usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
-\usepackage[ngerman,english]{babel}
-\usepackage[automark]{scrpage2}
-\usepackage{csquotes}
-\usepackage[normalem]{ulem}
-\usepackage{multirow}
-\usepackage{cite}
-\usepackage{caption}
-\usepackage{subfig}
-\usepackage{paralist}
-\usepackage{listings}
-\usepackage[shortcuts]{extdash}
-\usepackage[colorinlistoftodos]{todonotes}
-\usepackage[nottoc,section]{tocbibind}
-\usepackage[algoruled,linesnumbered,commentsnumbered,vlined,dotocloa]{algorithm2e}
-% Hyperref moeglichst als letztes Package laden!
-\usepackage{hyperref}
-\usepackage[nameinlink]{cleveref}
-% glossaries nach hyperref
-\usepackage[acronym,acronymlists={main},toc]{glossaries}
 
-% headings
-\usepackage{titlesec}
-\titleformat{\chapter}[hang]{\fontsize{40}{48}\selectfont\rmfamily}{\thechapter\hspace{15pt}\textcolor{white!75!black}{|}\hspace{15pt}}{0pt}{\fontsize{40}{48}\selectfont\rmfamily}
-\titleformat{\section}[hang]{\LARGE\rmfamily}{\thesection\hspace{10pt}\textcolor{white!75!black}{|}\hspace{10pt}}{0pt}{\LARGE\rmfamily}
-\titleformat{\subsection}[hang]{\Large\rmfamily}{\thesubsection\hspace{8pt}\textcolor{white!75!black}{|}\hspace{8pt}}{0pt}{\Large\rmfamily}
-\titleformat{\subsubsection}[hang]{\large\rmfamily}{\thesubsubsection\hspace{8pt}\textcolor{white!75!black}{|}\hspace{8pt}}{0pt}{\large\rmfamily}
-\titleformat{\paragraph}[runin]{\large\bfseries\rmfamily}{\theparagraph\hspace{8pt}\textcolor{white!75!black}{|}\hspace{8pt}}{0pt}{\large\bfseries\rmfamily}
-\setkomafont{sectioning}{\rmfamily\bfseries}
-\setkomafont{descriptionlabel}{\rmfamily\bfseries}
-
-% tikz libs und settings
+% tikz libs and settings
 \usetikzlibrary{arrows,shapes,decorations,positioning,calc,decorations.markings,pgfplots.groupplots}
 \pgfdeclarelayer{background}
 \pgfdeclarelayer{foreground}
 \pgfsetlayers{background,main,foreground}
 
-% pagestyle
+% set and load fonts
+\usepackage{fontspec}
+\setmainfont{Latin Modern Roman}
+\setsansfont[Scale = MatchLowercase]{Latin Modern Sans}
+\setmonofont[Scale = MatchLowercase]{Latin Modern Mono}
+
+% load successor package of babel for LuaTeX and load the language files
+\usepackage{polyglossia}
+\setmainlanguage[variant=american]{english}
+\setotherlanguage[latesthyphen=true]{german}
+
+% headings
+\usepackage[automark]{scrpage2}
 \pagestyle{scrheadings}
 
-% enable glossaries
-\input{glossary}
-\makeglossaries
-% disable linking acronyms to their glossary entry
-\glsdisablehyper
+% enable the use of \enquote{} with typographically correct markers
+\usepackage[autostyle]{csquotes}
 
-% use PDFsync
-%\synctex=1
-
-% increase emergency stretch to prevent overfull hboxes
-\setlength{\emergencystretch}{1em}
-
-% Bilder werden auch im Unterverzeichnis images/ gesucht
-\graphicspath{{images/}}
-
-% captions formatieren
+% format caption texts
+\usepackage{caption}
 \renewcommand{\captionfont}{\small}
 \renewcommand{\captionlabelfont}{\small\rmfamily\bfseries}
 \setlength{\captionmargin}{1em}
 \setlength{\abovecaptionskip}{1em}
 \setlength{\belowcaptionskip}{1em}
 
-\setlength{\parskip}{0.2em}
+% allow inline enumerations
+\usepackage{paralist}
 
-% tiefe der toc
-\setcounter{secnumdepth}{3}
-\setcounter{tocdepth}{3}
+% list bibliography and list of * in the table of contents
+\usepackage[nottoc,section]{tocbibind}
 
-% Listing-Umbegung einrichten
-% ACHTUNG: Dieses Paket muss nach den "float", "rotating" und "subfigure" Paketen eingebunden werden!
-\lstset{%
-	language=Java,                  % choose the language of the code
-	basicstyle=\footnotesize,       % the size of the fonts that are used for the code
-	numbers=left,                   % where to put the line-numbers
-	numberstyle=\footnotesize,      % the size of the fonts that are used for the line-numbers
-	stepnumber=1,                   % the step between two line-numbers. If it's 1 each line will be numbered
-	numbersep=5pt,                  % how far the line-numbers are from the code
-	%backgroundcolor=\color{white}, % choose the background color. You must add \usepackage{color}
-	showspaces=false,               % show spaces adding particular underscores
-	showstringspaces=false,         % underline spaces within strings
-	showtabs=false,                 % show tabs within strings adding particular underscores
-	frame=single,                   % adds a frame around the code
-	tabsize=2,                      % sets default tabsize to 2 spaces
-	captionpos=b,                   % sets the caption-position to bottom
-	breaklines=true,                % sets automatic line breaking
-	breakatwhitespace=true,         % sets if automatic breaks should only happen at whitespace
-	title=\lstname,                 % show the filename of files included with \lstinputlisting; also try caption instead of title
-}
+% nice package to outline algorithms
+\usepackage[algoruled,linesnumbered,commentsnumbered,vlined,dotocloa]{algorithm2e}
 
-\lstdefinelanguage{jino-imcode}{%
-	morekeywords={%
-		AConstant,%
-		Add,%
-		Allocation,%
-		AMemConstant,%
-		AMTConstant,%
-		AMTConstantStatic,%
-		AObjConstant,%
-		AReadArray,%
-		AReadLocalVariable,%
-		ArgPhi,%
-		ArrayClass,%
-		ArrayLength,%
-		AStoreArray,%
-		AStoreLocalVariable,%
-		BasicBlock,%
-		BasicBlockList,%
-		BasicVisitor,%
-		BinaryNode,%
-		BitAnd,%
-		BitOr,%
-		BitXor,%
-		Branch,%
-		BReadArray,%
-		BStoreArray,%
-		CallerEntry,%
-		CallGraphVisitor,%
-		Call,%
-		CastD2F,%
-		CastD2I,%
-		CastD2L,%
-		CastF2D,%
-		CastF2I,%
-		CastF2L,%
-		CastI2B,%
-		CastI2C,%
-		CastI2D,%
-		CastI2F,%
-		CastI2L,%
-		CastI2S,%
-		Cast,%
-		CastL2D,%
-		CastL2F,%
-		CastL2I,%
-		CaughtException,%
-		CheckCast,%
-		Class,%
-		CodeFlattener,%
-		CodeWriter,%
-		Compare,%
-		ConditionalBranch,%
-		Constant,%
-		CopyVisitor,%
-		CReadArray,%
-		CStoreArray,%
-		DAdd,%
-		DataFlowAMem,%
-		DataFlowAny,%
-		DataFlowArray,%
-		DataFlowConstObj,%
-		DataFlowConstValue,%
-		DataFlowIntRange,%
-		DataFlowInvalidObj,%
-		DataFlow,%
-		DataFlowMessage,%
-		DataFlowObj,%
-		DataFlowResource,%
-		DataFlowSet,%
-		DataFlowSHM,%
-		DataFlowValidObj,%
-		DConstant,%
-		DDiv,%
-		DeadCodeVisitor,%
-		DefUseUpdater,%
-		DefVisitor,%
-		DescriptorContainer,%
-		DGCompare,%
-		Div,%
-		DLCompare,%
-		DMul,%
-		DNeg,%
-		Domain,%
-		DReadArray,%
-		DReadLocalVariable,%
-		DRem,%
-		DStoreArray,%
-		DStoreLocalVariable,%
-		DSub,%
-		EndBlock,%
-		Epilog,%
-		EQConditionalBranch,%
-		EscapeVisitor,%
-		ExceptionHandler,%
-		FAdd,%
-		FConstant,%
-		FDiv,%
-		FGCompare,%
-		Field,%
-		FieldRead,%
-		FieldWrite,%
-		FLCompare,%
-		FMul,%
-		FNeg,%
-		FReadArray,%
-		FReadLocalVariable,%
-		FRem,%
-		FStoreArray,%
-		FStoreLocalVariable,%
-		FSub,%
-		GEConditionalBranch,%
-		GetField,%
-		GetStatic,%
-		GlobalHeap,%
-		Goto,%
-		GTConditionalBranch,%
-		HeapCoffeeBreak,%
-		HeapIdleRoundRobin,%
-		Heap,%
-		HeapRestrictedDomainScope,%
-		HeapSlottedGC,%
-		IAdd,%
-		IBitAnd,%
-		IBitOr,%
-		IBitXor,%
-		IConstant,%
-		IDiv,%
-		IMul,%
-		INeg,%
-		InlineVisitor,%
-		InstanceOf,%
-		InvokeInterface,%
-		Invoke,%
-		InvokeNonUnique,%
-		InvokeSpecial,%
-		InvokeStatic,%
-		InvokeUnique,%
-		InvokeVirtual,%
-		IReadArray,%
-		IReadLocalVariable,%
-		IRem,%
-		IShiftLeft,%
-		IShiftRight2,%
-		IShiftRight,%
-		IStoreArray,%
-		IStoreLocalVariable,%
-		ISub,%
-		LAdd,%
-		LBitAnd,%
-		LBitOr,%
-		LBitXor,%
-		LCompare,%
-		LConstant,%
-		LDiv,%
-		LEConditionalBranch,%
-		ListHead,%
-		LMul,%
-		LNeg,%
-		LocalPortalMethod,%
-		LookupSwitch,%
-		LReadArray,%
-		LReadLocalVariable,%
-		LRem,%
-		LShiftLeft,%
-		LShiftRight2,%
-		LShiftRight,%
-		LStoreArray,%
-		LStoreLocalVariable,%
-		LSub,%
-		LTConditionalBranch,%
-		MethodFrame,%
-		Method,%
-		MethodNotFound,%
-		MethodVisitor,%
-		Module,%
-		Monitor,%
-		Mul,%
-		NEConditionalBranch,%
-		Neg,%
-		NewArray,%
-		New,%
-		NewMultiArray,%
-		NewObjArray,%
-		Node,%
-		NullCheck,%
-		NullConstant,%
-		ObjectArrayClass,%
-		Operand,%
-		Phi,%
-		PhiUpdateVisitor,%
-		PopReturnAddr,%
-		PortalClassInit,%
-		PortalClass,%
-		PortalConstructor,%
-		PortalInit,%
-		PortalServiceInit,%
-		PortalService,%
-		PutField,%
-		PutStatic,%
-		ReadArray,%
-		ReadLocalVariable,%
-		Rem,%
-		RemotePortalMethod,%
-		RenameVisitor,%
-		ReplaceVisitor,%
-		ReturnSubroutine,%
-		ShiftLeft,%
-		ShiftRight2,%
-		ShiftRight,%
-		Slot,%
-		SlotPref,%
-		SReadArray,%
-		SStoreArray,%
-		StackOperationDUP2,%
-		StackOperationDUP2_X1,%
-		StackOperationDUP2_X2,%
-		StackOperationDUP,%
-		StackOperationDUP_X1,%
-		StackOperationDUP_X2,%
-		StackOperationPOP2,%
-		StackOperationPOP,%
-		StackOperationSWAP,%
-		StartBlock,%
-		StoreArray,%
-		StoreLocalVariable,%
-		Sub,%
-		SystemMethod,%
-		TableSwitch,%
-		Task,%
-		Throw,%
-		TypedVisitor,%
-		TypedVisitorSimpleAdapter,%
-		UnaryNode,%
-		UpdateUsesVisitor,%
-		Visitor
-	},
-	moredelim=[il][\emph]{|}
-}
-
-% hyperref einrichten
+% load this close to the end
+\usepackage{hyperref}
 \hypersetup{%
 	pdfpagemode=UseNone,%
 	pdfpagelayout=TwoPageRight,%
@@ -376,16 +78,69 @@
 	linkcolor=black,%
 	citecolor=black,
 	urlcolor=black,%
-	pdfauthor={\baauthor},%
-	pdftitle={\batitle},
-	pdfsubject={\batitle},
-	pdfkeywords={KESO, embedded systems, Marmelade, Java},
+	pdfauthor={\thesisauthor},%
+	pdftitle={\thesistitle},
+	pdfsubject={\thesistitle},
+	pdfkeywords={\thesiskeywords},
 	pdfstartpage=1%
 }
 
+% nice references with automatic naming
+\usepackage[nameinlink]{cleveref}
+
+% load glossaries, needs to be after hyperref
+\usepackage[acronym,acronymlists={main},toc]{glossaries}
+% enable glossaries
+\input{glossary}
+\makeglossaries{}
+% disable linking acronyms to their glossary entry
+\glsdisablehyper{}
+
+% headings
+\usepackage{titlesec}
+\titleformat{\chapter}[hang]{\Huge\rmfamily}{%
+	\parbox{1.2cm}{\thechapter{}}%
+	\parbox{0.8cm}{\centering\textcolor{white!75!black}{|}}}{0pt}{\Huge\rmfamily}
+\titleformat{\section}[hang]{\Large\rmfamily}{%
+	\parbox{1.2cm}{\thesection{}}%
+	\parbox{0.8cm}{\centering\textcolor{white!75!black}{|}}}{0pt}{\Large\rmfamily}
+\titleformat{\subsection}[hang]{\large\rmfamily}{%
+	\parbox{1.2cm}{\thesubsection{}}%
+	\parbox{0.8cm}{\centering\textcolor{white!75!black}{|}}}{0pt}{\large\rmfamily}
+\titleformat{\subsubsection}[hang]{\rmfamily}{%
+	\parbox{1.2cm}{\thesubsubsection{}}%
+	\parbox{0.8cm}{\centering\textcolor{white!75!black}{|}}}{0pt}{\rmfamily}
+\titleformat{\subsubsection}[hang]{\rmfamily}{%
+	\parbox{1.2cm}{\theparagraph{}}%
+	\parbox{0.8cm}{\centering\textcolor{white!75!black}{|}}}{0pt}{\rmfamily}
+\setkomafont{sectioning}{\rmfamily\bfseries}
+\setkomafont{descriptionlabel}{\rmfamily\bfseries}
+
+% source code listings
+\usepackage[chapter]{minted}
+\usemintedstyle{friendly}
+\newminted{c}{%
+	linenos,
+	tabsize = 2,
+	xleftmargin = 2em}
+\newminted{java}{%
+	linenos,
+	tabsize = 2,
+	xleftmargin = 2em}
+
+% increase emergency stretch to prevent overfull hboxes
+\setlength{\emergencystretch}{1em}
+\setlength{\parskip}{0.2em}
+
+% maximum ToC depth
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
 % Some useful todonotes-macros
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage{ulem} % for \uwave
 \newcommand{\reword}[1]{%
-	\uwave{#1}\todo[color=GreenYellow]{Reword}%
+	\parbox{\textwidth}{\uwave{#1}}\todo[color=GreenYellow]{Reword}%
 	\xspace%
 }
 \newcommand{\missingref}[1]{%
@@ -413,24 +168,3 @@
 	\uwave{#1}\todo{#2}%
 	\xspace%
 }
-
-% better C++ and C# symbols
-\usepackage{relsize}
-%c from texinfo.tex
-\def\ifmonospace{\ifdim\fontdimen3\font=0pt }
-%c C plus plus
-\def\C++{%
-  \ifmonospace%
-    C++%
-  \else%
-    C\kern-.1667em\raise.30ex\hbox{\smaller{++}}%
-  \fi%
-  \spacefactor1000 }
-%c C sharp
-\def\Csharp{%
-  \ifmonospace%
-    C\#%
-  \else%
-    C\kern-.1667em\raise.30ex\hbox{\smaller{\#}}%
-  \fi%
-  \spacefactor1000 }
