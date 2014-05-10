@@ -1,25 +1,40 @@
 SHELL=/bin/bash
-LATEXMK=latexmk
+LATEXMK=latexmk -e "\$$pdflatex='lualatex -shell-escape %O %S'"
+LATEXMK_NONSTOP=latexmk -e "\$$pdflatex='lualatex -interaction=nonstopmode -shell-escape %O %S'"
 MAKEGLOSSARIES=makeglossaries
-
 RM=rm -f
 
-FILENAME="MA"
+# Search for LaTeX packages in the current directory, too – we need that for an
+# updated version of tcolorbox.
+TEXINPUTS=.:
+
+FILENAME=MA
 
 TEXES=$(wildcard *.tex)
 CHAPTER_TEXES=$(wildcard chapters/*.tex)
 BIBS=$(wildcard bibtex/*.bib)
 
+.PHONY: all continuous edit clean distclean
+
 all: $(FILENAME).pdf
 
 $(FILENAME).pdf: $(TEXES) $(CHAPTER_TEXES) $(BIBS)
-	$(LATEXMK) -e "\$$pdflatex='lualatex -shell-escape %O %S'" -pdf $(FILENAME).tex
+	$(LATEXMK) -pdf $(FILENAME).tex
 	$(MAKEGLOSSARIES) $(FILENAME)
 	$(MAKEGLOSSARIES) $(FILENAME)
-	$(LATEXMK) -e "\$$pdflatex='lualatex -shell-escape %O %S'" -pdf $(FILENAME).tex
+	$(LATEXMK) -pdf $(FILENAME).tex
 
 continuous:
-	inotifywait -e close_write -r -m --format='%w%f' . | while read file; do [[ $$file =~ ^.*\.(tex|bib)$$ ]] && echo "$$file changed" && $(LATEXMK) -e "\$$pdflatex='lualatex -interaction=nonstopmode -shell-escape %O %S'" -pdf $(FILENAME).tex; done
+ifneq ($(shell which inotifywait),)
+	inotifywait -e close_write -r -m --format='%w%f' . | \
+		while read file; do \
+			[[ $$file =~ ^.*\.(tex|bib)$$ ]] && \
+			echo "$$file changed" && \
+			$(LATEXMK_NONSTOP) -pdf $(FILENAME).tex \
+		; done
+else
+	$(LATEXMK_NONSTOP) -pdf -pvc $(FILENAME).tex
+endif
 
 edit:
 	$$EDITOR -p $(TEXES) $(wildcard chapters/*.tex) bibtex/bib.bib
@@ -29,6 +44,16 @@ clean:
 
 distclean:
 	-$(LATEXMK) -C $(FILENAME).tex
-	$(RM) $(FILENAME).pdf $(FILENAME).acn $(FILENAME).bbl $(FILENAME).glo $(FILENAME).ist $(FILENAME).loa $(FILENAME).lol $(FILENAME).tdo
-
-.PHONY: all clean distclean continuous edit
+	$(RM) \
+		$(FILENAME).pdf \
+		$(FILENAME).acn \
+		$(FILENAME).acr \
+		$(FILENAME).alg \
+		$(FILENAME).bbl \
+		$(FILENAME).glg \
+		$(FILENAME).glo \
+		$(FILENAME).gls \
+		$(FILENAME).ist \
+		$(FILENAME).loa \
+		$(FILENAME).lol \
+		$(FILENAME).tdo
