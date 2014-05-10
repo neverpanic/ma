@@ -37,7 +37,7 @@ else
 endif
 
 edit:
-	$$EDITOR -p $(TEXES) $(wildcard chapters/*.tex) bibtex/bib.bib
+	$$EDITOR $(TEXES) $(wildcard chapters/*.tex) bibtex/bib.bib
 
 clean:
 	$(LATEXMK) -c $(FILENAME).tex
