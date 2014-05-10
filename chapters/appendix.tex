@@ -2,18 +2,22 @@
 
 \chapter{Appendix}
 	\label{chapter:appendix}
-	% number all tocbibind sections in the appendix
-	\tocsection
+	% don't use a full chapter, only a section
+	\let\chapter\section
 
 	\bibliographystyle{alpha}
 	\bibliography{bibtex/bib}
 	\listoffigures
 	\listoftables
-	\listofalgorithms
+
+	% ensure list of algorithms is rendered as section
+	\makeatletter
+	\section{\listalgorithmcfname}
+	\@mkboth{\MakeUppercase\listalgorithmcfname}{\MakeUppercase\listalgorithmcfname}
+	\@starttoc{loa}
+	\makeatother
 
 	\renewcommand\listoflistingscaption{List of Source Code Listings}
-	% don't use a full chapter, only a section
-	\let\chapter\section
 	\listoflistings
 
 	\renewcommand*{\glsclearpage}{\clearpage}
@@ -21,8 +25,9 @@
 
 	% ensure todonotes are rendered as a section
 	\makeatletter
-	\let\chapter\@undefined
+	\if@todonotes@disabled%
+	\else
+		\section{\@todonotes@todolistname}
+		\@starttoc{tdo}
+	\fi
 	\makeatother
-
-	\todototoc
-	\listoftodos

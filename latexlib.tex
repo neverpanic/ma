@@ -10,10 +10,16 @@
 	headings=normal, % größe der überschriften, standard ist viel zu groß
 	abstract,        % Überschrift über dem Abstract
 	titlepage=false,
-	BCOR=1cm,
-	listof=numbered
+	BCOR=1cm
 %	draft
 ]{scrreprt}
+
+% I *want* all lists of stuff to have a number (even the bibliography, despite the authors of KOMA thinking that this
+% isn't a good idea). Also, these shouldn't be chapters (again, the KOMA authors tell me they know better…) but sections
+% in an Appendix chapter.
+\KOMAoption{toc}{listofnumbered}
+\KOMAoption{toc}{bibliographynumbered}
+\KOMAoption{listof}{leveldown}
 
 \usepackage[pdftex]{graphicx}
 % Bilder werden auch im Unterverzeichnis images/ gesucht
@@ -63,11 +69,8 @@
 % allow inline enumerations
 \usepackage{paralist}
 
-% list bibliography and list of * in the table of contents
-\usepackage[nottoc,section]{tocbibind}
-
 % nice package to outline algorithms
-\usepackage[algoruled,linesnumbered,commentsnumbered,vlined,dotocloa]{algorithm2e}
+\usepackage[algoruled,algochapter,titlenumbered,linesnumbered,commentsnumbered,vlined]{algorithm2e}
 
 % load this close to the end
 \usepackage{hyperref}
