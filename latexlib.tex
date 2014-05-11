@@ -92,12 +92,10 @@
 \usepackage[nameinlink]{cleveref}
 
 % load glossaries, needs to be after hyperref
-\usepackage[acronym,acronymlists={main},toc]{glossaries}
+\usepackage[acronym,nomain,toc,savewrites,section,numberedsection=autolabel]{glossaries}
 % enable glossaries
 \input{glossary}
 \makeglossaries{}
-% disable linking acronyms to their glossary entry
-\glsdisablehyper{}
 
 % headings
 \usepackage{titlesec}
