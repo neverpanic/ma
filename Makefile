@@ -1,12 +1,13 @@
 SHELL=/bin/bash
-LATEXMK=latexmk -e "\$$pdflatex='lualatex -shell-escape %O %S'"
-LATEXMK_NONSTOP=latexmk -e "\$$pdflatex='lualatex -interaction=nonstopmode -shell-escape %O %S'"
-MAKEGLOSSARIES=makeglossaries
-RM=rm -f
 
 # Search for LaTeX packages in the current directory, too – we need that for an
 # updated version of tcolorbox.
-TEXINPUTS=.:
+TEXINPUTS=./texmf//:
+LATEXMK=TEXINPUTS="$(TEXINPUTS)" latexmk -e "\$$pdflatex='lualatex -shell-escape %O %S'"
+LATEXMK_NONSTOP=TEXINPUTS="$(TEXINPUTS)" latexmk -e "\$$pdflatex='lualatex -interaction=nonstopmode -shell-escape %O %S'"
+MAKEGLOSSARIES=makeglossaries
+
+RM=rm -f
 
 FILENAME=MA
 
