@@ -1186,7 +1186,7 @@
   \else%
     \csedef{tcb@lstof@#2}{\kvtcb@new@listof}%
     \csedef{tcb@lsttp@#2}{\kvtcb@new@listtype}%
-    \appto\tcb@new@colopt{,add to list={\csname tcb@lstof@\kvtcb@savedelimiter\endcsname}{\csname tcb@lsttp@\kvtcb@savedelimiter\endcsname}}%
+    \appto\tcb@new@colopt{,add to list={\csname tcb@lstof@#2\endcsname}{\csname tcb@lsttp@#2\endcsname}}%
   \fi%
   \kvtcb@init@hook%
 }%
