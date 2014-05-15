@@ -55,6 +55,9 @@ distclean:
 		$(FILENAME).glo \
 		$(FILENAME).gls \
 		$(FILENAME).ist \
+		$(FILENAME).listing \
 		$(FILENAME).loa \
 		$(FILENAME).lol \
+		$(FILENAME).mls \
+		$(FILENAME).pyg \
 		$(FILENAME).tdo
