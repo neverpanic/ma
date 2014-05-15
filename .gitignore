@@ -34,3 +34,6 @@ launchd-out.txt
 MA.loa
 lualatex*.fls
 No.tex
+MA.listing
+MA.pyg
+MA.thm

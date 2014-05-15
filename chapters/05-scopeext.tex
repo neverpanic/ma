@@ -10,9 +10,14 @@
 		Give an example of the pattern we are trying to achieve in C and compare with a Java implementation that returns
 		a freshly allocated object. Observe that we need garbage collection to reclaim this object. Explain how we are
 		trying to reduce the need for garbage collection by deducing which objects are no longer needed and can be freed.
+		See~\Cref{test}.
 
-		\begin{listing}
-			\begin{ccode*}{gobble=4}
+		\begin{thesiscode}[gobble=4]{c}{test}{An example C code listing.}{%
+				An example C code listing. The \texttt{main} function allocates a sufficiently large array of characters on the
+				stack and passes a pointer to the \texttt{fill} method, which uses the array. In Java, this example would
+				include allocating an array in the equivalent of the \texttt{fill} method and returning a reference to the
+				allocated object.
+			}
 				void main(void) {
 					char result[150];
 					fill(result);
@@ -22,14 +27,7 @@
 					for (size_t i = 0; i < 150; ++i) {
 						result[i] = 'a' + i;
 					}
-				}
-			\end{ccode*}
-			\caption[An example C code listing.]{An example C code listing. The \texttt{main} function allocates
-			a sufficiently large array of characters on the stack and passes a pointer to the \texttt{fill} method, which uses
-			the array. In Java, this example would include allocating an array in the equivalent of the \texttt{fill} method
-			and returning a reference to the allocated object.}
-			\label{lst:scopeext:idea:c-example}
-		\end{listing}
+				}\end{thesiscode}
 
 	\section{Analysis and Optimization}
 		\label{sec:scopeext:analysis}

@@ -4,8 +4,7 @@
 \NeedsTeXFormat{LaTeX2e}
 \documentclass[
 	twoside,
-	12pt,
-	a4paper,
+	paper=a4,
 	headsepline,     % linie unter kopfzeilen
 	headings=normal, % größe der überschriften, standard ist viel zu groß
 	abstract,        % Überschrift über dem Abstract
@@ -20,6 +19,7 @@
 \KOMAoption{toc}{listofnumbered}
 \KOMAoption{toc}{bibliographynumbered}
 \KOMAoption{listof}{leveldown}
+\KOMAExecuteOptions{fontsize=12pt}
 
 \usepackage[pdftex]{graphicx}
 % Bilder werden auch im Unterverzeichnis images/ gesucht
@@ -72,8 +72,6 @@
 % nice package to outline algorithms
 \usepackage[algoruled,algochapter,titlenumbered,linesnumbered,commentsnumbered,vlined]{algorithm2e}
 
-\usepackage{tcolorbox}
-
 % load this close to the end
 \usepackage{hyperref}
 \hypersetup{%
@@ -89,9 +87,6 @@
 	pdfkeywords={\thesiskeywords},
 	pdfstartpage=1%
 }
-
-% nice references with automatic naming
-\usepackage[nameinlink]{cleveref}
 
 % load glossaries, needs to be after hyperref
 \usepackage[acronym,nomain,toc,savewrites,section,numberedsection=autolabel]{glossaries}
@@ -118,18 +113,6 @@
 	\parbox{0.8cm}{\centering\textcolor{white!75!black}{|}}}{0pt}{\rmfamily}
 \setkomafont{sectioning}{\rmfamily\bfseries}
 \setkomafont{descriptionlabel}{\rmfamily\bfseries}
-
-% source code listings
-\usepackage[chapter]{minted}
-\usemintedstyle{friendly}
-\newminted{c}{%
-	linenos,
-	tabsize = 2,
-	xleftmargin = 2em}
-\newminted{java}{%
-	linenos,
-	tabsize = 2,
-	xleftmargin = 2em}
 
 % increase emergency stretch to prevent overfull hboxes
 \setlength{\emergencystretch}{1em}
@@ -171,3 +154,62 @@
 	\uwave{#1}\todo{#2}%
 	\xspace%
 }
+
+% source code listings
+\usepackage[chapter]{minted}
+\usemintedstyle{friendly}
+%\newminted{c}{%
+%	linenos,
+%	tabsize = 2,
+%	xleftmargin = 2em}
+%\newminted{java}{%
+%	linenos,
+%	tabsize = 2,
+%	xleftmargin = 2em}
+
+% nice references with automatic naming
+\usepackage[nameinlink,capitalize]{cleveref}
+
+% Provide nice boxes for my source code listings. Cats love boxes.
+% Note: This needs tcolorbox 3.0, which isn't in texlive 2013
+\usepackage{tcolorbox}
+\tcbuselibrary{skins}
+\tcbuselibrary{minted}
+\tcbset{%
+	thesiscode/.style 2 args = {%
+		listing engine = minted,
+		minted style = friendly,
+		minted language = #2,
+		minted options = {%
+			linenos,
+			tabsize = 2,
+			numbersep = 3mm,
+			fontsize = \small,
+			#1
+		},
+		colback = black!5!white,
+		colframe = black!75!white,
+		fonttitle = \bfseries,
+		listing and comment,
+		enhanced,
+		segmentation hidden,
+		arc = 0pt,
+		left = 5mm,
+		overlay = {%
+			\begin{tcbclipinterior}
+				\fill[black!20!white] (frame.south west) rectangle ([xshift=5mm]frame.north west);
+			\end{tcbclipinterior}
+		}
+	},
+	thesiscodetitled/.style n args = {4}{%
+		thesiscode={#1}{#2},
+		label={#3},
+		title={Listing~\thetcbcounter: #4}
+	}
+}
+\newtcblisting[auto counter,crefname={listing}{listings},Crefname={Listing}{Listings}]{thesiscode}[5][]{%
+	thesiscodetitled={#1}{#2}{#3}{#4},
+	comment={\footnotesize{}#5}}
+\newtcbinputlisting[use counter from=thesiscode]{\inputthesiscode}[5][]{%
+	thesiscodetitled={#1}{#2}{#3}{#4},
+	comment={\footnotesize{}#5}}
