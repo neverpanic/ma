@@ -16,21 +16,23 @@
 \input{latexlib}
 
 \begin{document}
-
-\include{chapters/00-title}
-\include{chapters/01-declaration-of-originality}
-\include{chapters/02-abstract}
+\pagenumbering{roman}
+\input{chapters/00-title}
+\input{chapters/01-declaration-of-originality}
+\input{chapters/02-abstract}
 
 \cleardoublepage{}
 \thispagestyle{empty}
 \tableofcontents{}
+\cleardoublepage{}
+\pagenumbering{arabic}
 
-\include{chapters/03-introduction}
-\include{chapters/05-eea}
-\include{chapters/06-evaluation}
-\include{chapters/06-evaluation}
-\include{chapters/07-related-work}
-\include{chapters/08-conclusion}
+\input{chapters/03-introduction}
+\input{chapters/04-changes-ea}
+\input{chapters/05-eea}
+\input{chapters/06-evaluation}
+\input{chapters/07-related-work}
+\input{chapters/08-conclusion}
 
-\include{chapters/appendix}
+\input{chapters/appendix}
 \end{document}
