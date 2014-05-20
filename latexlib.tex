@@ -40,16 +40,30 @@
 \pgfdeclarelayer{foreground}
 \pgfsetlayers{background,main,foreground}
 
+% provide \nohyphens, used in the title page
+\usepackage{hyphenat}
+
 % set and load fonts
 \usepackage{fontspec}
-\setmainfont{Latin Modern Roman}
-\setsansfont[Scale = MatchLowercase]{Latin Modern Sans}
-\setmonofont[Scale = MatchLowercase]{Latin Modern Mono}
+\setmainfont[
+	ExternalLocation,
+	Path           = {./fonts/},
+	Extension      = {.otf},
+	UprightFont    = {*Regular},
+	BoldFont       = {*Bold},
+	ItalicFont     = {*Italic},
+	BoldItalicFont = {*BoldItalic}]{Charter}
+%\setsansfont[Scale = MatchLowercase]{Helvetica}
+%\setmonofont[Scale = MatchLowercase]{Latin Modern Mono}
 
 % load successor package of babel for LuaTeX and load the language files
 \usepackage{polyglossia}
 \setmainlanguage[variant=american]{english}
 \setotherlanguage[latesthyphen=true]{german}
+
+% define a date format for the titlepage
+\usepackage[nodayofweek]{datetime}
+\newdateformat{citationdate}{\shortmonthname[\THEMONTH] \THEYEAR}
 
 % headings
 \usepackage[automark]{scrpage2}
@@ -71,6 +85,8 @@
 
 % nice package to outline algorithms
 \usepackage[algoruled,algochapter,titlenumbered,linesnumbered,commentsnumbered,vlined]{algorithm2e}
+
+\usepackage{i4coverpage}
 
 % break long URLs
 \usepackage[hyphens]{url}

@@ -1,17 +1,50 @@
 % vim:noet:sts=2:ts=2:sw=2:smarttab:tw=120
 
-\thispagestyle{empty}
+\begin{german}
+	\makecoverpage{%
+		Lehrstuhl für Informatik 4
+	}{%
+		Verteilte Systeme und Betriebssysteme
+	}{%
+		\coverpagetextsmall{\nohyphens{\thesisauthor}}%
+		\coverpagetextlarge{\nohyphens{\thesistitle}}%
+		\coverpagetextsmall{Masterarbeit im Fach \thesissubject}%
+		\coverpagetextsmall{\displaydate{thesisenddate}}%
+	}{%
+		\begin{english}
+			Please cite as:\\%
+			\nohyphens{\thesisauthor{}, \enquote{\thesistitle}, Master's Thesis, University of Erlangen, Dept.\ of Computer
+			Science, \citationdate\displaydate{thesisenddate}.}
+		\end{english}
+	}{%
+		\begin{german}
+			Friedrich-Alexander-Universität Erlangen-Nürnberg\\%
+			Department Informatik\\%
+			Verteilte Systeme und Betriebssysteme\\%
+			\vspace{.5em}%
+			Martensstr. 1 $\cdot$ 91058 Erlangen $\cdot$ Germany%
+		\end{german}
+	}{%
+		\href{https://www4.cs.fau.de/}{www4.cs.fau.de}%
+	}{%
+		\includegraphics{images/i4/logo-tf}%
+	}{%
+		\includegraphics{images/i4/logo-fau}%
+	}{%
+		\includegraphics[width=0.25\textwidth]{images/i4/logo-i4}%
+	}
+\end{german}
 
 \begin{titlepage}
 	\begin{german}
 		\begin{flushright}
 			\rmfamily
-			{\fontsize{35}{38}\selectfont\thesistitle{}}\\
+			{\LARGE\thesistitle{}}\\
 			\begin{small}
 				Masterarbeit im Fach \thesissubject{}\\
 				\vspace*{1cm}
 				von \textbf{\thesisauthor{}}\\
-				geboren am \thesisbirthdate{} in \thesisbirthlocation{}\\
+				geboren am \displaydate{thesisbirthdate} in \thesisbirthlocation{}\\
 				\vspace{\fill}
 				\textbf{Lehrstuhl für Informatik 4}\\
 				Friedrich-Alexander Universität Erlangen-Nürnberg\\
@@ -20,8 +53,8 @@
 				\thesisadvisors{}\\
 				\vspace*{1cm}
 				\begin{tabular}{rr}
-					\textbf{Beginn:} & \thesisstartdate{} \\
-					\textbf{Abgabe:} & \thesisenddate{}
+					\textbf{Beginn:} & \displaydate{thesisstartdate} \\
+					\textbf{Abgabe:} & \displaydate{thesisenddate}
 				\end{tabular}
 				\flushleft{}
 				\begin{tikzpicture}[remember picture,overlay]
