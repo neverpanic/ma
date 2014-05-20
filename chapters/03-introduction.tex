@@ -2,13 +2,14 @@
 
 \chapter{Introduction}
 	\label{chapter:intro}
-	Embedded devices are on the rise. While refrigerators with internet connections that have been journalists' favorite
-	prediction for the future seem to be still a long way off, other turing-complete embedded devices have found their way
-	into our daily lives. Take a look around in your kitchen, and you might find a fully automatic coffee machine,
-	a digital kitchen scale, or even a WiFi-enabled bar code scanner to help you maintain your shopping list. And it seems
-	we're just seeing the first vistas of an emerging trend: The \enquote{Internet of Things} certainly was a popular
-	dictum at the embedded world Conference 2014 in Nuremberg. The world might be on the verge of a flood of highly
-	integrated embedded devices.
+	Embedded devices are on the rise. While internet-connected refrigerators, which have been journalists' favorite
+	prediction for the future, are still a long way off, other turing complete devices have found their way into daily
+	life. Taking a look around an ordinary kitchen reveals devices like a fully automatic coffee machine, a digital
+	kitchen scale, a dish washer, or even a WiFi-enabled bar code scanner helping users update their shopping list. All of
+	those contain microcontrollers, each serving a special purpose. And it seems these are just the first vistas of an
+	emerging trend: At the embedded world conference 2014 in Nuremberg, the \emph{Internet of Things}, i.e.\ the
+	interconnection of these embedded devices, was a very popular topic. The world might be on the verge of being flooded
+	with highly integrated and networked microcontroller-driven devices.
 
 	% See
 	% http://www.is2t.com/java-in-embedded-systems/
@@ -18,26 +19,51 @@
 	% http://www.eetimes.com/document.asp?doc_id=1261676
 	% http://www.eetimes.com/document.asp?doc_id=1319569
 
-	Each new device needs software. Traditionally, C and the like are the languages of choice for embedded programming.
-	However, Java has been emerging as an option for a number of reasons. First and foremost, the performance degradation
-	and large footprint commonly associated with Java are being challenged by new virtual machines and compilers.
-	\emph{Ahead-of-time} compilation, i.e.\ translation to native code before execution, as opposed to \emph{just-in-time}
-	compilation or byte code interpretation, is becoming increasingly popular: Google revealed its Android platform will
-	switch to a new runtime environment \enquote{ART} expected to \enquote{speed up apps by around
-	100~\%}~\cite{anthony:13:android-art} using ahead-of-time compilation compared the previous implementation
-	\enquote{Dalvik}~\cite{lindner:14:android-art}. Microsoft announced a similar initiative for its .NET
-	platform~\cite{lardinois:14:dotnet-aot}. Other reasons for Java's rise in the embedded market are the language's ease
-	of use, its large standard library and the type-safe design that prevents out-of-bounds accesses or mistakes in manual
-	memory management, increasing overall reliability and reducing the number of bugs – properties that are very welcome
-	in an embedded environment. Unsurprisingly, Oracle and others offer Java virtual machines for the embedded
-	sector~\cite{merritt:13:java-for-IoT, maxfield:12:IS2T-JVM}.
+	These single-purpose embedded devices are commonly programmed in C and the like. However, with increasing software
+	complexity of these devices, Java has been emerging as an appropriate alternative for a number of reasons. Java's ease
+	of use, large standard library and suitability for complex projects are increasingly called for even in embedded
+	software. Its type safe design prevents memory faults that could be caused by out of bounds array accesses or mistakes
+	in manual memory management, eliminating a whole class of potential bugs.
 
-	\todonote{Explain why embedded systems will rule the world in the future. Also explain current trends in embedded
-	hardware and how everybody is trying to fit more stuff in less processors. If possible, find some numbers for that (I
-	guess Daniel might have some data on that).}
+	These advantages used to come at the price of reduced performance and increased memory usage due to the need for
+	runtime environment and garbage collection, but are challenged by new virtual machines and compilers.
+	\emph{Ahead-of-time} compilation, i.e.\ translation to native code before execution, has been gaining popularity
+	lately: Google revealed switching its Android platform to a new runtime environment, which is expected to
+	\enquote{speed up apps by around 100~\%}~\cite{anthony:13:android-art} using ahead-of-time
+	compilation~\cite{lindner:14:android-art}. Microsoft declared a similar intention for its .NET
+	platform~\cite{lardinois:14:dotnet-aot}. Oracle and others have developed Java virtual machines targeted at embedded
+	systems~\cite{merritt:13:java-for-IoT, maxfield:12:IS2T-JVM}.
 
 	\section{The KESO Multi-JVM}
 		\label{sec:intro:keso}
+		The KESO Java virtual machine uses ahead-of-time compilation and assumes all application code is available for
+		analysis at compile time. This \enquote{closed world} assumption makes aggressive optimizations possible. Built on
+		top of an OSEK/VDX~\cite{OSEKSpec223} or AUTOSAR~\cite{autosar:06:sws_os} \gls{rtos}, KESO allows writing
+		applications and even device drivers in Java~\cite{thomm:10:jtres}. KESO's compiler \emph{JINO} analyzes the
+		application code, tailors the runtime environment (including the Java standard library) to the application's needs
+		and emits standards-compliant C to be compiled for the target architecture.
+
+		\Cref{fig:intro:overview} gives an architectural overview of a KESO system. The runtime environment provides an
+		abstraction layer on top of the OSEK/VDX or AUTOSAR \gls{rtos} and allows configurable access to specific memory
+		addresses for memory-mapped I/O, e.g.\ in device drivers. KESO also provides a mechanism similar to the \gls{jni} to
+		execute native code. A KESO system can contain multiple protection realms (so-called \emph{domains}), each of which
+		can have a number of tasks, resources, alarms, and \glspl{isr}, its own heap region, and garbage collection
+		mechanism. Domains communicate using a \gls{rpc} mechanism called \emph{portals}. The KESO runtime environment
+		ensures objects passed through portals cannot interfere with other protection domains.
+
+		\begin{figure}
+			\begin{center}
+				\input{images/keso-schematic.tex}
+			\end{center}
+			\caption[Schematic overview of a KESO system]{%
+				Schematic overview of a KESO system. An OSEK (or AUTOSAR, not depicted) \gls{rtos} runs on a microcontroller. On
+				top of the operating system, the KESO runtime environment provides services and abstractions used by the
+				application, such as \gls{rpc} primitives or device drivers. Multiple protection realms (\emph{domains}) can
+				contain multiple tasks each, have their own resources, heap, and garbage collection method and communicate
+				safely using \emph{portals}.}
+			\label{fig:intro:overview}
+		\end{figure}
+
 		\todonote{A few sentences on why Java is the new node.js of the embedded world. Explain isolation, safety and ease
 		of use, put the KESO schematic overview there and explain some of it.}
 

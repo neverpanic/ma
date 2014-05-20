@@ -1,0 +1,154 @@
+\documentclass[tikz,convert,crop,boder=100px]{standalone}
+% vim:noet:sts=2:ts=2:sw=2:smarttab:tw=120
+\usetikzlibrary{arrows,shapes,positioning,calc,decorations.markings}
+
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{foreground}
+\pgfsetlayers{background,main,foreground}
+
+\begin{document}
+	\def\radius{0.6em}
+	\def\startangle{75}
+	\tikzstyle{block} = [
+		rectangle,
+		draw,
+		fill=blue!20,
+		text width=5em,
+		text centered,
+		rounded corners,
+		minimum height=2em,
+		anchor=north west
+	]
+
+	\tikzstyle{microcontroller} = [
+		block,
+		text width=15em,
+		minimum width=30em
+	]
+
+	\tikzstyle{oscomponent} = [
+		block,
+		fill=red!20,
+		text width=10em,
+		minimum width=25em
+	]
+
+	\tikzstyle{kesodomain} = [
+		block,
+		fill=green!20,
+		minimum height=3em,
+		minimum width=7em
+	]
+
+	\tikzstyle{domainpart} = [
+		rectangle,
+		draw,
+		fill=green!2,
+		text width=5em,
+		rounded corners,
+		minimum height=2em,
+		anchor=north west
+	]
+
+	\tikzstyle{gcheapnode} = [
+		circle,
+		draw,
+		inner sep=0.2em
+	]
+
+	\tikzstyle{arr} = [
+		draw,
+		->,
+		shorten >=1pt
+	]
+
+	\tikzstyle{activity} = [
+		draw,
+		decoration={markings, mark=at position 1 with {\arrow[rotate=15,scale=.5]{triangle 60}}}
+	]
+
+	\tikzstyle{activityarc} = [
+		radius=\radius,
+		start angle=\startangle,
+		delta angle=-330
+	]
+
+	\tikzstyle{connection} = [
+		arr,
+		thick,
+		<->,
+		>=latex,
+		shorten >=1pt,
+		shorten <=1pt
+	]
+
+	\begin{tikzpicture}
+		% Microcontroller
+		\node (mc) [microcontroller] {Microcontroller};
+
+		% OSEK and KESO Runtime Env
+		\path (mc.north west)+(0,2em) node[oscomponent,anchor=south west] (osek) {OSEK};
+		\path[oscomponent] (osek.north west)++(0,2.5em) node[text width=25em] (keso) {KESO Runtime Environment}
+			-- ++(30em, 0)
+			-- ++(0, -4.5em)
+			-- ++(-4.5em, 0)
+			-- ++(0, 2.5em)
+			-- ++(-25.5em, 0)
+			-- cycle;
+
+		% Domains
+		\path (keso.north west)+(0,4em) node (domA) [kesodomain, anchor=south west, minimum height=10em, minimum width=12.9em] {};
+		\path (domA.north east)+(5em,0) node (domB) [kesodomain] {Domain B};
+		\path (domB.south west)+(5em, -4em) node (domC) [kesodomain] {Domain C};
+
+		% Connections between Domains
+		\draw[connection] (domB.330) -- node[auto] {Portal} (domC.north -| domB.330);
+		\draw[connection] (domB) -- node[auto,swap] {Portal} (domB -| domA.east);
+
+		% Connections between Domains and KESO Runtime Env
+		\draw[connection] (domB) -- (keso.north -| domB);
+		\draw[connection] (domA) -- (keso.north -| domA);
+		\draw[connection] (domC) -- (keso.north -| domC);
+		% Label ``Keso Services''
+		\path (keso.north -| domA)+(0,2.5em) -- node {KESO Services} (keso.north -| domB)+(0,2.5em);
+
+		% Connections between KESO/OSEK and Microcontroller
+		\draw[connection] (osek) -- node[auto,swap] {} (mc.north -| osek);
+		\path (keso.north west)++(28em,-4em) node (kesosouthmcconnector) {};
+		\draw[connection] (kesosouthmcconnector) -- node[auto,swap] {Device Memory} (mc.north -| kesosouthmcconnector);
+
+		\begin{pgfonlayer}{foreground}
+			% Contents of Domain A
+			% Title
+			\path (domA.north)+(0,-1em) node {Domain A};
+
+			% Resources, Alarms, ISRs
+			\path (domA.north)+(0.2em,-2.2em) node[domainpart] {{\footnotesize Resources\\ Alarms\\ ISRs}};
+
+			% Heap
+			\path (domA.north)+(-0.2em,-2.2em) node[domainpart, anchor=north east, minimum height=4em] (domAHeap) {};
+			\path (domAHeap.north)+(0,-0.8em) node {{\footnotesize GC/Heap}};
+			\path (domAHeap.north west)
+				+(1.2em, -2.5em) node[gcheapnode, fill=black!20] (gcheapA) {}
+				+(2.7em, -3.2em) node[gcheapnode, fill=black] (gcheapB) {}
+				+(4.2em, -3.2em) node[gcheapnode, fill=black!20] (gcheapC) {}
+				+(2.4em, -2em) node[gcheapnode] (gcheapD) {}
+				+(3.4em, -2em) node[gcheapnode] (gcheapE) {};
+
+			% Conntections in the Heap
+			\draw [arr] (gcheapB) -- (gcheapA);
+			\draw [arr] (gcheapB) -- (gcheapC);
+			\draw [arr] (gcheapA) -- (gcheapD);
+			\draw [arr] (gcheapC) -- (gcheapE);
+
+			% Tasks
+			\path (domAHeap.south west)+(0,-0.2em) node[domainpart, minimum height=3em] (domATasks) {};
+			\path (domATasks.north)+(0,-0.8em) node {{\footnotesize Tasks}};
+			\foreach \x/\y/\nodetext in {1.5em/-1.5em/5, 3.0em/-1.5em/2, 4.5em/-1.5em/3} {
+				% Activities
+				\path[activity, postaction={decorate}] (domATasks.north west)++(\x,\y) arc[activityarc];
+				\path                                  (domATasks.north west)++(\x,\y) +({-\radius * cos(\startangle)}, {sin(\startangle) * -\radius}) node[anchor=center] {\nodetext};
+			}
+		\end{pgfonlayer}
+	\end{tikzpicture}
+\end{document}
