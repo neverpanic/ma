@@ -64,8 +64,15 @@
 			\label{fig:intro:overview}
 		\end{figure}
 
-		\todonote{A few sentences on why Java is the new node.js of the embedded world. Explain isolation, safety and ease
-		of use, put the KESO schematic overview there and explain some of it.}
+		Because Java is a type safe language, KESO can employ a combination of compile-time and runtime checks to ensure
+		that applications cannot modify memory outside their protection realm even in the absence of specialized hardware
+		for this task, such as a \gls{mpu} or \gls{mmu}. Since KESO guarantees complete isolation even when one of the tasks
+		misbehaves, multiple applications can be run on the same system without interfering with each other, possibly
+		further reducing required chip size, energy consumption and production costs. Due to the reduction of structure
+		sizes in modern computing chips, dealing with transient soft errors such as bit flips is mandatory for critical
+		applications. Software-based mechanisms for isolation are at a disadvantage compared to \glspl{mcu} with
+		hardware-based memory protection such as \glspl{mpu} and \glspl{mmu}, which offer protection against errors caused
+		by this problem class. Previous work on KESO attempts to compensate this~\cite{thomm:11:jtres, stilkerich:13:lctes}.
 
 	\section{Previous Work}
 		\label{sec:intro:prev}
