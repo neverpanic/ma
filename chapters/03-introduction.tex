@@ -39,9 +39,10 @@
 		The KESO Java virtual machine uses ahead-of-time compilation and assumes all application code is available for
 		analysis at compile time. This \enquote{closed world} assumption makes aggressive optimizations possible. Built on
 		top of an OSEK/VDX~\cite{OSEKSpec223} or AUTOSAR~\cite{autosar:06:sws_os} \gls{rtos}, KESO allows writing
-		applications and even device drivers in Java~\cite{thomm:10:jtres}. KESO's compiler \emph{JINO} analyzes the
-		application code, tailors the runtime environment (including the Java standard library) to the application's needs
-		and emits standards-compliant C to be compiled for the target architecture.
+		applications and even device drivers in Java and targets deeply embedded systems with real-time
+		requirements~\cite{thomm:10:jtres}. KESO's compiler \emph{JINO} analyzes the application code, tailors the runtime
+		environment (including the Java standard library) to the application's needs and emits standards-compliant C to be
+		compiled for the target architecture.
 
 		\Cref{fig:intro:overview} gives an architectural overview of a KESO system. The runtime environment provides an
 		abstraction layer on top of the OSEK/VDX or AUTOSAR \gls{rtos} and allows configurable access to specific memory
@@ -74,16 +75,51 @@
 		hardware-based memory protection such as \glspl{mpu} and \glspl{mmu}, which offer protection against errors caused
 		by this problem class. Previous work on KESO attempts to compensate this~\cite{thomm:11:jtres, stilkerich:13:lctes}.
 
+	\section{Motivation}
+		\label{sec:intro:motivation}
+
+		Manual memory management using library functions has been the de-facto standard method of dealing with dynamic
+		memory needs in C and \C++{}. It provides fine-granular control over applications' memory allocation behavior, but
+		comes with a number of downsides. Programming mistakes can lead to leaks and dangling pointers, which in turn can
+		lead to security vulnerabilities or crashes. As a consequence, developers need to be very careful while writing code
+		that uses manual memory management, in particular when used in safety-critical components.
+
+		In order to address these drawbacks, a number of automatic memory management techniques such as garbage collection
+		can be used. Instead of having the software developer deal with unused memory manually, garbage collection
+		automatically identifies slices of memory that are no longer referenced from the working data set and reclaims them,
+		avoiding memory leaks and dangling pointers entirely. However, unused memory is not reclaimed until the next garbage
+		collector run, potentially reducing the predictability of an application's memory allocation behavior. Compared to
+		manual memory management, garbage collection is less error-prone at the cost of not reclaiming memory immediately
+		and being less predictable. Both approaches need to deal with fragmentation caused by reclaiming in a sequence that
+		differs from the allocation order.
+
+		A third alternative that exists in both manual and automatic variants is a region-based approach to managing memory.
+		Each allocated piece of memory is assigned to one of many memory regions (also called \emph{pools}). Unused regions
+		are reclaimed as a whole, avoiding external fragmentation completely. A pool can only be safely recycled if all
+		memory allocated from it is no longer needed, possibly extending the lifetime of a pool and preventing re-use of
+		otherwise unused memory if the mapping from allocation to memory region is a bad match. Since region-based memory
+		management does not suffer from external fragmentation because it does not recycle its pools partially, the time
+		needed for allocations is easily predictable and allocation can be implemented in $\mathcal O(1)$. This is an
+		advantage over both manual memory management and garbage collection, which do not always guarantee tight upper
+		bounds for memory management operations\footnote{This is not to say that they cannot, and there are a few algorithms
+		that achieve good upper bounds for these operations by avoiding fragmentation or embracing it. See~\cite{strotz:14}
+		for previous work in KESO about this problem and~\cite{pizlo:10:pldi} for the work it is based on.}.
+
+		Manual region-based methods require developers to map allocation operations to the regions to be used to satisfy the
+		requests. The Real-Time Specification for Java supports manual region-based approaches to memory management with the
+		subclasses of its \texttt{javax.realtime.ScopedMemory} class~\cite{rtsj:06:scoped}. Manual methods feature
+		predictable \glspl{wcet} and allow fine-granular control over the application's behavior related to memory, but
+		suffer from the same potential problems present in (non-region-based) manual memory management.
+
+		\todonote{Explain region inference, state that stack memory is a special case of region-based memory and outline how
+		EA can be used to infer region information for local objects. Detail how I think scope extension is beneficial for
+		a lot of patterns present in Java and how it will be a simple approach towards full region inference.}
+
 	\section{Previous Work}
 		\label{sec:intro:prev}
 		\todonote{Recall what my bachelor thesis was about, find a few similar examples of people that use type-safe
 		languages and ahead-of-time compilation to achieve isolation. Outline why escape analysis (or alias analysis in
 		general) can not be as precise as it is in type-safe languages in the presence of pointers.}
-
-	\section{Motivation}
-		\label{sec:intro:motivation}
-		\todonote{Explain the basic idea of scope extension and how it augments EA\@. Also, outline some prospects of how
-		scope extension will be all new, shiny and glory.}
 
 	\section{Document Structure}
 		\label{sec:intro:document-structure}

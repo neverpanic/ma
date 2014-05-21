@@ -80,6 +80,19 @@
 \setlength{\abovecaptionskip}{1em}
 \setlength{\belowcaptionskip}{1em}
 
+% better C++ and C# symbols
+\usepackage{relsize}
+% adjusted from texinfo.tex
+\def\ifmonospace{\ifdim\fontdimen3\font=0pt}
+% C++ symbol
+\def\C++{%
+  \ifmonospace%
+    C++%
+  \else%
+    C\kern-.1667em\raise.20ex\hbox{\smaller{+\kern-.1667em+}}%
+  \fi%
+  \spacefactor1000}
+
 % allow inline enumerations
 \usepackage{paralist}
 
@@ -127,9 +140,9 @@
 \titleformat{\subsubsection}[hang]{\rmfamily}{%
 	\parbox{1.2cm}{\thesubsubsection{}}%
 	\parbox{0.8cm}{\centering\textcolor{white!75!black}{|}}}{0pt}{\rmfamily}
-\titleformat{\paragraph}[hang]{\rmfamily}{%
-	\parbox{1.2cm}{\theparagraph{}}%
-	\parbox{0.8cm}{\centering\textcolor{white!75!black}{|}}}{0pt}{\rmfamily}
+%\titleformat{\paragraph}[hang]{\rmfamily}{%
+%	\parbox{1.2cm}{\theparagraph{}}%
+%	\parbox{0.8cm}{\centering\textcolor{white!75!black}{|}}}{0pt}{\rmfamily}
 \setkomafont{sectioning}{\rmfamily\bfseries}
 \setkomafont{descriptionlabel}{\rmfamily\bfseries}
 
