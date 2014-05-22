@@ -46,15 +46,27 @@
 % set and load fonts
 \usepackage{fontspec}
 \setmainfont[
-	ExternalLocation,
-	Path           = {./fonts/},
-	Extension      = {.otf},
-	UprightFont    = {*Regular},
-	BoldFont       = {*Bold},
-	ItalicFont     = {*Italic},
-	BoldItalicFont = {*BoldItalic}]{Charter}
-%\setsansfont[Scale = MatchLowercase]{Helvetica}
-%\setmonofont[Scale = MatchLowercase]{Latin Modern Mono}
+  Ligatures      = TeX,
+  ExternalLocation,
+  Path           = {./fonts/},
+  Extension      = {.otf},
+  UprightFont    = {*Regular},
+  BoldFont       = {*Bold},
+  ItalicFont     = {*Italic},
+  BoldItalicFont = {*BoldItalic}]{Charter}
+\setsansfont[
+  Ligatures      = TeX,
+  Scale          = MatchLowercase,
+  ExternalLocation,
+  Path           = {./fonts/},
+  Extension      = {.ttf},
+  UprightFont    = {*},
+  BoldFont       = {*-Bold},
+  ItalicFont     = {*-Oblique},
+  BoldItalicFont = {*-BoldOblique}]{Helvetica}
+\setmonofont[
+  Ligatures = TeX,
+  Scale     = MatchLowercase]{Latin Modern Mono}
 
 % load successor package of babel for LuaTeX and load the language files
 \usepackage{polyglossia}
