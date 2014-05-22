@@ -78,38 +78,62 @@
 	\section{Motivation}
 		\label{sec:intro:motivation}
 
-		Manual memory management using library functions has been the de-facto standard method of dealing with dynamic
-		memory needs in C and \C++{}. It provides fine-granular control over applications' memory allocation behavior, but
-		comes with a number of downsides. Programming mistakes can lead to leaks and dangling pointers, which in turn can
-		lead to security vulnerabilities or crashes. As a consequence, developers need to be very careful while writing code
-		that uses manual memory management, in particular when used in safety-critical components.
+		\emph{Manual memory management} using library functions has been the de-facto standard method of dealing with
+		dynamic memory needs in C and \C++{}. It provides fine-granular control over applications' memory allocation
+		behavior, but comes with a downside: Programming mistakes can lead to leaks and dangling pointers, which in turn can
+		lead to security vulnerabilities or crashes. As a consequence, developers need to be careful while writing code that
+		uses manual memory management, in particular when used in safety-critical components.
 
-		In order to address these drawbacks, a number of automatic memory management techniques such as garbage collection
-		can be used. Instead of having the software developer deal with unused memory manually, garbage collection
-		automatically identifies slices of memory that are no longer referenced from the working data set and reclaims them,
-		avoiding memory leaks and dangling pointers entirely. However, unused memory is not reclaimed until the next garbage
-		collector run, potentially reducing the predictability of an application's memory allocation behavior. Compared to
-		manual memory management, garbage collection is less error-prone at the cost of not reclaiming memory immediately
-		and being less predictable. Both approaches need to deal with fragmentation caused by reclaiming in a sequence that
-		differs from the allocation order.
+		In order to address these drawbacks, automatic memory management techniques, such as \emph{garbage collection}, can
+		be used. Instead of having the software developer deal with unused memory manually, slices of memory that are no
+		longer referenced from the working data set are automatically identified and reclaimed, avoiding memory leaks and
+		dangling pointers entirely. On the downside, unused memory is not reclaimed until the next garbage collection cycle,
+		potentially reducing the predictability of an application's memory usage. Finding tight upper bounds for both
+		runtime – the so-called \gls{wcet} – and memory usage is required to determine whether real-time constraints can be
+		met. Compared to manual memory management, garbage collection is less error-prone at the cost of not reclaiming
+		memory immediately, being less predictable and requiring additional computation. Both manual memory management and
+		garbage collection need to deal with fragmentation caused by reclaiming in a sequence that differs from the
+		allocation order, further increasing the complexity of memory allocation and reclaim.
 
-		A third alternative that exists in both manual and automatic variants is a region-based approach to managing memory.
-		Each allocated piece of memory is assigned to one of many memory regions (also called \emph{pools}). Unused regions
-		are reclaimed as a whole, avoiding external fragmentation completely. A pool can only be safely recycled if all
-		memory allocated from it is no longer needed, possibly extending the lifetime of a pool and preventing re-use of
-		otherwise unused memory if the mapping from allocation to memory region is a bad match. Since region-based memory
-		management does not suffer from external fragmentation because it does not recycle its pools partially, the time
-		needed for allocations is easily predictable and allocation can be implemented in $\mathcal O(1)$. This is an
-		advantage over both manual memory management and garbage collection, which do not always guarantee tight upper
-		bounds for memory management operations\footnote{This is not to say that they cannot, and there are a few algorithms
-		that achieve good upper bounds for these operations by avoiding fragmentation or embracing it. See~\cite{strotz:14}
-		for previous work in KESO about this problem and~\cite{pizlo:10:pldi} for the work it is based on.}.
+		Another alternative that exists in both manual and automatic variants are \emph{region-based} approaches to managing
+		memory. Each slice of memory is allocated from one of many memory regions (also called \emph{pools}). Unused regions
+		are reclaimed on the whole, avoiding external fragmentation completely. A pool will only be recycled if all of the
+		objects allocated from its memory area are no longer referenced. A bad mapping from allocation to memory pool may
+		thus prevent the recycling of unused memory; in the worst case a single object can hold a whole pool
+		\enquote{hostage}, preventing its re-use. On the other hand, region-based memory management does not suffer from
+		external fragmentation because it does not reclaim slices from its pools. The time needed for allocation operations
+		is thus easily predictable and allocation can be implemented in $\Theta(1)$. This is an advantage over both manual
+		memory management and garbage collection, which do not always guarantee tight upper bounds for memory management
+		operations\footnote{This is not to say that they cannot, and there are a few algorithms that achieve good upper
+		bounds for these operations by avoiding fragmentation or embracing it. See~\cite{strotz:14} for previous work in
+		KESO about this problem and~\cite{pizlo:10:pldi} for the work it is based on.}.
 
-		Manual region-based methods require developers to map allocation operations to the regions to be used to satisfy the
-		requests. The Real-Time Specification for Java supports manual region-based approaches to memory management with the
-		subclasses of its \texttt{javax.realtime.ScopedMemory} class~\cite{rtsj:06:scoped}. Manual methods feature
-		predictable \glspl{wcet} and allow fine-granular control over the application's behavior related to memory, but
-		suffer from the same potential problems present in (non-region-based) manual memory management.
+		\emph{Manual region-based} methods require developers to map allocation operations to the regions that shall be used
+		to satisfy the requests. The Real-Time Specification for Java supports manual region-based approaches to memory
+		management with the subclasses of its \texttt{javax.realtime.ScopedMemory} class~\cite{rtsj:06:scoped}. Manual
+		methods allow fine-granular control over the application's behavior, but suffer from the same potential problems
+		present in (non-region-based) manual memory management, such as dangling pointers.
+
+		\emph{Automatic region-based} approaches infer regions and region assignments at compile time. Previously published
+		techniques include semi-automatic methods, combinations of region inference and garbage collection to fully
+		automatic region inference~\cite{grossman:02:pldi, hallenberg:02:sigplan, chin:04:pldi}. Most of the work related to
+		region inference is based on the work of Tofte and Talpin in 1994 originally aimed at functional
+		languages~\cite{tofte:94:popl}. Downsides of region inference in literature include its high algorithmic and
+		computational complexity, its suboptimal results for larger programs and the assumption that object lifetimes follow
+		a stack discipline. Small source code adjustments are sometimes necessary to achieve good memory
+		performance.~\cite{henglein:01:ppdp}
+
+		A special case of manual region-based memory management is \emph{stack allocation}. Each function call creates a new
+		logical memory pool that can be used to allocate structures and objects from the stack. The pool is automatically
+		reclaimed at the end of the method, so only objects whose lifetime is bounded by the runtime of their allocating
+		function can be stored in stack memory. Since stack memory is automatically reclaimed, memory leaks cannot occur.
+		Dangling pointers, however, are still possible, for example by returning a pointer to local stack memory. In type
+		safe source languages such as Java, compilers can accurately compute which references point to the same memory
+		locations (\emph{alias analysis}) and whether any of these references remains live after the method that initially
+		defined them terminates (\emph{escape analysis}). Using escape analysis, dangling pointers can be detected at
+		compile-time and objects which will not escape their method of allocation can safely be allocated from stack memory.
+		In the context of real-time systems, automatic stack allocation can reduce the working set of the garbage collector
+		and increase the system's predictability.
 
 		\todonote{Explain region inference, state that stack memory is a special case of region-based memory and outline how
 		EA can be used to infer region information for local objects. Detail how I think scope extension is beneficial for
