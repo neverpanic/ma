@@ -2,14 +2,14 @@
 
 \begin{german}
 	\makecoverpage{%
-		Lehrstuhl für Informatik 4
+		Lehrstuhl für Informatik 4 $\cdot$ Verteilte Systeme und Betriebssysteme
 	}{%
-		Verteilte Systeme und Betriebssysteme
+		\thesisauthor%
 	}{%
-		\coverpagetextsmall{\nohyphens{\thesisauthor}}%
-		\coverpagetextlarge{\nohyphens{\thesistitle}}%
-		\coverpagetextsmall{Masterarbeit im Fach \thesissubject}%
-		\coverpagetextsmall{\displaydate{thesisenddate}}%
+		\thesistitle%
+	}{%
+		Masterarbeit im Fach \thesissubject\\[3ex]%
+		\displaydate{thesisenddate}%
 	}{%
 		\begin{english}
 			Please cite as:\\%
@@ -27,11 +27,9 @@
 	}{%
 		\href{https://www4.cs.fau.de/}{www4.cs.fau.de}%
 	}{%
-		\includegraphics{images/i4/logo-tf}%
+		\includegraphics[width=76.4mm]{images/i4/Logo_Tech-Fak_DinA4_4C}%
 	}{%
-		\includegraphics{images/i4/logo-fau}%
-	}{%
-		\includegraphics[width=0.25\textwidth]{images/i4/logo-i4}%
+		\includegraphics{images/i4/watermark-inf.pdf}%
 	}
 \end{german}
 
@@ -56,18 +54,6 @@
 					\textbf{Beginn:} & \displaydate{thesisstartdate} \\
 					\textbf{Abgabe:} & \displaydate{thesisenddate}
 				\end{tabular}
-				\flushleft{}
-				\begin{tikzpicture}[remember picture,overlay]
-					\node [xshift=3cm, yshift=3cm, scale=2] at (current page.south west){%
-						\begin{tikzpicture}
-							\foreach \x in {45, 135, 225, 315}
-								\draw[black!18, fill=black!18] (\x:1cm) rectangle (\x:0.1cm);
-							\draw[red!75!black, line width=0.15cm] (0,0) circle (0.45cm);
-							\draw[fill=black!18, black!18] (110:0.3cm) -- (110:0.7cm) -- (160:0.7cm);
-							\draw[fill=red!75!black, line width=0cm, red!75!black] (163:0.64cm) -- (122.5:0.5cm) -- (173.5:0.25cm) -- (160:0.44);
-						\end{tikzpicture}
-					};
-				\end{tikzpicture}
 			\end{small}
 		\end{flushright}
 	\end{german}
