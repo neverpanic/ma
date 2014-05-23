@@ -135,9 +135,14 @@
 		In the context of real-time systems, automatic stack allocation can reduce the working set of the garbage collector
 		and increase the system's predictability.
 
-		\todonote{Explain region inference, state that stack memory is a special case of region-based memory and outline how
-		EA can be used to infer region information for local objects. Detail how I think scope extension is beneficial for
-		a lot of patterns present in Java and how it will be a simple approach towards full region inference.}
+		Stack allocation using escape analysis has been implemented in my bachelor's thesis. The scope of this thesis is
+		improving the existing analysis (covered in~\cref{chapter:ea}) and extending it to allow more objects to be managed
+		automatically without garbage collection (in~\cref{chapter:eea}). To achieve this, an analysis pass identifying
+		objects which will outlive their method of allocation but not the calling method, was developed. The results of this
+		analysis were used in a transformation that extends the scope of such objects into the calling method, enabling
+		their allocation in the caller's stack frame, similar to a pattern often encountered in C programs. This
+		transformation can be beneficial in some commonly used Java APIs, e.g.\ when dealing with strings and
+		\texttt{StringBuilder}s.
 
 	\section{Previous Work}
 		\label{sec:intro:prev}
