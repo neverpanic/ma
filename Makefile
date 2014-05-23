@@ -6,6 +6,7 @@ TEXINPUTS=./texmf//:
 LATEXMK=TEXINPUTS="$(TEXINPUTS)" latexmk -e "\$$pdflatex='lualatex -shell-escape %O %S'"
 LATEXMK_NONSTOP=TEXINPUTS="$(TEXINPUTS)" latexmk -e "\$$pdflatex='lualatex -interaction=nonstopmode -shell-escape %O %S'"
 MAKEGLOSSARIES=makeglossaries
+EXTRA=texmf/tex/latex/i4coverpage/i4coverpage.sty
 
 RM=rm -f
 
@@ -19,7 +20,7 @@ BIBS=$(wildcard bibtex/*.bib)
 
 all: $(FILENAME).pdf
 
-$(FILENAME).pdf: $(TEXES) $(CHAPTER_TEXES) $(BIBS)
+$(FILENAME).pdf: $(TEXES) $(CHAPTER_TEXES) $(BIBS) $(EXTRA)
 	$(LATEXMK) -pdf $(FILENAME).tex
 	$(MAKEGLOSSARIES) $(FILENAME)
 	$(MAKEGLOSSARIES) $(FILENAME)
