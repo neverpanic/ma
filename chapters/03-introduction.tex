@@ -152,9 +152,20 @@
 		garbage-collected heap memory, keeping the stack usage bounded in the absence of recursion. Since KESO targets
 		embedded systems with real-time constraints, predictable stack usage is important.
 
-		\todonote{Recall what my bachelor thesis was about. Outline why escape analysis (or alias analysis in general) can
-		not be as precise as it is in type-safe languages in the presence of pointers.}
+		It is important to note that most of this work cannot be applied to languages with pointers easily. This is due to
+		the fact that pointer arithmetic might not be predictable at runtime, increasing alias analysis complexity. Because
+		conservative assumptions must often be made for code using pointers, determining whether an object does not escape
+		its method of allocation is much harder.~\cite{horwitz:97:toplas, hind:99:toplas, landi:92:loplas,
+		ramalingam:94:toplas}
 
 	\section{Document Structure}
 		\label{sec:intro:document-structure}
-		\todonote{Explain what the chapters contain.}
+		\Cref{chapter:ea} describes the changes implemented in KESO's escape analysis for this thesis. It starts with
+		a basic summary of the algorithms and data structures used and contains detailed descriptions of improvements and
+		the fix for a conceptional flaw in the work of Choi et al. The following~\cref{chapter:eea} outlines the idea of
+		improving stack allocation using variable scope extension and explains how this was implemented and which challenges
+		I encountered while doing that. The Evaluation in~\cref{chapter:eval} compares the results of my work to previous
+		versions of KESO using static results – like the number of automatically managed allocations – and runtime results
+		of a few benchmarks. \Cref{chapter:rel} gives an overview of related work and explains the differences to this
+		thesis before~\cref{chapter:conclusion} concludes, gives an overview over the work done for this thesis and
+		discusses some ideas for future work.
