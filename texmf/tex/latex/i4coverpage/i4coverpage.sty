@@ -11,7 +11,6 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{i4coverpage}[2009/08/12 v3.03-svn I4 Cover Page]  % YYYY/MM/DD
 
-
 % -----------------------------------------------------------------------------
 % Class options
 % -----------------------------------------------------------------------------
@@ -40,20 +39,6 @@
 % Cover page
 % -----------------------------------------------------------------------------
 
-\newcommand{\coverpagetextsmall}[1]{%
-	\@isevencoverpage@smalltextsize%
-	#1%
-	\vspace{0.5cm}\\%
-}
-
-\newcommand{\coverpagetextlarge}[1]{%
-	\vspace{0.25cm}%
-	\@isevencoverpage@largetextsize%
-	#1%
-	\@isevencoverpage@smalltextsize%
-	\vspace{0.5cm}\\%
-}
-
 %\makecoverpage{affiliation}{author}{title}{subtitle}{citeas}{address}{url}{logo-tf}{watermark}
 \newcommand{\makecoverpage}[9]{%
 
@@ -69,8 +54,6 @@
 \def\@isevencoverpage@subtitlesize{\fontsize{14}{17}\selectfont}
 \def\@isevencoverpage@citeassize{\fontsize{8}{9}\selectfont}
 \def\@isevencoverpage@addresssize{\fontsize{8}{9}\selectfont}
-\def\@isevencoverpage@smalltextsize{\@setfontsize{\@isevencoverpage@smalltextsize}{14}{17pt}}
-\def\@isevencoverpage@largetextsize{\@setfontsize{\@isevencoverpage@largetextsize}{20}{24pt}}
 
 \pgfdeclarelayer{i4coverback}
 \pgfdeclarelayer{i4coverfront}
@@ -110,9 +93,6 @@
 	\pgftext[top,left,at={\pgfpoint{\standX}{\pageHeight - \standY}}] {%
 		#8%
 	}
-	%\pgftext[top,left,at={\pgfpoint{1.92cm}{3.98cm}}] {%
-	%	#9%
-	%}
 
 
 	% Affiliation
@@ -175,9 +155,13 @@
 		\fill[fau] (\absenderRaum, \pageHeight - 2 * \logoRaum) rectangle (\pageWidth, \pageHeight - 5 * \logoRaum);
 
 		% watermark inf
-		\node[anchor = south east, opacity = 0.1]
-			at (\pageWidth - \textMargin, \urlH + \textMargin)
-			{#9};
+		\ifthenelse{\boolean{@isevencoverpage@earlydraft}}{%
+			% no watermark in draft mode
+		}{%
+			\node[anchor = south east, opacity = 0.1]
+				at (\pageWidth - \textMargin, \urlH + \textMargin)
+				{#9};
+		}
 	\end{pgfonlayer}
 
 	% Die Linien müssen immer obenauf liegen.
