@@ -252,9 +252,10 @@
 		title={Listing~\thetcbcounter: #4}
 	}
 }
-\newtcblisting[auto counter,list inside=mls,number within=chapter,crefname={listing}{listings},Crefname={Listing}{Listings}]{thesiscode}[5][]{%
+\newtcblisting[auto counter,list inside=mls,number within=chapter,crefname={Listing}{Listings},Crefname={Listing}{Listings}]{thesiscode}[5][]{%
 	thesiscodetitled={#1}{#2}{#3}{#4},
 	comment={\footnotesize{}#5}}
-\newtcbinputlisting[use counter from=thesiscode]{\inputthesiscode}[5][]{%
+\newtcbinputlisting[use counter from=thesiscode]{\inputthesiscode}[6][]{%
 	thesiscodetitled={#1}{#2}{#3}{#4},
-	comment={\footnotesize{}#5}}
+	comment={\footnotesize{}#5},
+	listing file={#6}}

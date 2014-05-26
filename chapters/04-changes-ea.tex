@@ -2,45 +2,108 @@
 
 \chapter{Escape Analysis}
 	\label{chapter:ea}
+	KESO's compiler \emph{JINO} uses alias and escape analysis to identify objects whose lifetime is bounded by the
+	runtime of their allocating method. The algorithm was implemented in~\cite{lang:12} and is largely based on the work
+	of Choi et al.\ in 2003.~\cite{choi:03} The following section contains a brief description of the implementation and
+	highlights differences. \Cref{sec:ea:improvements} lists and explains the improvements written for this thesis.
 
 	\section{Basics}
 		\label{sec:ea:basics}
-		Summarize how escape analysis works and how the algorithm published by Choi determined whether objects escape
-		a method. Explain intraprocedural and interprocedural analysis and give a short example (possibly copy this from the
-		bachelor's thesis).
+		The algorithm starts with alias analysis, which is separated into a method-local (also \emph{intraprocedural})
+		analysis and a global (\emph{interprocedural}) analysis. To compute and store alias information, a specialized data
+		structure called \gls{cg} is used. For each analyzed method, this graph contains representations of local variables,
+		static class members, dynamic instance variables, array indices, and objects. Variables of non-reference type are
+		ignored because they do not contribute to alias information.
+
+		\subsection{Intraprocedural Analysis}
+			\label{sub:ea:basics:local}
+			In intraprocedural analysis, each method in the call graph of an application is traversed and a \gls{cg}
+			representation is being computed. It is a key contribution of Choi et al.\ that this representation is independent
+			of the calling context. Since the origin of objects might not be known for some objects (e.g.\ if the have been
+			passed as argument), a special type of placeholder called \emph{phantom node} is used to represent these objects.
+			For pointer analysis as discussed in~\cref{sec:intro:prev} summarizing independent of the aliasing relationships
+			in the calling context is impossible~\cite[p.~886]{choi:03}. For each allocation, assignment, field or array
+			access, return statement, method invocation, and exception throw, the \gls{cg} is modified appropriately, ensuring
+			possible alias relations are represented accurately.
+
+			Nodes in the \gls{cg} have different types: \emph{Object nodes} are added for each encountered allocation site.
+			Note that a single object node in the graph might represent multiple objects at runtime because an allocation
+			might be executed multiple times (e.g.\ if it is inside a loop). Local variables, static class members, and member
+			variables are represented using \emph{local reference nodes}, \emph{global reference nodes}, and \emph{field
+			reference nodes} respectively. Array indices are treated like fields and are thus also represented by a field
+			reference node. Each reference node can point to a series of object nodes and also to other reference nodes using
+			\emph{deferred edges}. Deferred edges are used to simplify updates of the \gls{cg} while processing assignments.
+			After intraprocedural analysis, these edges are removed by replacing all incoming deferred edges of a reference
+			node with edges to its successors. Different from the work of Choi et al.\ reference nodes with incoming deferred
+			but no outgoing edges are preserved without change. \Cref{subsec:ea:improvements:bug} gives the rationale
+			underlying this difference. Finally, object nodes can point to field reference nodes, denoting that the pointed
+			field exists inside the object where the edge originates.
+
+			Each node in the \gls{cg} has one of three \emph{escape states}, indicating whether a node will outlive its
+			allocating method, or even thread. Among these states, a total order exists. \emph{Local} is the lowest state.
+			Nodes marked local do not escape the analyzed method. Next after local is \emph{method}. Nodes that outlive
+			a method by being returned or assigned to an object passed as parameter are tagged method-escaping. The highest
+			escape state is \emph{global} and is given to objects and references that are assigned to static class members or
+			thrown as exception. While processing a method's instructions and building the \gls{cg}, operations that cause the
+			escape state of one of their parameters to change trigger the appropriate change in the escape states recorded in
+			the connection graph. Allocations whose object node representation in the \gls{cg} is tagged local are considered
+			for stack allocation.
+
+			See~\cref{lst:ea:basics:linkedlist} for source code corresponding to the \glspl{cg} to be explained in depth. The
+			code example is a simple generic linked list. Using common sense we can deduce that, in the absence of a removal
+			operation, all list elements will be reachable until the list itself has reached the end of its lifetime.
+			Consequently, the only allocation in the given example can not be allocated from stack memory, because it must
+			outlive the method of its allocation \texttt{addElement}. Due to the structure of the example, intraprocedural
+			analysis will not suffice to determine this. Global analysis will be necessary.
+
+			\inputthesiscode{java}{lst:ea:basics:linkedlist}{A simple generic linked list in Java}{%
+				A simple generic linked list implementation in Java. Note that this example is more complex than it would have to
+				be, especially due to the \texttt{insert} method, for demonstration purposes.\\[.5em]
+				An inner class is used to wrap the list entries with references to their successor. The \texttt{addElement} method
+				allows insertion of new entries. Internally, \texttt{addElement} uses \texttt{insert}, which enqueues the given
+				new element at the start of a list.
+			}{examples/LinkedList.java}
+
+
+			\subsection{Interprocedural Analysis}
+				\label{sub:ea:basics:global}
+
+		\todonote{Summarize how escape analysis works and how the algorithm published by Choi determined whether objects
+		escape a method. Explain intraprocedural and interprocedural analysis and give a short example (possibly copy this
+		from the bachelor's thesis).}
 
 	\section{Improvements}
 		\label{sec:ea:improvements}
-		Explain the changes I implemented in the escape analysis written in my bachelor's thesis, why they were required or
-		beneficial and how they were implemented.
+		\todonote{Explain the changes I implemented in the escape analysis written in my bachelor's thesis, why they were
+		required or beneficial and how they were implemented.}
 
 		\subsection{Flow-Sensitivity}
 			\label{subsec:ea:improvements:flow-sensitivity}
-			Explain what Choi et al.\@ meant by \enquote{we kill only local variables} and how the \texttt{transfer} and
-			\texttt{meet} functions are implemented in JINO to achieve flow sensitivity of the escape analysis.
+			\todonote{Explain what Choi et al.\@ meant by \enquote{we kill only local variables} and how the \texttt{transfer}
+			and \texttt{meet} functions are implemented in JINO to achieve flow sensitivity of the escape analysis.}
 
 		\subsection{Fixing Incorrect Results}
 			\label{subsec:ea:improvements:bug}
-			Show that \texttt{Object chooseOne(Object a, Object b)} is not correctly handled by Choi's algorithm if the return
-			value of this function is itself returned again. Show what I have done to improve that.
+			\todonote{Show that \texttt{Object chooseOne(Object a, Object b)} is not correctly handled by Choi's algorithm if
+			the return value of this function is itself returned again. Show what I have done to improve that.}
 
 		\subsection{Interprocedural Analysis Optimizations}
 			\label{subsec:ea:improvements:opt}
-			The work I did in my bachelor's thesis did take rather long especially on large examples. I have implemented a few
-			optimizations to make it run faster. These are:
+			\todonote{The work I did in my bachelor's thesis did take rather long especially on large examples. I have
+			implemented a few optimizations to make it run faster. These are:}
 
 			\subsubsection{No Propagation of Read Operations}
 				\label{subsub:ea:improvements:opt:writeonly}
-				Ignore read operations and propagate only writes. Explain how that has the potential of cutting down lots of
-				nodes generated by vcalls to \texttt{equals(Object other)} (and why that does not work in the implementation we
-				use).
+				\todonote{Ignore read operations and propagate only writes. Explain how that has the potential of cutting down
+				lots of nodes generated by vcalls to \texttt{equals(Object other)} (and why that does not work in the
+				implementation we use).}
 
 			\subsubsection{No Reprocessing of Unchanged Invocations}
 				\label{subsub:ea:improvements:opt:quick-fixpoint}
-				When iterating to find a fixpoint in a strongly connected component, only re-compute the summary information for
-				a method if its callees actually changed; re-use the old results otherwise.
+				\todonote{When iterating to find a fixpoint in a strongly connected component, only re-compute the summary
+				information for a method if its callees actually changed; re-use the old results otherwise.}
 
 			\subsubsection{Connection Graph Compression}
 				\label{subsub:ea:improvements:opt:compression}
-				Compress multiple sibling nodes if they likely represent the same node. This gives us a huge speedup without
-				giving up too much information (explain how I made sure the relevant information is kept).
+				\todonote{Compress multiple sibling nodes if they likely represent the same node. This gives us a huge speedup
+				without giving up too much information (explain how I made sure the relevant information is kept).}
