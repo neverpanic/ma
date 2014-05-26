@@ -135,20 +135,25 @@
 		In the context of real-time systems, automatic stack allocation can reduce the working set of the garbage collector
 		and increase the system's predictability.
 
-		Stack allocation using escape analysis has been implemented in my bachelor's thesis. The scope of this thesis is
-		improving the existing analysis (covered in~\cref{chapter:ea}) and extending it to allow more objects to be managed
-		automatically without garbage collection (in~\cref{chapter:eea}). To achieve this, an analysis pass identifying
-		objects which will outlive their method of allocation but not the calling method, was developed. The results of this
-		analysis were used in a transformation that extends the scope of such objects into the calling method, enabling
-		their allocation in the caller's stack frame, similar to a pattern often encountered in C programs. This
-		transformation can be beneficial in some commonly used Java APIs, e.g.\ when dealing with strings and
+		Stack allocation using escape analysis has been implemented in my bachelor's thesis~\cite{lang:12}. The scope of
+		this thesis is improving the existing analysis (covered in~\cref{chapter:ea}) and extending it to allow more objects
+		to be managed automatically without garbage collection (in~\cref{chapter:eea}). To achieve this, an analysis pass
+		identifying objects which will outlive their method of allocation but not the calling method, was developed. The
+		results of this analysis were used in a transformation that extends the scope of such objects into the calling
+		method, enabling their allocation in the caller's stack frame, similar to a pattern often encountered in C programs.
+		This transformation can be beneficial in some commonly used Java APIs, e.g.\ when dealing with strings and
 		\texttt{StringBuilder}s.
 
 	\section{Previous Work}
 		\label{sec:intro:prev}
-		\todonote{Recall what my bachelor thesis was about, find a few similar examples of people that use type-safe
-		languages and ahead-of-time compilation to achieve isolation. Outline why escape analysis (or alias analysis in
-		general) can not be as precise as it is in type-safe languages in the presence of pointers.}
+		Based on the work of Choi et al.\ published in 2003~\cite{choi:03}, I implemented alias analysis and escape analysis
+		in my bachelor's thesis. Different from the paper it was based on, KESO's implementation does not dynamically
+		allocate memory from the stack. Instead, allocation sites whose objects' liveness regions overlap are allocated from
+		garbage-collected heap memory, keeping the stack usage bounded in the absence of recursion. Since KESO targets
+		embedded systems with real-time constraints, predictable stack usage is important.
+
+		\todonote{Recall what my bachelor thesis was about. Outline why escape analysis (or alias analysis in general) can
+		not be as precise as it is in type-safe languages in the presence of pointers.}
 
 	\section{Document Structure}
 		\label{sec:intro:document-structure}
