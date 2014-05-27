@@ -16,6 +16,76 @@
 \newdate{thesisstartdate}{1}{1}{2014}
 \newdate{thesisenddate}{30}{6}{2014}
 
+\definecolor{cgblue}{HTML}{1F78B4}
+\definecolor{cggreen}{HTML}{33A02C}
+\definecolor{cgred}{HTML}{E31A1C}
+\definecolor{cgorange}{HTML}{FDBF6F}
+\definecolor{cgwarn}{HTML}{FB9A99}
+
+\tikzstyle{method} = [
+	fill=cgorange
+]
+\tikzstyle{global} = [
+	fill=cgwarn
+]
+\tikzstyle{cgnode} = [
+	draw,
+	thick
+]
+\tikzstyle{cgon} = [
+	cgnode,
+	rectangle,
+	draw=cggreen,
+	inner xsep=.8em,
+	minimum height=3ex
+]
+\tikzstyle{cgcon} = [
+	cgon
+]
+\tikzstyle{cgpon} = [
+	cgon,
+	densely dashed
+]
+\tikzstyle{cgrn} = [
+	cgnode,
+	rectangle,
+	rounded corners,
+	inner xsep=.8em,
+	minimum height=3ex,
+	draw=cgblue
+]
+\tikzstyle{cglrn} = [
+	cgrn
+]
+\tikzstyle{cggrn} = [
+	cgrn,
+	global
+]
+\tikzstyle{cgarn} = [
+	cgrn,
+	dotted
+]
+\tikzstyle{cgfrn} = [
+	cgrn,
+	draw=cgred
+]
+\tikzstyle{cge} = [
+	draw,
+	>=latex,
+	->,
+	thick
+]
+\tikzstyle{cgde} = [
+	cge,
+	dashed
+]
+\tikzstyle{cgpe} = [
+	cge
+]
+\tikzstyle{cgfe} = [
+	cge
+]
+
 \begin{document}
 \pagenumbering{roman}
 \input{chapters/00-title}
