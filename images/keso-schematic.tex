@@ -1,13 +1,13 @@
 \documentclass[tikz,convert,crop,boder=100px]{standalone}
 % vim:noet:sts=2:ts=2:sw=2:smarttab:tw=120
-\usetikzlibrary{arrows,shapes,positioning,calc,decorations.markings}
-
-\pgfdeclarelayer{background}
-\pgfdeclarelayer{foreground}
-\pgfsetlayers{background,main,foreground}
-
+\usetikzlibrary{arrows,shapes,positioning,calc,decorations.markings,fit}%
+%
+\pgfdeclarelayer{background}%
+\pgfdeclarelayer{foreground}%
+\pgfsetlayers{background,main,foreground}%
+%
 \begin{document}
-	\def\radius{0.6em}
+	\def\radius{0.55em}
 	\def\startangle{75}
 	\tikzstyle{block} = [
 		rectangle,
@@ -17,62 +17,53 @@
 		text centered,
 		rounded corners,
 		minimum height=2em,
-		anchor=north west
-	]
-
+		anchor=north west,
+		font=\scriptsize
+	]%
 	\tikzstyle{microcontroller} = [
 		block,
-		text width=15em,
-		minimum width=30em
-	]
-
+		align = center,
+		minimum width = 25em
+	]%
 	\tikzstyle{oscomponent} = [
 		block,
-		fill=red!20,
-		text width=10em,
-		minimum width=25em
-	]
-
+		fill = red!20,
+		align = center,
+		text width = 10em,
+		minimum width = 18em
+	]%
 	\tikzstyle{kesodomain} = [
 		block,
 		fill=green!20,
-		minimum height=3em,
-		minimum width=7em
-	]
-
+		minimum height=1.5em,
+		minimum width=5em
+	]%
 	\tikzstyle{domainpart} = [
 		rectangle,
 		draw,
 		fill=green!2,
-		text width=5em,
+		text width=4em,
 		rounded corners,
 		minimum height=2em,
 		anchor=north west
-	]
-
+	]%
 	\tikzstyle{gcheapnode} = [
 		circle,
 		draw,
 		inner sep=0.2em
-	]
-
+	]%
 	\tikzstyle{arr} = [
 		draw,
 		->,
 		shorten >=1pt
-	]
-
-	\tikzstyle{activity} = [
-		draw,
-		decoration={markings, mark=at position 1 with {\arrow[rotate=15,scale=.5]{triangle 60}}}
-	]
-
+	]%
 	\tikzstyle{activityarc} = [
+		arr,
+		->,
 		radius=\radius,
 		start angle=\startangle,
 		delta angle=-330
-	]
-
+	]%
 	\tikzstyle{connection} = [
 		arr,
 		thick,
@@ -80,75 +71,132 @@
 		>=latex,
 		shorten >=1pt,
 		shorten <=1pt
-	]
-
+	]%
 	\begin{tikzpicture}
 		% Microcontroller
 		\node (mc) [microcontroller] {Microcontroller};
 
 		% OSEK and KESO Runtime Env
-		\path (mc.north west)+(0,2em) node[oscomponent,anchor=south west] (osek) {OSEK};
-		\path[oscomponent] (osek.north west)++(0,2.5em) node[text width=25em] (keso) {KESO Runtime Environment}
-			-- ++(30em, 0)
-			-- ++(0, -4.5em)
-			-- ++(-4.5em, 0)
-			-- ++(0, 2.5em)
-			-- ++(-25.5em, 0)
+		\node[oscomponent, anchor=south west] at ($(mc.north west)+(0, 0.5em)$) (osek) {OSEK / AUTOSAR};
+		\path
+			coordinate (kesoNorthWest)       at ($(osek.north west)+(0, 2.5em)$)
+			coordinate (kesoNorthMiddleEast) at ($(osek.north east)+(0, 2.5em)$)
+			coordinate (kesoNorthEast)       at ($(kesoNorthWest)!(mc.north east)!(kesoNorthMiddleEast)$)
+			coordinate (kesoNorth)           at ($(kesoNorthWest)!.5!(kesoNorthEast)$)
+			coordinate (kesoSouthWest)       at ($(osek.north west)+(0, 0.5em)$)
+			coordinate (kesoSouthEastCorner) at ($(osek.north east)+(.5em, 0.5em)$)
+			coordinate (kesoSouth)           at ($(kesoSouthWest)!(kesoNorth)!(kesoSouthEastCorner)$)
+			coordinate (kesoSouthEast)       at ($(osek.south west)!(kesoNorthEast)!(osek.south east)$)
+			coordinate (kesoSouthMiddleEast) at ($(osek.south east)+(.5em, 0)$)
+			;
+		\path[oscomponent]
+			(kesoNorthWest)
+			-- (kesoNorthEast)
+			-- (kesoSouthEast)
+			-- (kesoSouthMiddleEast)
+			-- (kesoSouthEastCorner)
+			-- (kesoSouthWest)
 			-- cycle;
+		\node[anchor = center,
+			align = center,
+			font = \scriptsize,
+			inner sep=.5em] (keso) at ($(kesoNorth)!.5!(kesoSouth)$) {KESO Runtime Environment};
+		\coordinate (kesoDeviceBoxNorthWest) at ($(osek.north west)!(kesoSouthMiddleEast)!(osek.north east)$);
+		\node[
+			anchor = center,
+			font = \tiny,
+			align = center] at ($(kesoSouthEast)!.5!(kesoDeviceBoxNorthWest)$) {Memory-Mapped I/O\\ Device Drivers};
 
 		% Domains
-		\path (keso.north west)+(0,4em) node (domA) [kesodomain, anchor=south west, minimum height=10em, minimum width=12.9em] {};
-		\path (domA.north east)+(5em,0) node (domB) [kesodomain] {Domain B};
-		\path (domB.south west)+(5em, -4em) node (domC) [kesodomain] {Domain C};
+		\coordinate (domA) at ($(kesoNorthWest)+(0, 9em)$);
+		\coordinate (domAWithInnerSep) at ($(domA)+(.5em, -.5em)$);
 
-		% Connections between Domains
-		\draw[connection] (domB.330) -- node[auto] {Portal} (domC.north -| domB.330);
-		\draw[connection] (domB) -- node[auto,swap] {Portal} (domB -| domA.east);
+		% Contents of Domain A
+		\begin{pgfonlayer}{foreground}
+			% Heap
+			% domA is the top left of the domA box, move down to make space for the title, move right by the amount of inner
+			% sep of domA + the inner sep of domAHeapWrapper.
+			\coordinate (domAHeap) at ($(domA)+(0, -1.7em)+(.9em, 0)$);
+			\path (domAHeap)
+				+(0.3em, -2.0em) node[gcheapnode, fill=black!20] (gcheapA) {}
+				+(1.8em, -2.7em) node[gcheapnode, fill=black] (gcheapB) {}
+				+(3.3em, -2.7em) node[gcheapnode, fill=black!20] (gcheapC) {}
+				+(1.5em, -1.5em) node[gcheapnode] (gcheapD) {}
+				+(2.6em, -1.5em) node[gcheapnode] (gcheapE) {};
 
-		% Connections between Domains and KESO Runtime Env
-		\draw[connection] (domB) -- (keso.north -| domB);
-		\draw[connection] (domA) -- (keso.north -| domA);
-		\draw[connection] (domC) -- (keso.north -| domC);
-		% Label ``Keso Services''
-		\path (keso.north -| domA)+(0,2.5em) -- node {KESO Services} (keso.north -| domB)+(0,2.5em);
-
-		% Connections between KESO/OSEK and Microcontroller
-		\draw[connection] (osek) -- node[auto,swap] {} (mc.north -| osek);
-		\path (keso.north west)++(28em,-4em) node (kesosouthmcconnector) {};
-		\draw[connection] (kesosouthmcconnector) -- node[auto,swap] {Device Memory} (mc.north -| kesosouthmcconnector);
+			% Connections in the Heap
+			\draw[arr] (gcheapB) -- (gcheapA);
+			\draw[arr] (gcheapB) -- (gcheapC);
+			\draw[arr] (gcheapA) -- (gcheapD);
+			\draw[arr] (gcheapC) -- (gcheapE);
+		\end{pgfonlayer}
+		\node[
+			domainpart,
+			inner sep=.4em,
+			fit = (domAHeap)(gcheapA)(gcheapB)(gcheapC)(gcheapD)(gcheapE)] (domAHeapWrapper) {};
+		\begin{pgfonlayer}{foreground}
+			\node[
+				font = \tiny,
+				anchor = north,
+				inner sep=.4em] at (domAHeapWrapper.north) (gcheapTitle) {GC/Heap};
+		\end{pgfonlayer}
 
 		\begin{pgfonlayer}{foreground}
-			% Contents of Domain A
-			% Title
-			\path (domA.north)+(0,-1em) node {Domain A};
-
 			% Resources, Alarms, ISRs
-			\path (domA.north)+(0.2em,-2.2em) node[domainpart] {{\footnotesize Resources\\ Alarms\\ ISRs}};
-
-			% Heap
-			\path (domA.north)+(-0.2em,-2.2em) node[domainpart, anchor=north east, minimum height=4em] (domAHeap) {};
-			\path (domAHeap.north)+(0,-0.8em) node {{\footnotesize GC/Heap}};
-			\path (domAHeap.north west)
-				+(1.2em, -2.5em) node[gcheapnode, fill=black!20] (gcheapA) {}
-				+(2.7em, -3.2em) node[gcheapnode, fill=black] (gcheapB) {}
-				+(4.2em, -3.2em) node[gcheapnode, fill=black!20] (gcheapC) {}
-				+(2.4em, -2em) node[gcheapnode] (gcheapD) {}
-				+(3.4em, -2em) node[gcheapnode] (gcheapE) {};
-
-			% Conntections in the Heap
-			\draw [arr] (gcheapB) -- (gcheapA);
-			\draw [arr] (gcheapB) -- (gcheapC);
-			\draw [arr] (gcheapA) -- (gcheapD);
-			\draw [arr] (gcheapC) -- (gcheapE);
+			\node[
+				domainpart,
+				font = \tiny,
+				anchor = north west,
+				inner sep=.4em,
+				align= center] at ($(domAHeapWrapper.north east)+(.2em, 0)$) (domAResources) {\nohyphens{Resources}\\\nohyphens{Alarms}\\ISRs};
 
 			% Tasks
-			\path (domAHeap.south west)+(0,-0.2em) node[domainpart, minimum height=3em] (domATasks) {};
-			\path (domATasks.north)+(0,-0.8em) node {{\footnotesize Tasks}};
-			\foreach \x/\y/\nodetext in {1.5em/-1.5em/5, 3.0em/-1.5em/2, 4.5em/-1.5em/3} {
-				% Activities
-				\path[activity, postaction={decorate}] (domATasks.north west)++(\x,\y) arc[activityarc];
-				\path                                  (domATasks.north west)++(\x,\y) +({-\radius * cos(\startangle)}, {sin(\startangle) * -\radius}) node[anchor=center] {\nodetext};
+			\coordinate (domATasks) at ($(domAResources.south west)+(0, -.2em)$);
+			\coordinate (domATasksWithInnerSep) at ($(domATasks)+(.4em, -.4em)$);
+			% Activities
+			\foreach \x/\y/\nodename/\nodetext in {.9em/-.8em/domATask1/5, 2.2em/-.8em/domATask2/2, 3.5em/-.8em/domATask3/3} {%
+				\draw[->] ($(domATasksWithInnerSep)+(\x, \y)$) arc[activityarc];
+				\node[anchor = center, font=\scriptsize] (\nodename) at ($(domATasksWithInnerSep)+(\x,\y)+({-\radius * cos(\startangle)}, {-\radius * sin(\startangle)})$) {\nodetext};
 			}
+			\coordinate (domATasksForceResourcesWidth) at ($(domAResources.south east)+(0, -.2em)+(-.4em,-.4em)$);
 		\end{pgfonlayer}
-	\end{tikzpicture}
+		\node[domainpart, inner sep=.4em, fit=(domATasksWithInnerSep)(domATask1)(domATask2)(domATask3)(domATasksForceResourcesWidth)] (domATasksWrapper) {};
+		\begin{pgfonlayer}{foreground}
+			\node[
+				font = \tiny,
+				anchor = north,
+				inner sep=.4em] at (domATasksWrapper.north) (domATasksTitle) {Tasks};
+		\end{pgfonlayer}
+
+		\begin{pgfonlayer}{background}
+			\node[
+				kesodomain,
+				anchor = south west,
+				fit=(domAWithInnerSep)(domAResources)(domATasksWrapper)(domAHeapWrapper),
+				inner sep=.5em] (domAWrapper) {};
+		\end{pgfonlayer}
+		\begin{pgfonlayer}{foreground}
+			% Title
+			\node[
+				font = \scriptsize,
+				anchor = north,
+				inner sep = 0.4em] at (domAWrapper.north) (domATitle) {Domain A};
+		\end{pgfonlayer}
+
+		\node[kesodomain, anchor = south east] at ($(domAWrapper.south west)!(kesoNorthEast)!(domAWrapper.south east)$) (domC) {Domain C};
+		\coordinate (domBHelper) at ($(domAWrapper.north west)!(domC.north west)!(domAWrapper.north east)$);
+		\node[kesodomain, anchor = north] at ($(domAWrapper.north east)!.75!(domBHelper)$) (domB) {Domain B};
+
+		%% Connections between Domains
+		\draw[connection] (domB) -| node[auto, font=\tiny] {Portal} (domC);
+		\draw[connection] (domB) -- node[auto, font=\tiny, swap] {Portal} (domB -| domAWrapper.east);
+
+		%% Connections between Domains and KESO Runtime Env
+		\draw[connection] (domAWrapper) -- (kesoNorth -| domAWrapper.south);
+		\draw[connection] (domB) -- (kesoNorth -| domB);
+		\draw[connection] (domC) -- (kesoNorth -| domC);
+
+		%% Label ``Keso Services''
+		\node[anchor = center, font = \scriptsize] at ($(kesoNorth)+(0, 0.9em)$) {KESO Services};
+	\end{tikzpicture}%
 \end{document}

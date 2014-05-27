@@ -57,11 +57,10 @@
 				\input{images/keso-schematic.tex}
 			\end{center}
 			\caption[Schematic overview of a KESO system]{%
-				Schematic overview of a KESO system. An OSEK (or AUTOSAR, not depicted) \gls{rtos} runs on a microcontroller. On
-				top of the operating system, the KESO runtime environment provides services and abstractions used by the
-				application, such as \gls{rpc} primitives or device drivers. Multiple protection realms (\emph{domains}) can
-				contain multiple tasks each, have their own resources, heap, and garbage collection method and communicate
-				safely using \emph{portals}.}
+				Schematic overview of a KESO system. An OSEK or AUTOSAR \gls{rtos} runs on a microcontroller. On top of the
+				operating system, the KESO runtime environment provides services and abstractions used by the application, such
+				as \gls{rpc} primitives or device drivers. Multiple protection realms (\emph{domains}) can contain multiple
+				tasks each, have their own resources, heap, and garbage collector and communicate safely using \emph{portals}.}
 			\label{fig:intro:overview}
 		\end{figure}
 
