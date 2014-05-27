@@ -85,12 +85,14 @@
 \usepackage[autostyle]{csquotes}
 
 % format caption texts
-\usepackage{caption}
-\renewcommand{\captionfont}{\small}
-\renewcommand{\captionlabelfont}{\small\rmfamily\bfseries}
-\setlength{\captionmargin}{1em}
-\setlength{\abovecaptionskip}{1em}
-\setlength{\belowcaptionskip}{1em}
+\usepackage[
+	format=hang,
+	font={scriptsize},
+	labelfont={scriptsize, bf, rm}]{caption}
+
+\usepackage[
+	font={scriptsize},
+	labelfont={scriptsize, bf, rm}]{subcaption}
 
 % better C++ and C# symbols
 \usepackage{relsize}
@@ -228,7 +230,7 @@
 			linenos,
 			tabsize = 2,
 			numbersep = 3mm,
-			fontsize = \small,
+			fontsize = \scriptsize,
 			#1
 		},
 		colback = black!5!white,
@@ -249,13 +251,13 @@
 	thesiscodetitled/.style n args = {4}{%
 		thesiscode={#1}{#2},
 		label={#3},
-		title={Listing~\thetcbcounter: #4}
+		title={\scriptsize{}Listing~\thetcbcounter: #4}
 	}
 }
 \newtcblisting[auto counter,list inside=mls,number within=chapter,crefname={Listing}{Listings},Crefname={Listing}{Listings}]{thesiscode}[5][]{%
 	thesiscodetitled={#1}{#2}{#3}{#4},
-	comment={\footnotesize{}#5}}
+	comment={\scriptsize{}#5}}
 \newtcbinputlisting[use counter from=thesiscode]{\inputthesiscode}[6][]{%
 	thesiscodetitled={#1}{#2}{#3}{#4},
-	comment={\footnotesize{}#5},
+	comment={\scriptsize{}#5},
 	listing file={#6}}
