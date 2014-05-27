@@ -32,6 +32,7 @@
 % For cover page
 \RequirePackage{tikz}
 \tikzoption{text @isevencoverpage@ badly raggedleft}[]{\def\tikz@text@action{\raggedleft\relax}}
+\usetikzlibrary{calc,fit}
 % -----------------------------------------------------------------------------
 
 
@@ -141,12 +142,14 @@
 			\end{tikzpicture}
 		};
 
+	\coordinate (logorand) at (\pageWidth, \pageHeight - 4.5 * \logoRaum);
+
 	% Adresse
 	\path (chairlogo.west) ++ (-2 * \textMargin, 0)
 		node[anchor = east,
 			align = right,
 			text width = 75mm,
-			font = \sffamily\color{white}\@isevencoverpage@addresssize] {#6};
+			font = \sffamily\color{black}\@isevencoverpage@addresssize] (chairlogotext) {#6};
 
 	\begin{pgfonlayer}{i4coverback}
 		\fill[fau]  (0, \pageHeight - \logoRaum) rectangle (\absenderRaum, \pageHeight - 2 * \logoRaum);
@@ -162,6 +165,8 @@
 				at (\pageWidth - \textMargin, \urlH + \textMargin)
 				{#9};
 		}
+
+		\node[fill=white, fit=(chairlogotext) (chairlogo) (logorand)] {};
 	\end{pgfonlayer}
 
 	% Die Linien müssen immer obenauf liegen.
