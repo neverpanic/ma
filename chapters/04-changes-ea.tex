@@ -64,6 +64,41 @@
 				new element at the start of a list.
 			}{examples/LinkedList.java}
 
+			\begin{figure}
+				\centering%
+				\subcaptionbox{%
+					\Acrlong{cg} for \texttt{addElement}. \texttt{insert(list)} and \texttt{insert(elem)} represent the parameters
+					passed to the \texttt{insert} method at its invocation. \texttt{<init>(this)} and \texttt{<init>(elem)} do the
+					same for the implicit invocation of \texttt{ListElement}'s constructor.}[.58\textwidth]{%
+						\centering%
+						\input{examples/LinkedList-addElement-intra.tex}%
+						\label{subfig:ea:basics:linkedlist:addElement}%
+				}%
+				\hspace{\fill}%
+				\subcaptionbox{%
+					\Acrlong{cg} for \texttt{insert}. The edge from \texttt{head} to \texttt{elem} is the one that prevents stack
+					allocation of the list element in \texttt{addElement}. Interprocedural analysis needs to propagate this edge
+					into the caller context to determine this.}[.40\textwidth]{%
+						\centering%
+						\input{examples/LinkedList-insert-intra.tex}%
+						\label{subfig:ea:basics:linkedlist:insert}%
+				}%
+				\caption[The \glsentryshortpl{cg} for \texttt{addElement} and \texttt{insert} after intraprocedural analysis]{%
+					The \acrlongpl{cg} for the \texttt{addElement} and \texttt{insert} methods given
+					in~\cref{lst:ea:basics:linkedlist} after intraprocedural analysis. Vertices with rounded corners represent
+					\emph{reference nodes}, where \emph{field reference nodes} have a red {\color{cgred}\blacksquare}, other
+					reference nodes a blue {\color{cgblue}\blacksquare} border. Dotted borders mark artificial reference nodes
+					representing a method's parameter or return value. Rectangles with green {\color{cggreen}\blacksquare} borders
+					are \emph{object nodes}. If the border is dashed, the node is a \emph{phantom node} (not depicted). The escape
+					state of nodes is encoded in the fill color. White, orange {\color{cgorange}\blacksquare}, and red
+					{\color{cgwarn}\blacksquare} represent \emph{local}, \emph{method}, and \emph{global} respectively.}%
+				\label{fig:ea:basics:linkedlist}%
+			\end{figure}
+
+			\pagebreak[1]
+
+			See~\cref{fig:ea:basics:linkedlist} for the \acrlongpl{cg} of the methods \texttt{insert} and \texttt{addElement}
+			given in~\cref{lst:ea:basics:linkedlist}.
 
 			\subsection{Interprocedural Analysis}
 				\label{sub:ea:basics:global}

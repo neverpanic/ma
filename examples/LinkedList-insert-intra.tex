@@ -1,0 +1,21 @@
+% vim:noet:sts=2:ts=2:sw=2:smarttab:tw=120
+\def\hd{6em}%
+\def\vd{6ex}%
+%
+\begin{tikzpicture}[font=\tiny\ttfamily]
+	\path
+		  (   0,    0)
+		 +(-\hd,    0) node[cgarn,method] (list)       {list}
+		 +(-\hd, -\vd) node[cgfrn,method] (head)       {head}
+		 +(   0,    0) node[cgarn,method] (elem)       {elem}
+		 +(   0, -\vd) node[cgfrn,method] (next)       {next}
+	;
+
+	\draw[cgfe] (list) -- (head);
+	\draw[cgfe] (elem) -- (next);
+
+	\draw[cgde] (next)
+		-| ($(elem.east)+(1em, 0)$)
+		-- (elem);
+	\draw[cgde] (head) -- (elem);
+\end{tikzpicture}%
