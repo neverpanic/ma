@@ -5,15 +5,13 @@
 	Embedded devices are on the rise. While internet-connected refrigerators, which have been journalists' favorite
 	prediction for the future, are still a long way off, other turing complete devices have found their way into daily
 	life. Taking a look around an ordinary kitchen reveals devices like a fully automatic coffee machine, a digital
-	kitchen scale, a dish washer, or even a WiFi-enabled bar code scanner helping users update their shopping list. All of
-	those contain microcontrollers, each serving a special purpose. And it seems these are just the first vistas of an
-	emerging trend: At the embedded world conference 2014 in Nuremberg, the \emph{Internet of Things}, i.e.\ the
-	interconnection of these embedded devices, was a very popular topic. The world might be on the verge of being flooded
-	with highly integrated and networked microcontroller-driven devices.
+	kitchen scale, a dish washer, or even a WiFi-enabled bar code scanner to update shopping lists. All of those contain
+	microcontrollers, each serving a special purpose. And it seems these are just the first vistas of an emerging trend:
+	At the \emph{embedded world} conference 2014 in Nuremberg, the \emph{Internet of Things}, i.e.\ the interconnection of
+	these embedded devices, was a very popular topic. The world might be on the verge of being flooded with highly
+	integrated and networked microcontroller-driven devices.
 
-	% See
-	% http://www.is2t.com/java-in-embedded-systems/
-	% http://www.eetimes.com/document.asp?doc_id=1318980
+	% See http://www.is2t.com/java-in-embedded-systems/ http://www.eetimes.com/document.asp?doc_id=1318980
 	% http://www.eetimes.com/document.asp?doc_id=1317511
 	% http://www.eetimes.com/document.asp?doc_id=1262568
 	% http://www.eetimes.com/document.asp?doc_id=1261676
@@ -37,9 +35,10 @@
 	\section{The KESO Multi-JVM}
 		\label{sec:intro:keso}
 		The KESO Java virtual machine uses ahead-of-time compilation and assumes all application code is available for
-		analysis at compile time. This \enquote{closed world} assumption makes aggressive optimizations possible. Built on
-		top of an OSEK/VDX~\cite{OSEKSpec223} or AUTOSAR~\cite{autosar:06:sws_os} \gls{rtos}, KESO allows writing
-		applications and even device drivers in Java and targets deeply embedded systems with real-time
+		analysis at compile time. This \enquote{closed world} assumption makes aggressive optimizations possible. KESO
+		systems are built on top of \glspl{rtos} implementing either OSEK/VDX~\cite{OSEKSpec223} or
+		AUTOSAR~\cite{autosar:06:sws_os}, specifications used in operating systems for automotive embedded systems. KESO
+		allows writing applications and even device drivers in Java and targets deeply embedded systems with real-time
 		requirements~\cite{thomm:10:jtres}. KESO's compiler \emph{JINO} analyzes the application code, tailors the runtime
 		environment (including the Java standard library) to the application's needs and emits standards-compliant C to be
 		compiled for the target architecture.
@@ -78,7 +77,7 @@
 		\label{sec:intro:motivation}
 
 		\emph{Manual memory management} using library functions has been the de-facto standard method of dealing with
-		dynamic memory needs in C and \C++{}. It provides fine-granular control over applications' memory allocation
+		dynamic memory needs in C and \C++{}. It provides fine-grained control over applications' memory allocation
 		behavior, but comes with a downside: Programming mistakes can lead to leaks and dangling pointers, which in turn can
 		lead to security vulnerabilities or crashes. As a consequence, developers need to be careful while writing code that
 		uses manual memory management, in particular when used in safety-critical components.
@@ -92,25 +91,29 @@
 		met. Compared to manual memory management, garbage collection is less error-prone at the cost of not reclaiming
 		memory immediately, being less predictable and requiring additional computation. Both manual memory management and
 		garbage collection need to deal with fragmentation caused by reclaiming in a sequence that differs from the
-		allocation order, further increasing the complexity of memory allocation and reclaim.
+		allocation order (\emph{external fragmentation}), further increasing the complexity of memory allocation and
+		reclaim.
 
 		Another alternative that exists in both manual and automatic variants are \emph{region-based} approaches to managing
-		memory. Each slice of memory is allocated from one of many memory regions (also called \emph{pools}). Unused regions
+		memory. Each slice of memory is allocated in one of many memory regions (also called \emph{pools}). Unused regions
 		are reclaimed on the whole, avoiding external fragmentation completely. A pool will only be recycled if all of the
-		objects allocated from its memory area are no longer referenced. A bad mapping from allocation to memory pool may
-		thus prevent the recycling of unused memory; in the worst case a single object can hold a whole pool
-		\enquote{hostage}, preventing its re-use. On the other hand, region-based memory management does not suffer from
-		external fragmentation because it does not reclaim slices from its pools. The time needed for allocation operations
-		is thus easily predictable and allocation can be implemented in $\Theta(1)$. This is an advantage over both manual
-		memory management and garbage collection, which do not always guarantee tight upper bounds for memory management
-		operations\footnote{This is not to say that they cannot, and there are a few algorithms that achieve good upper
-		bounds for these operations by avoiding fragmentation or embracing it. See~\cite{strotz:14} for previous work in
-		KESO about this problem and~\cite{pizlo:10:pldi} for the work it is based on.}.
+		objects allocated in its memory area are no longer referenced. A bad mapping from allocation to memory pool may thus
+		prevent the recycling of unused memory; in the worst case a single object can hold a whole pool \enquote{hostage},
+		preventing its re-use. On the other hand, region-based memory management does not suffer from external fragmentation
+		because it does not reclaim slices from its pools. The time needed for allocation operations is thus easily
+		predictable and allocation can be implemented in $\Theta(1)$. This is obvious when considering how allocation
+		requests are handled and where the used memory resides: All previously allocated memory is still considered to be in
+		use and occupies a single continuous block at the beginning of the memory pool. New requests can be served by
+		extending this block, which takes a constant number of operations (moving a level marker). Constant runtime is an
+		advantage over both manual memory management and garbage collection, which do not always guarantee tight upper
+		bounds for memory management operations\footnote{This is not to say that they cannot, and there are a few algorithms
+		that achieve good upper bounds for these operations by avoiding fragmentation or embracing it. See~\cite{strotz:14}
+		for previous work in KESO about this problem and~\cite{pizlo:10:pldi} for the work it is based on.}.
 
 		\emph{Manual region-based} methods require developers to map allocation operations to the regions that shall be used
 		to satisfy the requests. The Real-Time Specification for Java supports manual region-based approaches to memory
 		management with the subclasses of its \texttt{javax.realtime.ScopedMemory} class~\cite{rtsj:06:scoped}. Manual
-		methods allow fine-granular control over the application's behavior, but suffer from the same potential problems
+		methods allow fine-grained control over the application's behavior, but suffer from the same potential problems
 		present in (non-region-based) manual memory management, such as dangling pointers.
 
 		\emph{Automatic region-based} approaches infer regions and region assignments at compile time. Previously published
@@ -123,14 +126,14 @@
 		performance.~\cite{henglein:01:ppdp}
 
 		A special case of manual region-based memory management is \emph{stack allocation}. Each function call creates a new
-		logical memory pool that can be used to allocate structures and objects from the stack. The pool is automatically
+		logical memory pool that can be used to allocate structures and objects on the stack. The pool is automatically
 		reclaimed at the end of the method, so only objects whose lifetime is bounded by the runtime of their allocating
 		function can be stored in stack memory. Since stack memory is automatically reclaimed, memory leaks cannot occur.
 		Dangling pointers, however, are still possible, for example by returning a pointer to local stack memory. In type
 		safe source languages such as Java, compilers can accurately compute which references point to the same memory
 		locations (\emph{alias analysis}) and whether any of these references remains live after the method that initially
 		defined them terminates (\emph{escape analysis}). Using escape analysis, dangling pointers can be detected at
-		compile-time and objects which will not escape their method of allocation can safely be allocated from stack memory.
+		compile time and objects which will not escape their method of allocation can safely be allocated in stack memory.
 		In the context of real-time systems, automatic stack allocation can reduce the working set of the garbage collector
 		and increase the system's predictability.
 
@@ -140,31 +143,34 @@
 		identifying objects which will outlive their method of allocation but not the calling method, was developed. The
 		results of this analysis were used in a transformation that extends the scope of such objects into the calling
 		method, enabling their allocation in the caller's stack frame, similar to a pattern often encountered in C programs.
-		This transformation can be beneficial in some commonly used Java APIs, e.g.\ when dealing with strings and
-		\texttt{StringBuilder}s.
+		This transformation can be beneficial in some Java APIs commonly used in generic software, e.g.\ when dealing with
+		strings and \texttt{StringBuilder}s. While embedded systems in a car environment typically do not deal with strings
+		a lot, the optimization might still be useful when implementing network communication protocols. Although the
+		\emph{Internet of Things} is not one of KESO's target domains, the work done in this thesis should improve the
+		memory allocation behavior of applications that deal with string-based protocols such as HTTP.
 
 	\section{Previous Work}
 		\label{sec:intro:prev}
 		Based on the work of Choi et al.\ published in 2003~\cite{choi:03}, I implemented alias analysis and escape analysis
 		in my bachelor's thesis. Different from the paper it was based on, KESO's implementation does not dynamically
-		allocate memory from the stack. Instead, allocation sites whose objects' liveness regions overlap are allocated from
+		allocate memory on the stack. Instead, allocation sites whose objects' liveness regions overlap are allocated in
 		garbage-collected heap memory, keeping the stack usage bounded in the absence of recursion. Since KESO targets
 		embedded systems with real-time constraints, predictable stack usage is important.
 
 		It is important to note that most of this work cannot be applied to languages with pointers easily. This is due to
-		the fact that pointer arithmetic might not be predictable at runtime, increasing alias analysis complexity. Because
-		conservative assumptions must often be made for code using pointers, determining whether an object does not escape
-		its method of allocation is much harder.~\cite{horwitz:97:toplas, hind:99:toplas, landi:92:loplas,
-		ramalingam:94:toplas}
+		the fact that pointer arithmetic might not be predictable at compile time, increasing alias analysis complexity.
+		Because conservative assumptions must often be made for code using pointers, determining whether an object does not
+		escape its method of allocation is much harder~\cite{horwitz:97:toplas, hind:99:toplas, landi:92:loplas,
+		ramalingam:94:toplas}.
 
 	\section{Document Structure}
 		\label{sec:intro:document-structure}
 		\Cref{chapter:ea} describes the changes implemented in KESO's escape analysis for this thesis. It starts with
 		a basic summary of the algorithms and data structures used and contains detailed descriptions of improvements and
-		the fix for a conceptional flaw in the work of Choi et al. The following~\cref{chapter:eea} outlines the idea of
+		the fix for a conceptual flaw in the work of Choi et al. The following~\cref{chapter:eea} outlines the idea of
 		improving stack allocation using variable scope extension and explains how this was implemented and which challenges
 		I encountered while doing that. The Evaluation in~\cref{chapter:eval} compares the results of my work to previous
 		versions of KESO using static results – like the number of automatically managed allocations – and runtime results
-		of a few benchmarks. \Cref{chapter:rel} gives an overview of related work and explains the differences to this
+		of a number of benchmarks. \Cref{chapter:rel} gives an overview of related work and explains the differences to this
 		thesis before~\cref{chapter:conclusion} concludes, gives an overview over the work done for this thesis and
 		discusses some ideas for future work.
