@@ -12,8 +12,7 @@
 	\tikzstyle{block} = [
 		rectangle,
 		fill = cgblue,
-		text width=5em,
-		text centered,
+		align = center,
 		minimum height=2em,
 		anchor=north west,
 		font=\scriptsize
@@ -42,7 +41,7 @@
 	\tikzstyle{domainpart} = [
 		rectangle,
 		fill = cggreen!15!white,
-		text width=4em,
+		align = center,
 		minimum height=2em,
 		anchor=north west
 	]%
@@ -148,14 +147,15 @@
 				domainpart,
 				font = \tiny,
 				anchor = north west,
-				inner sep=.4em,
+				inner sep = 0.4em,
+				minimum width = 5em,
 				align= center] at ($(domAHeapWrapper.north east)+(.2em, 0)$) (domAResources) {\nohyphens{Resources}\\\nohyphens{Alarms}\\ISRs};
 
 			% Tasks
 			\coordinate (domATasks) at ($(domAResources.south west)+(0, -.2em)$);
 			\coordinate (domATasksWithInnerSep) at ($(domATasks)+(.4em, -.4em)$);
 			% Activities
-			\foreach \x/\y/\nodename/\nodetext in {.9em/-.8em/domATask1/5, 2.2em/-.8em/domATask2/2, 3.5em/-.8em/domATask3/3} {%
+			\foreach \x/\y/\nodename/\nodetext in {1em/-.8em/domATask1/5, 2.4em/-.8em/domATask2/2, 3.7em/-.8em/domATask3/3} {%
 				\draw[->] ($(domATasksWithInnerSep)+(\x, \y)$) arc[activityarc];
 				\node[anchor = center, font=\scriptsize] (\nodename) at ($(domATasksWithInnerSep)+(\x,\y)+({-\radius * cos(\startangle)}, {-\radius * sin(\startangle)})$) {\nodetext};
 			}
