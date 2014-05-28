@@ -92,9 +92,18 @@
 \input{chapters/01-declaration-of-originality}
 \input{chapters/02-abstract}
 
-\cleardoublepage{}
+% don't cleardoublepage, I want the contents to be on a single double page.
+\clearpage{}
 \thispagestyle{empty}
+
+% scrrprt's \chapter* command would \cleardoublepage; avoid that by redefining \cleardoublepage to \relax.
+\let\realcleardoublepage\cleardoublepage
+\let\cleardoublepage\relax
 \tableofcontents{}
+\let\cleardoublepage\realcleardoublepage
+
+% switch to arabic page numbering; this is where the content starts. Don't remove this \cleardoublepage, because doing
+% that would number the second page of the ToC with arabic numbers already (which is not what we want).
 \cleardoublepage{}
 \pagenumbering{arabic}
 
