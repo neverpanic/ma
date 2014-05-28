@@ -6,7 +6,7 @@ TEXINPUTS=./texmf//:
 LATEXMK=TEXINPUTS="$(TEXINPUTS)" latexmk -e "\$$pdflatex='lualatex -shell-escape %O %S'"
 LATEXMK_NONSTOP=TEXINPUTS="$(TEXINPUTS)" latexmk -e "\$$pdflatex='lualatex -interaction=nonstopmode -shell-escape %O %S'"
 MAKEGLOSSARIES=makeglossaries
-EXTRA=texmf/tex/latex/i4coverpage/i4coverpage.sty
+EXTRA=texmf/tex/latex/i4coverpage/i4coverpage.sty $(wildcard images/*) $(wildcard images/i4/*) $(wildcard examples/*)
 
 RM=rm -f
 
