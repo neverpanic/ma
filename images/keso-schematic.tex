@@ -11,8 +11,7 @@
 	\def\startangle{75}
 	\tikzstyle{block} = [
 		rectangle,
-		draw,
-		fill = cgblue!60!white,
+		fill = cgblue,
 		text width=5em,
 		text centered,
 		minimum height=2em,
@@ -22,24 +21,26 @@
 	\tikzstyle{microcontroller} = [
 		block,
 		align = center,
+		text = white,
 		minimum width = 25em
 	]%
 	\tikzstyle{oscomponent} = [
 		block,
-		fill = cgred!60!white,
+		fill = cgorange,
+		text = black,
 		align = center,
 		text width = 10em,
 		minimum width = 18em
 	]%
 	\tikzstyle{kesodomain} = [
 		block,
-		fill = cggreen!60!white,
+		fill = cggreen,
+		text = white,
 		minimum height=1.5em,
 		minimum width=5em
 	]%
 	\tikzstyle{domainpart} = [
 		rectangle,
-		draw,
 		fill = cggreen!15!white,
 		text width=4em,
 		minimum height=2em,
@@ -75,17 +76,17 @@
 		\node (mc) [microcontroller] {Microcontroller};
 
 		% OSEK and KESO Runtime Env
-		\node[oscomponent, anchor=south west] at ($(mc.north west)+(0, 0.5em)$) (osek) {OSEK / AUTOSAR};
+		\node[oscomponent, anchor=south west] at ($(mc.north west)+(0, 0.3em)$) (osek) {OSEK / AUTOSAR};
 		\path
-			coordinate (kesoNorthWest)       at ($(osek.north west)+(0, 2.5em)$)
-			coordinate (kesoNorthMiddleEast) at ($(osek.north east)+(0, 2.5em)$)
+			coordinate (kesoNorthWest)       at ($(osek.north west)+(0, 2.3em)$)
+			coordinate (kesoNorthMiddleEast) at ($(osek.north east)+(0, 2.3em)$)
 			coordinate (kesoNorthEast)       at ($(kesoNorthWest)!(mc.north east)!(kesoNorthMiddleEast)$)
 			coordinate (kesoNorth)           at ($(kesoNorthWest)!.5!(kesoNorthEast)$)
-			coordinate (kesoSouthWest)       at ($(osek.north west)+(0, 0.5em)$)
-			coordinate (kesoSouthEastCorner) at ($(osek.north east)+(.5em, 0.5em)$)
+			coordinate (kesoSouthWest)       at ($(osek.north west)+(0, 0.3em)$)
+			coordinate (kesoSouthEastCorner) at ($(osek.north east)+(.3em, 0.3em)$)
 			coordinate (kesoSouth)           at ($(kesoSouthWest)!(kesoNorth)!(kesoSouthEastCorner)$)
 			coordinate (kesoSouthEast)       at ($(osek.south west)!(kesoNorthEast)!(osek.south east)$)
-			coordinate (kesoSouthMiddleEast) at ($(osek.south east)+(.5em, 0)$)
+			coordinate (kesoSouthMiddleEast) at ($(osek.south east)+(.3em, 0)$)
 			;
 		\path[oscomponent]
 			(kesoNorthWest)
@@ -98,12 +99,14 @@
 		\node[anchor = center,
 			align = center,
 			font = \scriptsize,
-			inner sep=.5em] (keso) at ($(kesoNorth)!.5!(kesoSouth)$) {KESO Runtime Environment};
+			inner sep=.5em,
+			text = black] (keso) at ($(kesoNorth)!.5!(kesoSouth)$) {KESO Runtime Environment};
 		\coordinate (kesoDeviceBoxNorthWest) at ($(osek.north west)!(kesoSouthMiddleEast)!(osek.north east)$);
 		\node[
 			anchor = center,
 			font = \tiny,
-			align = center] at ($(kesoSouthEast)!.5!(kesoDeviceBoxNorthWest)$) {Memory-Mapped I/O\\ Device Drivers};
+			align = center,
+			text = black] at ($(kesoSouthEast)!.5!(kesoDeviceBoxNorthWest)$) {Memory-Mapped I/O\\ Device Drivers};
 
 		% Domains
 		\coordinate (domA) at ($(kesoNorthWest)+(0, 9em)$);
@@ -178,7 +181,8 @@
 			\node[
 				font = \scriptsize,
 				anchor = north,
-				inner sep = 0.4em] at (domAWrapper.north) (domATitle) {Domain A};
+				inner sep = 0.4em,
+				text = white] at (domAWrapper.north) (domATitle) {Domain A};
 		\end{pgfonlayer}
 
 		\node[kesodomain, anchor = south east] at ($(domAWrapper.south west)!(kesoNorthEast)!(domAWrapper.south east)$) (domC) {Domain C};
@@ -195,6 +199,6 @@
 		\draw[connection] (domC) -- (kesoNorth -| domC);
 
 		%% Label ``Keso Services''
-		\node[anchor = center, font = \scriptsize] at ($(kesoNorth)+(0, 0.9em)$) {KESO Services};
+		%\node[anchor = center, font = \scriptsize] at ($(kesoNorth)+(0, 0.9em)$) {KESO Services};
 	\end{tikzpicture}%
 \end{document}
