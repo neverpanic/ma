@@ -1,4 +1,4 @@
-%% The LaTeX package tcolorbox - version 3.00 (2014/05/08)
+%% The LaTeX package tcolorbox - version 3.05 (2014/05/28)
 %% tcolorbox.sty: Text color boxes
 %%
 %% -------------------------------------------------------------------------------------------
@@ -18,8 +18,8 @@
 %% This work consists of all files listed in README
 %%
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{tcolorbox}[2014/05/08 version 3.00 text color boxes]
-\def\tcb@version{3.00}
+\ProvidesPackage{tcolorbox}[2014/05/28 version 3.05 text color boxes]
+\def\tcb@version{3.05}
 
 \RequirePackage{pgf}[2008/01/15]
 \RequirePackage{verbatim}[2003/08/22]
@@ -435,6 +435,7 @@
   size/minimal/.style={boxrule=0pt,boxsep=0pt,left=0pt,right=0pt,top=0pt,bottom=0pt,toptitle=0pt,bottomtitle=0pt,
     middle=0pt,arc=0pt,outer arc=0pt},
   on line/.style={tcbox raise base,nobeforeafter},
+  shape@of@skin/.store in=\tcb@shapeofskin,
   }
 
 \def\kvtcb@beforebox{}
@@ -608,6 +609,9 @@
 
 \def\tcb@layer@inc{%
   \stepcounter{tcblayer}%
+  \ifnum\c@tcblayer>1%
+    \tcbset{breakable@true/.code=}%
+  \fi%
   \ifnum\c@tcblayer>\tcb@managed@layers@max%
     \tcbset{every box on higher layers}%
   \else%
@@ -619,14 +623,17 @@
 
 \def\tcb@layer@pushup{%
   \stepcounter{tcblayer}%
+  \ifnum\c@tcblayer>1%
+    \tcbset{breakable@true/.code=}%
+  \fi%
   \ifnum\c@tcblayer>\tcb@managed@layers@max%
     \tcbset{every box on higher layers}%
-    \tcbset{every box on higher layers/.style={}}% not ideal
+    \tcbset{every box on higher layers/.code=}%
   \else%
     \tcbset{every box on layer \number\c@tcblayer}%
-    \tcbset{every box on layer \number\c@tcblayer/.style={}}%
+    \tcbset{every box on layer \number\c@tcblayer/.code=}%
   \fi%
-  \addtocounter{tcblayer}{-1}%´
+  \addtocounter{tcblayer}{-1}%
 }
 
 \def\tcb@layer@dec{%
@@ -1155,7 +1162,7 @@
     \csxdef{the\tcbcounter}{\kvtcb@new@freestyle}%
   \fi%
   \global\csletcs{thetcb@cnt@#1}{the\tcbcounter}%
-  \appto\tcb@new@colopt{,code={\letcs\tcbcounter{tcb@cnt@\kvtcb@savedelimiter}\letcs\thetcbcounter{thetcb@cnt@\kvtcb@savedelimiter}\preto\kvtcb@phantom{\refstepcounter{\tcbcounter}}}}%
+  \appto\tcb@new@colopt{,code={\letcs\tcbcounter{tcb@cnt@#1}\letcs\thetcbcounter{thetcb@cnt@#1}\preto\kvtcb@phantom{\refstepcounter{\tcbcounter}}}}%
 }
 
 \def\tcb@proc@counter@auto#1{%
@@ -1172,7 +1179,7 @@
 \def\tcb@proc@counter@from#1{%
   \csxdef{tcb@cnt@#1}{\kvtcb@new@counter}%
   \global\csletcs{thetcb@cnt@#1}{the\kvtcb@new@counter}%
-  \appto\tcb@new@colopt{,code={\letcs\tcbcounter{tcb@cnt@\kvtcb@savedelimiter}\letcs\thetcbcounter{thetcb@cnt@\kvtcb@savedelimiter}\preto\kvtcb@phantom{\refstepcounter{\tcbcounter}}}}%
+  \appto\tcb@new@colopt{,code={\letcs\tcbcounter{tcb@cnt@#1}\letcs\thetcbcounter{thetcb@cnt@#1}\preto\kvtcb@phantom{\refstepcounter{\tcbcounter}}}}%
 }
 
 \def\tcb@proc@counter@no#1{%
@@ -1350,6 +1357,7 @@
   graphical environment=pgfpicture,geometry nodes=false,
   set@extensions@preframe=,set@extensions@postframe={\tcb@apply@overlay},set@extensions@final=,%
   set@outerboundary=\tcb@boundaryframe@standard,%
+  shape@of@skin=unbroken,
   skin first=standard,skin middle=standard,skin last=standard%
 }
 

@@ -1,4 +1,4 @@
-%% The LaTeX package tcolorbox - version 3.00 (2014/05/08)
+%% The LaTeX package tcolorbox - version 3.05 (2014/05/28)
 %%
 %% -------------------------------------------------------------------------------------------
 %% Copyright (c) 2006-2014 by Prof. Dr. Dr. Thomas F. Sturm <thomas dot sturm at unibw dot de>
@@ -516,4 +516,32 @@ version 3.00 (2014/05/08)
 - library 'theorems':
   * new options:
   'description color', 'description font', 'description formatter'
+
+version 3.01 (2014/05/13)
+- bug fix: 'parbox=false' plus 'breakable' had an unwanted indent
+- compatibility fix for tabularx 2014/04/22 v2.09
+
+version 3.02 (2014/05/13)
+- compatibility fix for tabularx 2014/04/22 v2.09 (again)
+
+version 3.03 (2014/05/16)
+- bug fix: some initialization option keys for \newtcblisting did not operate correctly
+- bug fix: boxed title shape 'title' was unknown in underlays
+- more boxed title example documented
+
+version 3.04 (2014/05/18)
+- compatibility fix for tabularx removed; compatible with tabularx 2014/05/13 v2.10
+- boxed title improvements:
+  * the 'title' node is accessible now from inside 'frame code' and 'interior code'
+  * new keys 'underlay boxed title', 'no underlay boxed title', 'underlay boxed title pre'
+  * documentation example updated
+
+version 3.05 (2014/05/28)
+- compatibility fix for the upcoming version 2.0 of the package minted
+- inner boxes are enforced to be unbreakable now
+- library 'breakable':
+  new key 'enforce breakable' (for breaking inner boxed deliberately)
+- library 'skins':
+  * new options:
+  'lifted shadow', 'drop small lifted shadow', 'drop lifted shadow', 'drop large lifted shadow'
 

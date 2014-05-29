@@ -514,10 +514,19 @@ are \emph{not} automatically computed.
 \end{marker}
 
 \begin{marker}
-  A \tikzname\ node |title| is produced by a boxed title. This node is accessible
-  insided underlays, overlays and finishes, but \emph{not} inside
-  \refKey{/tcb/frame code} or \refKey{/tcb/interior code}.
+  A \tikzname\ node |title| is produced by a boxed title which can be used
+  inside \refKey{/tcb/frame code}, \refKey{/tcb/interior code},
+  underlays, overlays, and finishes.
 \end{marker}
+
+\begin{marker}
+  A boxed title is almost always the first underlay. The only exceptions are
+  underlays defined by \refKey{/tcb/underlay boxed title} which are drawn
+  before. Additionally, underlays defined by \refKey{/tcb/underlay boxed title}
+  are only drawn, if a boxed title is actually set. They are ignored, if
+  there is no boxed title.
+\end{marker}
+
 
 
 \begin{docTcbKey}{boxed title style}{=\meta{options}}{style, initially empty}
@@ -540,7 +549,7 @@ applicable here.
 \end{tcolorbox}
 \end{dispExample*}
 
-\enlargethispage*{2cm}
+
 \begin{dispExample*}{sbs,lefthand ratio=0.66}
 \begin{tcolorbox}[enhanced,title=My title,
   colframe=red!50!black,colback=red!10!white,
@@ -563,8 +572,8 @@ applicable here.
   fonttitle=\bfseries,coltitle=black,attach boxed title to top center=
     {yshift=-0.25mm-\tcboxedtitleheight/2,yshifttext=2mm-\tcboxedtitleheight/2},
   boxed title style={enhanced,boxrule=0.5mm,
-    frame code={ \path[tcb fill frame] ([xshift=-4mm]frame.west) -- (frame.north west)
-    -- (frame.north east) -- ([xshift=4mm]frame.east)
+    frame code={ \path[tcb fill frame] ([xshift=-4mm]frame.west)
+    -- (frame.north west) -- (frame.north east) -- ([xshift=4mm]frame.east)
     -- (frame.south east) -- (frame.south west) -- cycle; },
     interior code={ \path[tcb fill interior] ([xshift=-2mm]interior.west)
     -- (interior.north west) -- (interior.north east)
@@ -572,6 +581,80 @@ applicable here.
     -- cycle;}  }]
   \lipsum[2]
 \end{tcolorbox}
+\end{dispExample}
+
+
+\begin{dispExample}
+% \usepackage{varwidth}
+\newtcolorbox{mybox}[2][]{enhanced,skin=enhancedlast jigsaw,
+  attach boxed title to top left={xshift=-4mm,yshift=-0.5mm},
+  fonttitle=\bfseries\sffamily,varwidth boxed title=0.7\linewidth,
+  colbacktitle=blue!45!white,colframe=red!50!black,
+  interior style={top color=blue!10!white,bottom color=red!10!white},
+  boxed title style={empty,arc=0pt,outer arc=0pt,boxrule=0pt},
+  underlay boxed title={
+    \fill[blue!45!white] (title.north west) -- (title.north east)
+      -- +(\tcboxedtitleheight-1mm,-\tcboxedtitleheight+1mm)
+      -- ([xshift=4mm,yshift=0.5mm]frame.north east) -- +(0mm,-1mm)
+      -- (title.south west) -- cycle;
+    \fill[blue!45!white!50!black] ([yshift=-0.5mm]frame.north west)
+      -- +(-0.4,0) -- +(0,-0.3) -- cycle;
+    \fill[blue!45!white!50!black] ([yshift=-0.5mm]frame.north east)
+      -- +(0,-0.3) -- +(0.4,0) -- cycle;  },
+  title={#2},#1}
+
+\begin{mybox}{My title}
+  \lipsum[2]
+\end{mybox}
+\end{dispExample}
+
+
+\begin{dispExample}
+% \usepackage{varwidth}
+\newtcolorbox{mybox}[2][]{enhanced,
+  attach boxed title to top left={xshift=1cm,yshift=-2mm},
+  fonttitle=\bfseries,varwidth boxed title=0.7\linewidth,
+  colbacktitle=green!45!white,coltitle=green!10!black,colframe=green!50!black,
+  interior style={top color=yellow!10!white,bottom color=green!10!white},
+  boxed title style={enhanced,boxrule=0.75mm,colframe=white,
+    borderline={0.1mm}{0mm}{green!50!black},
+    borderline={0.1mm}{0.75mm}{green!50!black},
+    interior style={top color=green!10!white,bottom color=green!10!white,
+      middle color=green!50!white},
+    drop fuzzy shadow},
+  title={#2},#1}
+
+\begin{mybox}{My title}
+  \lipsum[2]
+\end{mybox}
+\end{dispExample}
+
+
+\begin{dispExample}
+% \usepackage{varwidth}
+\newtcolorbox{mybox}[2][]{skin=enhancedlast jigsaw,interior hidden,
+  boxsep=0pt,top=0pt,colframe=red,coltitle=red!50!black,
+  fonttitle=\bfseries\sffamily,
+  attach boxed title to bottom center,
+  boxed title style={empty,boxrule=0.5mm},
+  varwidth boxed title=0.5\linewidth,
+  underlay boxed title={
+    \draw[white,line width=0.5mm]
+      ([xshift=0.3mm-\tcboxedtitleheight*2,yshift=0.3mm]title.north west)
+      --([xshift=-0.3mm+\tcboxedtitleheight*2,yshift=0.3mm]title.north east);
+    \path[draw=red,top color=white,bottom color=red!50!white,line width=0.5mm]
+    ([xshift=0.25mm-\tcboxedtitleheight*2,yshift=0.25mm]title.north west)
+    cos +(\tcboxedtitleheight,-\tcboxedtitleheight/2)
+    sin +(\tcboxedtitleheight,-\tcboxedtitleheight/2)
+    -- ([xshift=0.25mm,yshift=0.25mm]title.south west)
+    -- ([yshift=0.25mm]title.south east)
+    cos +(\tcboxedtitleheight,\tcboxedtitleheight/2)
+    sin +(\tcboxedtitleheight,\tcboxedtitleheight/2); },
+  title={#2},#1}
+
+\begin{mybox}{My title}
+  \lipsum[2]
+\end{mybox}
 \end{dispExample}
 \end{docTcbKey}
 
@@ -664,7 +747,7 @@ The text is centered by default
 
 \begin{docTcbKey}{varwidth boxed title}{\colOpt{=\meta{length}}}{initially unset}
 The title text content is captured with a |varwidth| environment with a width of \meta{length}.
-This style needs the |varwidth| package to be loaded manually.
+This style needs the |varwidth| package \cite{arseneau:2011a} to be loaded manually.
 By default, the resulting boxed title is somewhat smaller than the main box.
 \begin{dispExample*}{sbs,lefthand ratio=0.66}
 % \usepackage{varwidth}
@@ -687,7 +770,7 @@ By default, the resulting boxed title is somewhat smaller than the main box.
 
 \begin{docTcbKey}{varwidth boxed title*}{\colOpt{=\meta{length}}}{initially unset}
 The title text content is captured with a |varwidth| environment with a width of main box width plus \meta{length}.
-This style needs the |varwidth| package to be loaded manually.
+This style needs the |varwidth| package \cite{arseneau:2011a} to be loaded manually.
 By default, the resulting boxed title is somewhat smaller than the main box.
 \begin{dispExample*}{sbs,lefthand ratio=0.66}
 % \usepackage{varwidth}
@@ -1316,7 +1399,7 @@ This is a tcolorbox.
 \clearpage
 \begin{docTcbKey}{fuzzy shadow}{=\marg{xshift}\marg{yshift}\marg{offset}\marg{step}\marg{options}}{no default}
   Adds a new fuzzy shadow to the stack of shadows. Actually, this option
-  adds seversal shadows which appear like a shadow with a fuzzy border.
+  adds several shadows which appear like a shadow with a fuzzy border.
   This fuzzy shadow is follows the outline of the |tcolorbox| but is shifted by
   \meta{xshift} and \meta{yshift}. The \meta{offset} value is a distance value
   from the frame outline.  A positive \meta{offset} value shrinks the shadow
@@ -1672,6 +1755,89 @@ equivalent to the preceding examples.
 
 
 \clearpage
+\begin{docTcbKey}{lifted shadow}{=\marg{xshift}\marg{yshift}\marg{bend}\marg{step}\marg{options}}{no default}
+  Adds a new lifted shadow to the stack of shadows. Actually, this option
+  adds several shadows which appear like a shadow with a fuzzy border.
+  This lifted shadow is follows the outline of the |tcolorbox| but is shifted by
+  \meta{xshift} and \meta{yshift} on the lower left corner and by
+  $-$\meta{xshift} and \meta{yshift} on the lower right corner.
+  Additionally, there is a \meta{bend} in the middle.
+  The \marg{step} value describes a shrink
+  offset used for the combination of the partial shadows.
+  The shadow is filled along a \tikzname\  path with the given \tikzname\  \meta{options} but
+  any |opacity| value will be ignored.
+\begin{dispExample*}{sbs,lefthand ratio=0.6}
+\tcbset{enhanced,colback=red!5!white,
+  boxrule=0.1pt,
+  colframe=red!75!black,fonttitle=\bfseries}
+
+\begin{tcolorbox}[title=My own shadow,
+  lifted shadow={1mm}{-2mm}{3mm}{0.1mm}%
+               {black!50!white}]
+This is a tcolorbox.
+\end{tcolorbox}
+\end{dispExample*}
+\end{docTcbKey}
+
+\begin{docTcbKey}{drop lifted shadow}{\colOpt{=\meta{color}}}{style, default |black!50!white|}
+  Adds a new lifted shadow with standard dimensions to the stack of shadows.
+  Optionally, the \meta{color} for the shadow can be changed.
+\begin{dispExample*}{sbs,lefthand ratio=0.6}
+\tcbset{enhanced,colback=red!5!white,
+  boxrule=0.4pt,arc=0pt,outer arc=0pt,
+  colframe=red!75!black,fonttitle=\bfseries}
+
+\begin{tcolorbox}[drop lifted shadow]
+This is a tcolorbox.
+\end{tcolorbox}\par\bigskip
+\begin{tcolorbox}[title=Another shadow,
+  drop lifted shadow=blue]
+This is a tcolorbox.
+\end{tcolorbox}
+\end{dispExample*}
+\end{docTcbKey}
+
+
+\begin{docTcbKey}{drop small lifted shadow}{\colOpt{=\meta{color}}}{style, default |black!50!white|}
+  Adds a new small lifted shadow with standard dimensions to the stack of shadows.
+  Optionally, the \meta{color} for the shadow can be changed.
+\begin{dispExample*}{sbs,lefthand ratio=0.6}
+\tcbset{enhanced,colback=red!5!white,
+  boxrule=0.4pt,arc=0pt,outer arc=0pt,
+  colframe=red!75!black,fonttitle=\bfseries}
+
+\tcbox[drop small lifted shadow,size=fbox]
+  {This is a tcolorbox.}
+\par\bigskip
+\begin{tcolorbox}[title=Another shadow,
+  drop small lifted shadow=black]
+This is a tcolorbox.
+\end{tcolorbox}
+\end{dispExample*}
+\end{docTcbKey}
+
+
+\clearpage
+\begin{docTcbKey}{drop large lifted shadow}{\colOpt{=\meta{color}}}{style, default |black!50!white|}
+  Adds a new large lifted shadow with standard dimensions to the stack of shadows.
+  Optionally, the \meta{color} for the shadow can be changed.
+\begin{dispExample*}{sbs,lefthand ratio=0.6}
+\tcbset{enhanced,colback=red!5!white,
+  colframe=red!75!black,fonttitle=\bfseries}
+
+\begin{tcolorbox}[drop large lifted shadow]
+This is a tcolorbox.
+\end{tcolorbox}\par\bigskip
+\begin{tcolorbox}[title=Another shadow,
+  drop large lifted shadow=blue]
+This is a tcolorbox.
+\end{tcolorbox}
+\end{dispExample*}
+\end{docTcbKey}
+
+
+
+\clearpage
 \subsection{\tikzname\  Picture Option Keys}\label{subsec:tikzpicture}
 The following general options are applicable for skins which
 use |tikzpicture| as \refKey{/tcb/graphical environment}.
@@ -1925,6 +2091,16 @@ The differences between underlays and overlays are:
 
 \begin{docTcbKey}{no underlay last}{}{style, no default, initially set}
   Removes the last underlay if set before.
+\end{docTcbKey}
+
+\begin{docTcbKey}{underlay boxed title}{=\meta{graphical code}}{no default, initially unset}
+  If the box has a \emph{boxed title}, see \Vref{subsec:skinboxedtitle},
+  then the \meta{graphical code} is added to the box drawing process
+  \emph{before} the boxed title is drawn.
+\end{docTcbKey}
+
+\begin{docTcbKey}{no underlay boxed title}{}{style, no default, initially set}
+  Removes the boxed title underlay if set before.
 \end{docTcbKey}
 
 \begin{docTcbKey}{underlay unbroken and first}{=\meta{graphical code}}{no default, initially unset}
@@ -3853,7 +4029,6 @@ are drawn by the codes given by
 
 
 \clearpage
-\tcbinterruptdraftmode
 
 \subsection{Skin 'draft'}\label{subsec:draft}
 

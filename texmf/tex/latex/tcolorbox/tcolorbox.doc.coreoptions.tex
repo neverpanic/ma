@@ -5,7 +5,7 @@
 For the \meta{options} in \refEnv{tcolorbox} respectively \refCom{tcbset}
 the following |pgf| keys can be applied. The key tree path |/tcb/| is not to
 be used inside these macros. It is easy to add your own style keys using
-the syntax for |pgf| keys, see \cite{tantau:2013a,sturm:2012k} or the examples
+the syntax for |pgf| keys, see \cite{tantau:2013a,sturm:2014g} or the examples
 starting from page \pageref{sec:latextutorial}.
 
 
@@ -1415,11 +1415,16 @@ This is the lower part.
 
 
 \clearpage
+\begin{marker}
+If \refKey{/tcb/tabularx} or \refKey{/tcb/tabularx*} are used, one cannot
+have a lower part.
+\end{marker}
+
 \begin{docTcbKey}{tabularx}{=\meta{preamble}}{style}
   This style sets \refKey{/tcb/before upper} and \refKey{/tcb/after upper}
   and several geometry keys to support a |tabularx| with the
   given \meta{preamble}.
-  The packages |tabularx| \cite {carlisle:1999a}, |array|, and |colortbl|
+  The packages |tabularx| \cite {carlisle:2014a}, |array|, and |colortbl|
   have to be loaded separately.
 \begin{dispExample}
 % \usepackage{array,tabularx}
@@ -1535,7 +1540,7 @@ Lower part.
 
 \begin{docTcbKey}{varwidth upper}{\colOpt{=\meta{length}}}{style, default \refKey{/tcb/width}}
   This style places the upper part content into a |varwidth| environment.
-  This style needs the |varwidth| package to be loaded manually.
+  This style needs the |varwidth| package \cite{arseneau:2011a} to be loaded manually.
   The resulting box has a maximal width of \meta{length}.
   This option is only senseful for a \refCom{tcbox}.
 \begin{dispExample*}{sbs,lefthand ratio=0.6}
@@ -1698,32 +1703,29 @@ are drawn by the codes given with
 \par\bigskip
 }}
 % Preamble:
-%\usepackage{tikz,lipsum,calc}
+%\usepackage{tikz,lipsum}
 %\tcbuselibrary{skins,breakable}
 %\newcounter{example}
-%\newlength{\examlen}
 \colorlet{colexam}{red!75!black}
 
 \newtcolorbox[use counter=example]{myexample}{%
-  phantom={\settowidth{\global\examlen}{\Large\bfseries Example \thetcbcounter}},%
-  title={Example \thetcbcounter},
+  empty,title={Example \thetcbcounter},attach boxed title to top left,
+  boxed title style={empty,size=minimal,toprule=2pt,top=4pt,
+    overlay={\draw[colexam,line width=2pt]
+      ([yshift=-1pt]frame.north west)--([yshift=-1pt]frame.north east);}},
   coltitle=colexam,fonttitle=\Large\bfseries,
-  enhanced,breakable,before=\par\medskip,parbox=false,
-  frame hidden,interior hidden,segmentation hidden,
-  boxsep=0pt,left=0pt,right=3mm,toptitle=2mm,pad at break=0mm,
-  overlay unbroken={\draw[colexam,line width=1pt] (frame.north west)
-    --([xshift=-0.5pt]frame.north east)--([xshift=-0.5pt]frame.south east)
-    --(frame.south west);
-    \draw[colexam,line width=2pt] ([yshift=0.5pt]frame.north west)
-    -- +(\examlen,0pt);},
-  overlay first={\draw[colexam,line width=1pt] (frame.north west)
-    --([xshift=-0.5pt]frame.north east)--([xshift=-0.5pt]frame.south east);
-    \draw[red!75!black,line width=2pt] ([yshift=0.5pt]frame.north west)
-    -- +(\examlen,0pt);},
+  before=\par\medskip\noindent,parbox=false,boxsep=0pt,left=0pt,right=3mm,top=4pt,
+  breakable,pad at break=0mm,
+  overlay unbroken={\draw[colexam,line width=1pt]
+    ([yshift=-1pt]title.north east)--([xshift=-0.5pt,yshift=-1pt]title.north-|frame.east)
+    --([xshift=-0.5pt]frame.south east)--(frame.south west); },
+  overlay first={\draw[colexam,line width=1pt]
+    ([yshift=-1pt]title.north east)--([xshift=-0.5pt,yshift=-1pt]title.north-|frame.east)
+    --([xshift=-0.5pt]frame.south east); },
   overlay middle={\draw[colexam,line width=1pt] ([xshift=-0.5pt]frame.north east)
     --([xshift=-0.5pt]frame.south east); },
   overlay last={\draw[colexam,line width=1pt] ([xshift=-0.5pt]frame.north east)
-    --([xshift=-0.5pt]frame.south east)--(frame.south west);}%
+    --([xshift=-0.5pt]frame.south east)--(frame.south west);},%
 }
 
 \begin{myexample}

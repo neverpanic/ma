@@ -1,5 +1,5 @@
 % \LaTeX-Main\
-%% The LaTeX package tcolorbox - version 3.00 (2014/05/08)
+%% The LaTeX package tcolorbox - version 3.05 (2014/05/28)
 %% tcolorbox.tex: Manual
 %%
 %% -------------------------------------------------------------------------------------------
@@ -61,6 +61,8 @@
 \usepackage{lipsum}
 \usepackage{empheq}
 
+%\usepackage[cache]{minted}% minted 2.0
+
 \usepackage{changepage}
 \strictpagecheck
 
@@ -100,8 +102,8 @@
 
 \newtcolorbox{marker}[1][]{marker,#1}
 
-\def\version{3.00}%
-\def\datum{2014/05/08}%
+\def\version{3.05}%
+\def\datum{2014/05/28}%
 \makeindex
 
 \hypersetup{
@@ -165,7 +167,7 @@
 \tcbset{documentation listing style=mydocumentation,%
   sbs/.style={sidebyside,before lower app={\tcbset{sidebyside=false}}},%
   innerbox/.style={reset,documentation listing style=mydocumentation,
-    docexample/.style={docexample original}%,listing engine=minted,documentation minted style=perldoc,
+    docexample/.style={docexample original},%listing engine=minted,documentation minted style=manni,documentation minted options={tabsize=2,fontsize=\footnotesize},
     },
   base example/.style={bicolor,
     colframe=Navy!50!ExampleFrame,colback=Navy!5!ExampleBack,fontlower=\footnotesize,
@@ -300,8 +302,10 @@
 \end{tcbverbatimwrite}
 \input{\jobname_preamble_J.tex}
 
+
 %\tcbset{draftmode}
-%\includeonly{tcolorbox.doc.coremacros}
+%\includeonly{tcolorbox.doc.abstract}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}

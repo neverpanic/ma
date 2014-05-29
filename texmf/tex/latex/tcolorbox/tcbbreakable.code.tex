@@ -1,4 +1,4 @@
-%% The LaTeX package tcolorbox - version 3.00 (2014/05/08)
+%% The LaTeX package tcolorbox - version 3.05 (2014/05/28)
 %% tcbbreakable.code.tex: Code for breakable colorboxes
 %%
 %% -------------------------------------------------------------------------------------------
@@ -17,10 +17,10 @@
 %%
 %% This work consists of all files listed in README
 %%
-\tcb@set@library@version{3.00}
+\tcb@set@library@version{3.05}
 
 \let\tcb@parboxrestore@true=\tcb@parboxrestore
-\def\tcb@parboxrestore@false{\vskip-\parskip\linewidth\hsize}
+\def\tcb@parboxrestore@false{\vskip-\parskip\linewidth\hsize\noindent}
 
 \def\tcb@vbox#1#2{%
   \edef\reserved@a{%
@@ -556,6 +556,10 @@
   breakable/.style={breakable@#1},
   breakable/.default=true,%
   unbreakable/.style={breakable=false},%
+  enforce breakable/.code={%
+    \let\tcb@savebox=\tcb@vbox%
+    \let\endtcb@savebox=\endtcb@vbox%
+    \let\tcb@drawcolorbox=\tcb@drawcolorbox@breakable},
   title after break/.store in=\kvtcb@followingtitle,%
   notitle after break/.style={title after break=},%
   adjusted title after break/.style={title after break={#1\vphantom{\kvtcb@adjusttext}}},%

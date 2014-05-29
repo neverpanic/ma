@@ -1,4 +1,4 @@
-%% The LaTeX package tcolorbox - version 3.00 (2014/05/08)
+%% The LaTeX package tcolorbox - version 3.05 (2014/05/28)
 %% tcbhooks.code.tex: Code for adding hooks
 %%
 %% -------------------------------------------------------------------------------------------
@@ -18,7 +18,7 @@
 %% This work consists of all files listed in README
 %%
 %\makeatletter
-\tcb@set@library@version{3.00}
+\tcb@set@library@version{3.05}
 
 \tcbset{%
   before upper app/.code={\appto\kvtcb@before@upper{#1}},%
@@ -76,6 +76,7 @@
   underlay first pre/.code={\preto\tcb@underlay@first{#1}},%
   underlay middle pre/.code={\preto\tcb@underlay@middle{#1}},%
   underlay last pre/.code={\preto\tcb@underlay@last{#1}},%
+  underlay boxed title pre/.code={\preto\tcb@underlay@boxedtitle{#1}},%
   underlay pre/.style={underlay unbroken pre={#1},underlay first pre={#1},underlay middle pre={#1},underlay last pre={#1}},%
   underlay broken pre/.style={underlay first pre={#1},underlay middle pre={#1},underlay last pre={#1}},%
   underlay unbroken and first pre/.style={underlay unbroken pre={#1},underlay first pre={#1}},%

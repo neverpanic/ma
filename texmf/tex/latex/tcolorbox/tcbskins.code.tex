@@ -1,4 +1,4 @@
-%% The LaTeX package tcolorbox - version 3.00 (2014/05/08)
+%% The LaTeX package tcolorbox - version 3.05 (2014/05/28)
 %% tcbskins.code.tex: Code for colorboxes with different skins
 %%
 %% -------------------------------------------------------------------------------------------
@@ -17,7 +17,7 @@
 %%
 %% This work consists of all files listed in README
 %%
-\tcb@set@library@version{3.00}
+\tcb@set@library@version{3.05}
 
 \RequirePackage{tikz}[2010/10/13]
 
@@ -26,7 +26,7 @@
   \tcb@tikzpicture@begin\tcb@tikz@begin@hook}{\tcb@tikz@end@hook\endtikzpicture}
 
 \def\tcb@creategeonodes@true{%
-  \begin{scope}[every node/.style={line width=0mm,inner sep=0mm,draw=none,fill=none,rectangle}]
+  \begin{scope}[every node/.style={line width=0mm,inner sep=0mm,outer sep=0mm,draw=none,fill=none,rectangle}]
     \node[name=frame,at={(0,0)},above right,minimum width=\tcb@width,minimum height=\tcb@height]{};
     \node[name=interior,at={({\kvtcb@left@rule},{\kvtcb@bottom@rule})},above right,minimum width=\tcb@innerwidth,minimum height=\tcb@innerheight]{};
     \ifnum\tcb@segment@state=1%
@@ -40,6 +40,7 @@
     \node[name=title,at={({\kvtcb@left@rule},{\the\dimexpr\kvtcb@bottom@rule+\tcb@innerheight+\kvtcb@title@rule\relax})},above right,
        minimum width=\tcb@innerwidth,minimum height=\the\dimexpr\tcb@h@title+\kvtcb@toptitle+\kvtcb@bottomtitle+\kvtcb@boxsep*2\relax]{};
     \fi%
+    \tcb@specialgeonodes@hook%
   \end{scope}%
 }
 
@@ -369,28 +370,32 @@
   base@unbroken/.style={%
     clear@spec,graphical environment=tikzpicture@tcb@hooked,geometry nodes,%
     set@outerboundary=\tcb@boundaryframe@standard,%
-    set@extensions@preframe={\tcb@draw@shadow@unbroken},%
+    shape@of@skin=unbroken,%
+    set@extensions@preframe={\kvtcb@shadow},%
     set@extensions@postframe={\tcb@draw@border@unbroken\tcb@apply@underlay\tcb@apply@overlay},%
     set@extensions@final={\tcb@apply@finish}%
   },%
   base@first/.style={%
     clear@spec,graphical environment=tikzpicture@tcb@hooked,geometry nodes,%
     set@outerboundary=\tcb@boundaryframe@pathfirst,%
-    set@extensions@preframe={\tcb@draw@shadow@first},%
+    shape@of@skin=first,%
+    set@extensions@preframe={\kvtcb@shadow},%
     set@extensions@postframe={\tcb@draw@border@first\tcb@apply@underlay\tcb@apply@overlay},%
     set@extensions@final={\tcb@apply@finish}%
   },%
   base@middle/.style={%
     clear@spec,graphical environment=tikzpicture@tcb@hooked,geometry nodes,%
     set@outerboundary=\tcb@boundaryframe@pathmiddle,%
-    set@extensions@preframe={\tcb@draw@shadow@middle},%
+    shape@of@skin=middle,%
+    set@extensions@preframe={\kvtcb@shadow},%
     set@extensions@postframe={\tcb@draw@border@middle\tcb@apply@underlay\tcb@apply@overlay},%
     set@extensions@final={\tcb@apply@finish}%
   },%
   base@last/.style={%
     clear@spec,graphical environment=tikzpicture@tcb@hooked,geometry nodes,%
     set@outerboundary=\tcb@boundaryframe@pathlast,%
-    set@extensions@preframe={\tcb@draw@shadow@last},%
+    shape@of@skin=last,%
+    set@extensions@preframe={\kvtcb@shadow},%
     set@extensions@postframe={\tcb@draw@border@last\tcb@apply@underlay\tcb@apply@overlay},%
     set@extensions@final={\tcb@apply@finish}%
   },%
@@ -734,7 +739,7 @@
   segmentation code={\tcb@drawspec@widgetsegment},%
   skin first=widgetmiddle,skin middle=widgetmiddle,skin last=widgetlast}
 
-\tcb@new@skin{spartan}{graphical environment=tikzpicture@tcb@hooked,geometry nodes=true,
+\tcb@new@skin{spartan}{graphical environment=tikzpicture@tcb@hooked,geometry nodes=true,shape@of@skin=unbroken,%
   set@extensions@preframe=,set@extensions@postframe={\tcb@apply@underlay},set@extensions@final=,%
   frame engine=spartan,interior titled engine=spartan,interior engine=spartan,title engine=spartan,segmentation engine=spartan,%
   set@outerboundary=\tcb@boundaryframe@standard,%
@@ -742,7 +747,7 @@
 
 \tcbset{spartan/.style={skin=spartan}}
 
-\tcb@new@skin{draft}{clear@spec,graphical environment=tikzpicture@tcb@hooked,geometry nodes,%
+\tcb@new@skin{draft}{clear@spec,graphical environment=tikzpicture@tcb@hooked,geometry nodes,shape@of@skin=unbroken,%
   frame engine=empty,interior titled engine=empty,interior engine=empty,segmentation engine=path,title empty,%
   segmentation style={draw=black,dashed},
   set@extensions@postframe=,
@@ -881,6 +886,7 @@
   underlay first/.code={\appto\tcb@underlay@first{#1}},%
   underlay middle/.code={\appto\tcb@underlay@middle{#1}},%
   underlay last/.code={\appto\tcb@underlay@last{#1}},%
+  underlay boxed title/.code={\appto\tcb@underlay@boxedtitle{#1}},%
   underlay/.style={underlay unbroken={#1},underlay first={#1},underlay middle={#1},underlay last={#1}},%
   underlay broken/.style={underlay first={#1},underlay middle={#1},underlay last={#1}},%
   underlay unbroken and first/.style={underlay unbroken={#1},underlay first={#1}},%
@@ -890,7 +896,8 @@
   no underlay first/.code={\let\tcb@underlay@first\@empty},%
   no underlay middle/.code={\let\tcb@underlay@middle\@empty},%
   no underlay last/.code={\let\tcb@underlay@last\@empty},%
-  no underlay/.style={no underlay unbroken,no underlay first,no underlay middle,no underlay last},%
+  no underlay boxed title/.code={\let\tcb@underlay@boxedtitle\@empty},%
+  no underlay/.style={no underlay unbroken,no underlay first,no underlay middle,no underlay last,no underlay boxed title},%
   finish unbroken/.code={\appto\tcb@finish@unbroken{#1}},%
   finish first/.code={\appto\tcb@finish@first{#1}},%
   finish middle/.code={\appto\tcb@finish@middle{#1}},%
@@ -964,12 +971,17 @@
       %
       \tcbdimto\tcboxedtitleheight{\ht\tcb@titlebox+\dp\tcb@titlebox}%
       \tcbdimto\tcboxedtitlewidth{\wd\tcb@titlebox}%
-      \tcbset{boxtitle/.cd,xshift=0pt,yshift=0pt,yshifttext=0pt,yshift*@#2,
-        #1,adapt@#2}%
-      %
-      \tcbset{%
-        underlay unbroken and #3={\node[inner sep=0pt,outer sep=0pt,#4,name=title] at ([xshift=\kvtcb@xshift@boxedtitle,yshift=\kvtcb@yshift@boxedtitle]frame.#5) {\box\tcb@titlebox};}%
-      }%
+      \tcbset{boxtitle/.cd,xshift=0pt,yshift=0pt,yshifttext=0pt,yshift*@#2,#1,adapt@#2}%
+      \let\tcb@specialgeonodes@first\relax%
+      \let\tcb@specialgeonodes@middle\relax%
+      \let\tcb@specialgeonodes@last\relax%
+      \def\tcb@specialgeonodes@unbroken{%
+        \node[#4,name=title,at={([xshift=\kvtcb@xshift@boxedtitle,yshift=\kvtcb@yshift@boxedtitle]frame.#5)},
+                minimum width=\tcboxedtitlewidth,minimum height=\tcboxedtitleheight]{};}%
+      \cslet{tcb@specialgeonodes@#3}{\tcb@specialgeonodes@unbroken}%
+      \def\tcb@specialgeonodes@hook{\csname tcb@specialgeonodes@\tcb@split@state\endcsname}%
+      \preto\tcb@underlay@unbroken{\tcb@underlay@boxedtitle\pgftext[at={\pgfpointanchor{title}{center}}]{\box\tcb@titlebox}}%
+      \cspreto{tcb@underlay@#3}{\tcb@underlay@boxedtitle\pgftext[at={\pgfpointanchor{title}{center}}]{\box\tcb@titlebox}}%
       \fi}}%
     },
   attach@title@boxed@top/.style n args={3}{attach@title@boxed={#1}{top}{first}{#2}{#3}},%
@@ -1339,32 +1351,14 @@
     {\tcb@arc@sha}{\tcb@arc@zpt}{\tcb@arc@zpt}{\tcb@arc@sha}%
 }
 
-\def\tcb@draw@shadow@unbroken{%
-  \let\tcb@shadow=\tcb@shadow@unbroken%
-  \kvtcb@shadow%
-}
-
-\def\tcb@draw@shadow@first{%
-  \let\tcb@shadow=\tcb@shadow@first%
-  \kvtcb@shadow%
-}
-
-\def\tcb@draw@shadow@middle{%
-  \let\tcb@shadow=\tcb@shadow@middle%
-  \kvtcb@shadow%
-}
-
-\def\tcb@draw@shadow@last{%
-  \let\tcb@shadow=\tcb@shadow@last%
-  \kvtcb@shadow%
-}
 
 \tcbset{%
   shad@w app/.code={\appto\kvtcb@shadow{#1}},%
-  shadow/.style args={#1#2#3#4}{shad@w app={\tcb@shadow{#1}{#2}{#3}{#4}}},%
+  shadow/.style args={#1#2#3#4}{shad@w app={\csuse{tcb@shadow@\tcb@shapeofskin}{#1}{#2}{#3}{#4}}},%
   no shadow/.code={\def\kvtcb@shadow{}},%
   fuzzy shadow/.style args={#1#2#3#4#5}{shad@w app={%
     \begin{scope}[#5]%
+      \letcs\tcb@shadow{tcb@shadow@\tcb@shapeofskin}%
       \tcb@shadow{#1}{#2}{\the\dimexpr#3-4\dimexpr#4\relax}{opacity=0.01}%
       \tcb@shadow{#1}{#2}{\the\dimexpr#3-3\dimexpr#4\relax}{opacity=0.02}%
       \tcb@shadow{#1}{#2}{\the\dimexpr#3-2\dimexpr#4\relax}{opacity=0.04}%
@@ -1424,6 +1418,71 @@
   drop fuzzy shadow east/.default={black!50!white},%
 }
 
+\def\tcb@boundary@tikzbendedbase#1#2#3#4#5#6#7#8{%
+  \tcb@gettikzxy{(#1)}{\tcb@xa}{\tcb@ya}%
+  \tcb@gettikzxy{(#2)}{\tcb@xb}{\tcb@yb}%
+  \pgfpathmoveto{\pgfqpoint{\tcb@xa}{\tcb@yb}}%
+  #5\pgfpathquadraticcurveto{\pgfqpoint{\dimexpr0.5\dimexpr\tcb@xa+\tcb@xb\relax}{\dimexpr\tcb@yb+#8}}{\pgfqpoint{\tcb@xb}{\tcb@yb}}%
+  #6\pgfpathlineto{\pgfqpoint{\tcb@xb}{\tcb@ya}}%
+  #3\pgfpathquadraticcurveto{\pgfqpoint{\dimexpr0.5\dimexpr\tcb@xa+\tcb@xb\relax}{\dimexpr\tcb@ya+#7}}{\pgfqpoint{\tcb@xa}{\tcb@ya}}%
+  #4\pgfpathclose%
+}
+
+\def\tcb@pathbendedbase#1#2#3#4#5#6#7#8#9{\tcb@pathboundary{#1}{\tcb@boundary@tikzbendedbase{#2}{#3}{#4}{#5}{#6}{#7}{#8}{#9}}}
+
+\def\tcb@shadowbended@prepare#1{%
+  \tcbdimto\tcb@shadow@arc{\tcb@outer@arc-#1}%
+  \ifdim\dimexpr\tcb@shadow@arc<0pt\relax%
+    \let\tcb@shadow@arc=\tcb@zpt%
+  \fi%
+}
+
+\def\tcb@shadowlifted@unbroken#1#2#3#4#5{%
+  \tcb@shadowbended@prepare{#3}%
+  \tcb@pathbendedbase{fill,#5}{[xshift=#1+#3,yshift=#2+#3]frame.south west}{[xshift=-#1-#3,yshift=#2-#3]frame.north east}%
+    {\tcb@arc@sha}{\tcb@arc@sha}{\tcb@arc@sha}{\tcb@arc@sha}{#4}{0pt}%
+}
+
+\def\tcb@shadowlifted@first#1#2#3#4#5{%
+  \tcb@shadowbended@prepare{#3}%
+  \tcb@pathbendedbase{fill,#5}{[xshift=#1+#3,yshift=#2+#3]frame.south west}{[xshift=-#1-#3,yshift=#2-#3]frame.north east}%
+    {\tcb@arc@zpt}{\tcb@arc@sha}{\tcb@arc@sha}{\tcb@arc@zpt}{#4}{0pt}%
+}
+
+\def\tcb@shadowlifted@middle#1#2#3#4#5{%
+  \tcb@shadowbended@prepare{#3}%
+  \tcb@pathbendedbase{fill,#5}{[xshift=#1+#3,yshift=#2+#3]frame.south west}{[xshift=-#1-#3,yshift=#2-#3]frame.north east}%
+    {\tcb@arc@zpt}{\tcb@arc@zpt}{\tcb@arc@zpt}{\tcb@arc@zpt}{#4}{0pt}%
+}
+
+\def\tcb@shadowlifted@last#1#2#3#4#5{%
+  \tcb@shadowbended@prepare{#3}%
+  \tcb@pathbendedbase{fill,#5}{[xshift=#1+#3,yshift=#2+#3]frame.south west}{[xshift=-#1-#3,yshift=#2-#3]frame.north east}%
+    {\tcb@arc@sha}{\tcb@arc@zpt}{\tcb@arc@zpt}{\tcb@arc@sha}{#4}{0pt}%
+}
+
+\tcbset{
+  lifted shadow/.style n args={5}{shad@w app={%
+    \begin{scope}[#5]%
+      \letcs\tcb@shadowlifted{tcb@shadowlifted@\tcb@shapeofskin}%
+      \tcb@shadowlifted{#1}{#2}{\dimexpr-4\dimexpr#4}{#3}{opacity=0.01}%
+      \tcb@shadowlifted{#1}{#2}{\dimexpr-3\dimexpr#4}{#3}{opacity=0.02}%
+      \tcb@shadowlifted{#1}{#2}{\dimexpr-2\dimexpr#4}{#3}{opacity=0.04}%
+      \tcb@shadowlifted{#1}{#2}{\dimexpr-#4}{#3}{opacity=0.07}%
+      \tcb@shadowlifted{#1}{#2}{0pt}{#3}{opacity=0.11}%
+      \tcb@shadowlifted{#1}{#2}{\dimexpr+#4}{#3}{opacity=0.11}%
+      \tcb@shadowlifted{#1}{#2}{\dimexpr+2\dimexpr#4}{#3}{opacity=0.07}%
+      \tcb@shadowlifted{#1}{#2}{\dimexpr+3\dimexpr#4}{#3}{opacity=0.04}%
+      \tcb@shadowlifted{#1}{#2}{\dimexpr+4\dimexpr#4}{#3}{opacity=0.02}%
+      \tcb@shadowlifted{#1}{#2}{\dimexpr+5\dimexpr#4}{#3}{opacity=0.01}%
+  \end{scope}}},%
+  drop small lifted shadow/.style={lifted shadow={1mm}{-0.75mm}{1.3mm}{0.1mm}{#1}},
+  drop small lifted shadow/.default={black!50!white},%
+  drop lifted shadow/.style={lifted shadow={1.5mm}{-1.5mm}{2.7mm}{0.12mm}{#1}},
+  drop lifted shadow/.default={black!50!white},%
+  drop large lifted shadow/.style={lifted shadow={2mm}{-3mm}{5.7mm}{0.16mm}{#1}},
+  drop large lifted shadow/.default={black!50!white},%
+}
 
 \newif\iftcb@isindraft
 \def\tcb@draftmode{\tcbset{spartan,spartan@fit}}
@@ -1455,7 +1514,7 @@
     watermark zoom=0.75,clip watermark,%
     clip title=false,clip upper=false,clip lower=false,%
     no borderline,no shadow,no underlay,no finish,tikz reset,at begin tikz reset,at end tikz reset,%
-    boxed title style=,hbox boxed title,%
+    boxed title style=,hbox boxed title,code={\let\tcb@specialgeonodes@hook\relax}%
   },
   initialize@reset=reset@skins,
 }
