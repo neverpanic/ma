@@ -255,10 +255,10 @@
 		title={\scriptsize{}Listing~\thetcbcounter: #4}
 	}
 }
-\newtcblisting[auto counter,list inside=mls,number within=chapter,crefname={Listing}{Listings},Crefname={Listing}{Listings}]{thesiscode}[5][]{%
+\newtcblisting[auto counter,number within=chapter,crefname={Listing}{Listings},Crefname={Listing}{Listings}]{thesiscode}[5][]{%
 	thesiscodetitled={#1}{#2}{#3}{#4},
 	comment={\scriptsize{}#5}}
-\newtcbinputlisting[use counter from=thesiscode]{\inputthesiscode}[6][]{%
+\newtcbinputlisting[use counter from=thesiscode, list inside=mls]{\inputthesiscode}[6][]{%
 	thesiscodetitled={#1}{#2}{#3}{#4},
 	comment={\scriptsize{}#5},
 	listing file={#6}}
