@@ -1,7 +1,7 @@
 public class LinkedList<T> {
 	private static final class ListElement<U> {
-		ListElement next;
-		U           elem;
+		ListElement<U> next;
+		U              elem;
 
 		public ListElement(U elem) {
 			this.elem = elem;
@@ -17,6 +17,6 @@ public class LinkedList<T> {
 	private static <V> void insert(LinkedList<V> list,
 	                               ListElement<V> elem) {
 		elem.next = list.head;
-		list.head = elem;
+		list.head = elem; // make elem the first entry$\label{line:ea:basics:ll:headassign}$
 	}
 }

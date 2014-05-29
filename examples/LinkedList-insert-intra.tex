@@ -4,18 +4,20 @@
 %
 \begin{tikzpicture}[font=\tiny\ttfamily]
 	\path
-		  (   0,    0)
-		 +(-\hd,    0) node[cgarn,method] (list)       {list}
-		 +(-\hd, -\vd) node[cgfrn,method] (head)       {head}
-		 +(   0,    0) node[cgarn,method] (elem)       {elem}
-		 +(   0, -\vd) node[cgfrn,method] (next)       {next}
+		  (      0,      0)
+		 +(   -\hd,      0) node[cgarn,method] (list)       {list}
+		 +(   -\hd,   -\vd) node[cgpon,method] (obj0)       {obj0}
+		 +(   -\hd, -2*\vd) node[cgfrn,method] (head)       {head}
+		 +(      0,      0) node[cgarn,method] (elem)       {elem}
+		 +(      0,   -\vd) node[cgpon,method] (obj1)       {obj1}
+		 +(      0, -2*\vd) node[cgfrn,method] (next)       {next}
+		 +(    \hd,   -\vd) node[cgpon,method] (oldhead)    {oldhead}
 	;
 
-	\draw[cgfe] (list) -- (head);
-	\draw[cgfe] (elem) -- (next);
-
-	\draw[cgde] (next)
-		-| ($(elem.east)+(1em, 0)$)
-		-- (elem);
-	\draw[cgde] (head) -- (elem);
+	\draw[cgpe] (list) -- (obj0);
+	\draw[cgfe] (elem) -- (obj1);
+	\draw[cgfe] (obj0) -- (head);
+	\draw[cgpe] (head) -| ($(obj0.east)!.5!(obj1.west)$) -- (obj1);
+	\draw[cgfe] (obj1) -- (next);
+	\draw[cgpe] (next) -| ($(obj1.east)!.5!(oldhead.west)$) -- (oldhead);
 \end{tikzpicture}%

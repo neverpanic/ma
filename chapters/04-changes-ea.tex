@@ -49,14 +49,14 @@
 			the connection graph. Allocations whose object node representation in the \gls{cg} is tagged local are considered
 			for stack allocation.
 
-			See~\cref{lst:ea:basics:linkedlist} for source code corresponding to the \glspl{cg} to be explained in depth. The
+			See~\cref{lst:ea:basics:ll} for source code corresponding to the \glspl{cg} to be explained in depth. The
 			code example is a simple generic linked list. Using common sense we can deduce that, in the absence of a removal
 			operation, all list elements will be reachable until the list itself has reached the end of its lifetime.
-			Consequently, the only allocation in the given example can not be allocated from stack memory, because it must
-			outlive the method of its allocation \texttt{addElement}. Due to the structure of the example, intraprocedural
-			analysis will not suffice to determine this. Global analysis will be necessary.
+			Consequently, the only allocation in the given example can not be allocated on the stack, because it must outlive
+			the method of its allocation \texttt{addElement}. Due to the structure of the example, intraprocedural analysis
+			will not suffice to determine this. Global analysis will be necessary.
 
-			\inputthesiscode{java}{lst:ea:basics:linkedlist}{A simple generic linked list in Java}{%
+			\inputthesiscode{java}{lst:ea:basics:ll}{A simple generic linked list in Java}{%
 				A simple generic linked list implementation in Java. Note that this example is more complex than it would have to
 				be, especially due to the \texttt{insert} method, for demonstration purposes.\\[.5em]
 				An inner class is used to wrap the list entries with references to their successor. The \texttt{addElement} method
@@ -69,36 +69,63 @@
 				\subcaptionbox{%
 					\Acrlong{cg} for \texttt{addElement}. \texttt{insert(list)} and \texttt{insert(elem)} represent the parameters
 					passed to the \texttt{insert} method at its invocation. \texttt{<init>(this)} and \texttt{<init>(elem)} do the
-					same for the implicit invocation of \texttt{ListElement}'s constructor.}[.58\textwidth]{%
+					same for the implicit invocation of \texttt{ListElement}'s constructor.%
+					\label{subfig:ea:basics:ll:addElement}}[.5\textwidth]{%
 						\centering%
 						\input{examples/LinkedList-addElement-intra.tex}%
-						\label{subfig:ea:basics:linkedlist:addElement}%
 				}%
 				\hspace{\fill}%
 				\subcaptionbox{%
-					\Acrlong{cg} for \texttt{insert}. The edge from \texttt{head} to \texttt{elem} is the one that prevents stack
+					\Acrlong{cg} for \texttt{insert}. The edge from \texttt{head} to \texttt{obj1} is the one that prevents stack
 					allocation of the list element in \texttt{addElement}. Interprocedural analysis needs to propagate this edge
-					into the caller context to determine this.}[.40\textwidth]{%
+					into the caller context to determine this.\label{subfig:ea:basics:ll:insert}}[.48\textwidth]{%
 						\centering%
 						\input{examples/LinkedList-insert-intra.tex}%
-						\label{subfig:ea:basics:linkedlist:insert}%
 				}%
 				\caption[The \glsentryshortpl{cg} for \texttt{addElement} and \texttt{insert} after intraprocedural analysis]{%
-					The \acrlongpl{cg} for the \texttt{addElement} and \texttt{insert} methods given
-					in~\cref{lst:ea:basics:linkedlist} after intraprocedural analysis. Vertices with rounded corners represent
-					\emph{reference nodes}, where \emph{field reference nodes} have a red {\color{cgred}\blacksquare}, other
-					reference nodes a blue {\color{cgblue}\blacksquare} border. Dotted borders mark artificial reference nodes
-					representing a method's parameter or return value. Rectangles with green {\color{cggreen}\blacksquare} borders
-					are \emph{object nodes}. If the border is dashed, the node is a \emph{phantom node} (not depicted). The escape
-					state of nodes is encoded in the fill color. White, orange {\color{cgorange}\blacksquare}, and red
-					{\color{cgwarn}\blacksquare} represent \emph{local}, \emph{method}, and \emph{global} respectively.}%
-				\label{fig:ea:basics:linkedlist}%
+					The \acrlongpl{cg} for the \texttt{addElement} and \texttt{insert} methods given in~\cref{lst:ea:basics:ll}
+					after intraprocedural analysis. Vertices with rounded corners represent \emph{reference nodes}, where
+					\emph{field reference nodes} have a red {\color{cgred}\blacksquare}, other reference nodes a blue
+					{\color{cgblue}\blacksquare} border. Dotted borders mark artificial reference nodes representing a method's
+					parameter or return value. Rectangles with green {\color{cggreen}\blacksquare} borders are \emph{object
+					nodes}. If the border is dashed, the node is a \emph{phantom node}. The escape state of nodes is encoded in
+					the fill color. White, orange {\color{cgorange}\blacksquare}, and red {\color{cgwarn}\blacksquare} represent
+					\emph{local}, \emph{method}, and \emph{global} respectively.}%
+				\label{fig:ea:basics:ll}%
 			\end{figure}
 
-			\pagebreak[1]
+			See~\cref{fig:ea:basics:ll} for the \acrlongpl{cg} of the methods \texttt{insert} and \texttt{addElement} given
+			in~\cref{lst:ea:basics:ll}. The \texttt{addElement} method has two parameters, but only the second one is visible
+			in the code listing. Java implicitly passes the \texttt{this} reference as first argument. These parameters are
+			represented in \cref{subfig:ea:basics:ll:addElement} by two reference nodes with dotted borders. Since they are
+			reachable after the method returns, they are marked as \emph{method}-escaping, denoted by the orange fill color.
+			Because the allocation sites of the pointees of both \texttt{this} and \texttt{elem} are unknown, these objects
+			are represented using \emph{phantom nodes} (dashed green rectangle). Note that the escape state propagates along
+			the edges from \texttt{this} into \texttt{obj0} and from \texttt{elem} into its pointee \texttt{obj1}. The first
+			statement in the bytecode representation of \texttt{addElement} is the allocation of a new list element, which
+			causes the creation of an object node (green rectangle) in the \gls{cg}. The constructor of the newly created
+			\texttt{ListElement} is called with two arguments: a reference to the object and a reference to the given
+			parameter \texttt{elem}, represented in the \acrlong{cg} by the \texttt{<init>(this)} and \texttt{<init>(elem)}
+			reference nodes. The \texttt{this} parameter of the constructor invocation points to the allocated list element,
+			denoted by a solid edge in the graph. The algorithm can deduce that \texttt{<init>(elem)} points to the same
+			object as \texttt{elem}, but the pointees of \texttt{elem} are unknown at this point. Adding a deferred edge
+			encodes this situation. Finally, processing the invocation of \texttt{insert} creates a similar set of nodes
+			\texttt{insert(list)} and \texttt{insert(elem)} pointing to the \texttt{this} reference and the
+			\texttt{ListElement} object respectively.
 
-			See~\cref{fig:ea:basics:linkedlist} for the \acrlongpl{cg} of the methods \texttt{insert} and \texttt{addElement}
-			given in~\cref{lst:ea:basics:linkedlist}.
+			The graph for \texttt{insert} is given in~\cref{subfig:ea:basics:ll:insert}. The two parameters are again
+			represented by a reference node and a phantom node each. The first few statements create the \texttt{next} field
+			node below \texttt{obj1} and add a deferred edge to \texttt{head}. This edge is not shown in the graph, because
+			the next statement in the code changes the value of \texttt{head}. Depending on whether the analysis is
+			flow-sensitive or not, the outcome will differ. The \gls{cg} given uses the flow-sensitive variant, which causes
+			all incoming deferred edges of a reference node to be compressed and all outgoing edges to be removed before
+			pointing to the new target. Because compression of deferred edges requires at least one edge outgoing from the
+			target of the deferred edge, but \texttt{head} did not have any at this point in the analysis, a phantom node
+			representing the previous pointees of \texttt{head} was created. It is denoted \texttt{oldhead}
+			in~\cref{subfig:ea:basics:ll:insert}. Using flow-insensitive analysis, the deferred edge from \texttt{next} to
+			\texttt{head} would have been preserved and later compressed into an edge from \texttt{next} to \texttt{obj1}.
+			Finally, the edge from \texttt{head} to \texttt{obj1} is added to represent the effect of the statement in
+			line~\ref{line:ea:basics:ll:headassign} in~\cref{lst:ea:basics:ll}, completing the analysis.
 
 			\subsection{Interprocedural Analysis}
 				\label{sub:ea:basics:global}

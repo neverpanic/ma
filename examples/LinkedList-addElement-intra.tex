@@ -4,20 +4,25 @@
 %
 \begin{tikzpicture}[font=\tiny\ttfamily]
 	\path
-		  (       0,      0)
-		 +(-1.8*\hd,   -\vd) node[cgarn,method] (this)       {this}
-		 +(-1.8*\hd,      0) node[cgarn]        (insertP0)   {insert(list)}
-		 +( -.5*\hd,      0) node[cgon]         (listelem)   {ListElement}
-		 +(       0,   -\vd) node[cgarn]        (initP0)     {<init>(this)}
-		 +(    -\hd,   -\vd) node[cgarn]        (insertP1)   {insert(elem)}
-		 +( 0.8*\hd,   -\vd) node[cgarn,method] (elem)       {elem}
-		 +( 0.8*\hd,      0) node[cgarn]        (initP1)     {<init>(elem)}
+		  (    0,      0)
+		 +( -\hd, -2*\vd) node[cgarn,method] (this)       {this}
+		 +( -\hd,   -\vd) node[cgpon,method] (obj0)       {obj0}
+		 +( -\hd,      0) node[cgarn]        (insertP0)   {insert(list)}
+		 +(    0,      0) node[cgarn]        (insertP1)   {insert(elem)}
+		 +(    0,   -\vd) node[cgon]         (listelem)   {ListElement}
+		 +(    0, -2*\vd) node[cgarn]        (initP0)     {<init>(this)}
+		 +(  \hd, -2*\vd) node[cgarn]        (initP1)     {<init>(elem)}
+		 +(  \hd,   -\vd) node[cgpon,method] (obj1)       {obj1}
+		 +(  \hd,      0) node[cgarn,method] (elem)       {elem}
 	;
 
-	\draw[cgde] (insertP0) -- (this);
+	\draw[cgpe] (this) -- (obj0);
+	\draw[cgpe] (insertP0) -- (obj0);
 
-	\draw[cgpe] ($(initP0.north)+(1em,0)$) |- (listelem);
-	\draw[cgpe] ($(insertP1.north)+(-1em,0)$) |- (listelem);
+	\draw[cgpe] (initP0) -- (listelem);
+	\draw[cgpe] (insertP1) -- (listelem);
 
-	\draw[cgde] (initP1) -- (elem);
+	\draw[cgpe] (initP1) -- (obj1);
+	\draw[cgpe] (elem) -- (obj1);
+
 \end{tikzpicture}%
