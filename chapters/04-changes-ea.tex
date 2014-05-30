@@ -4,8 +4,9 @@
 	\label{chapter:ea}
 	KESO's compiler \emph{JINO} uses alias and escape analysis to identify objects whose lifetime is bounded by the
 	runtime of their allocating method. The algorithm was implemented in~\cite{lang:12} and is largely based on the work
-	of Choi et al.\ in 2003.~\cite{choi:03} The following section contains a brief description of the implementation and
-	highlights differences. \Cref{sec:ea:improvements} lists and explains the improvements written for this thesis.
+	of Choi et al.\ in 2003~\cite{choi:03:toplas}. The following section contains a brief description of the
+	implementation and highlights differences. For an in-depth explanation, please refer to~\cite{lang:12}
+	and~\cite{choi:03:toplas}. \Cref{sec:ea:improvements} lists and explains the improvements written for this thesis.
 
 	\section{Basics}
 		\label{sec:ea:basics}
@@ -22,9 +23,9 @@
 			of the calling context. Since the origin of objects might not be known for some objects (e.g.\ if the have been
 			passed as argument), a special type of placeholder called \emph{phantom node} is used to represent these objects.
 			For pointer analysis as discussed in~\cref{sec:intro:prev} summarizing independent of the aliasing relationships
-			in the calling context is impossible~\cite[p.~886]{choi:03}. For each allocation, assignment, field or array
-			access, return statement, method invocation, and exception throw, the \gls{cg} is modified appropriately, ensuring
-			possible alias relations are represented accurately.
+			in the calling context is impossible~\cite[p.~886]{choi:03:toplas}. For each allocation, assignment, field or
+			array access, return statement, method invocation, and exception throw, the \gls{cg} is modified appropriately,
+			ensuring possible alias relations are represented accurately.
 
 			Nodes in the \gls{cg} have different types: \emph{Object nodes} are added for each encountered allocation site.
 			Note that a single object node in the graph might represent multiple objects at runtime because an allocation
@@ -125,10 +126,133 @@
 			in~\cref{subfig:ea:basics:ll:insert}. Using flow-insensitive analysis, the deferred edge from \texttt{next} to
 			\texttt{head} would have been preserved and later compressed into an edge from \texttt{next} to \texttt{obj1}.
 			Finally, the edge from \texttt{head} to \texttt{obj1} is added to represent the effect of the statement in
-			line~\ref{line:ea:basics:ll:headassign} in~\cref{lst:ea:basics:ll}, completing the analysis.
+			line~\ref{line:ea:basics:ll:headassign} in~\cref{lst:ea:basics:ll}, completing intraprocedural analysis.
 
-			\subsection{Interprocedural Analysis}
-				\label{sub:ea:basics:global}
+		\subsection{Interprocedural Analysis}
+			\label{sub:ea:basics:global}
+			Looking at the summary information generated for both methods given in~\cref{lst:ea:basics:ll}, the object node
+			that represents the only allocation (\texttt{LinkedList} in~\cref{subfig:ea:basics:ll:addElement}) has an escape
+			state of \emph{local} at this point in the analysis. Recall that local nodes are considered for stack allocation,
+			but entries of a linked list cannot be allocated on stack. The results are thus not sound and further analysis is
+			required. Looking at the example, the edge from \texttt{head} to \texttt{obj1} in the \gls{cg} of \texttt{insert}
+			is the edge that will prevent stack allocation of the list element in \texttt{addElement}. To determine this
+			algorithmically, the edges found while processing \texttt{insert} need to be propagated to its caller
+			\texttt{addElement}. Once the connection from \texttt{obj0} via a new field reference node \texttt{head} to the
+			list element is established, the escape state of the \texttt{ListElement} object node increase to \emph{method},
+			making the result sound.
+
+			A second analysis pass propagates information from the non-\emph{local} subgraph of the \glspl{cg} into the
+			\glspl{cg} of all calling methods. This \emph{interprocedural} analysis modifies the summary information of the
+			callers, which in turn require their callers to be updated again. To prevent unnecessary recalculation of
+			information, this pass should use a bottom-up traversal of the call graph. In the absence of recursion, the call
+			graph will not contain cycles, making this a simple problem. When recursion is used, identifying strongly
+			connected components and iterating in each component until a fixpoint is reached has proved to be effective.
+			KESO's implementation uses Tarjan's algorithm to identify strongly connected components in the call
+			graph~\cite{tarjan:72:lga}.
+
+			To update the callers' \acrlongpl{cg}, pairs of corresponding nodes in the graph on the caller and the callee side
+			are identified as starting points and added to a work list. Originating at these anchors, further nodes and their
+			counterparts are found and again added to the work list. While the work list isn't empty, processing continues and
+			builds a relation of object nodes in the callee and the caller \gls{cg} called \emph{mapsToObj}. This step is
+			called \emph{updateNodes}. A simplified form of the procedure is given in~\cref{algo:ea:basics:updateNodes}. It
+			uses a dual work list approach to avoid creating spurious phantom nodes because some of the relationships might
+			not be known until the algorithm completes. See~\cite[Sec. 3.2.1]{lang:12} for a detailed explanation of the
+			problem that causes unneeded phantom nodes to be added and slows down the analysis.
+
+			\SetAlFnt{\scriptsize}
+			\begin{algorithm}
+				\SetKwData{workList}{workList}
+				\SetKwData{needsPointee}{needsPointee}
+				\SetKwData{mapsToObj}{mapsToObj}
+				\SetKwData{mParam}{mParam}
+				\SetKwData{iArg}{iArg}
+				\SetKwData{x}{x}
+				\SetKwData{y}{y}
+				\SetKwData{xs}{xs}
+				\SetKwData{ys}{ys}
+				\SetKwData{xd}{xd}
+				\SetKwData{yd}{yd}
+				\SetKwData{xPointees}{xPointees}
+				\SetKwData{yPointees}{yPointees}
+				\SetKwData{calleeField}{calleeField}
+				\SetKwData{callerField}{callerField}
+				\SetKwData{callerObjs}{callerObjs}
+				\SetKwFunction{updateNodes}{updateNodes}
+				\SetKwFunction{updateEscapeState}{updateEscapeState}
+				\SetKwFunction{pop}{pop}
+				\SetKwFunction{pointees}{pointees}
+				\SetKwFunction{fields}{fields}
+				\SetKwFunction{getField}{getField}
+				\SetKwFunction{addEdges}{addEdges}
+				\SetKwFunction{createPhantom}{createPhantom}
+				\SetKw{continue}{continue}
+
+				\SetKwInOut{Input}{Input}
+				\SetKwInOut{Output}{Result}
+				\Input{\xs: method parameters, \ys: invocation arguments}
+				\Output{\mapsToObj relation between caller and callee nodes}
+				\BlankLine
+				\DontPrintSemicolon
+				\updateNodes$\left( \xs, \ys \right)$\;
+				\PrintSemicolon
+				\Begin{%
+					\workList $= \left\{ (\x, \y) \left|\; \x \leftarrow \xs \left|\; \y \leftarrow \ys \right.\right.\right\}$\;
+					\needsPointee $= \emptyset$\;
+					\mapsToObj $= \emptyset$\;
+					\While{$\workList \ne \emptyset \;\mathrm{or}\; \needsPointee \ne \emptyset$}{%
+						\While{$\workList \ne \emptyset$}{%
+							$\left(\mParam, \iArg\right) = \pop{\workList}$\;
+							\BlankLine
+							\tcp{Mark \mParam globally escaping if \iArg is.}
+							$\updateEscapeState{\mParam, \iArg}$\;
+							\BlankLine
+							\tcp{Find pairs of descendant object nodes}
+							$\xPointees = \pointees{\mParam}$\;
+							$\yPointees = \pointees{\iArg}$\;
+							\eIf{$\xPointees \;\hat{=}\; \emptyset \;\mathrm{or}\; \yPointees \ne \emptyset$}{%
+								\tcp{Find pairs of field reference nodes}
+								\ForEach{$\left( \xd, \yd \right) \in \left\{ (\x, \y) \left|\; \x \leftarrow \xPointees,\; \y \leftarrow \yPointees \right.\right\}$}{%
+									$\mapsToObj{\xd} \;\cup\!\!= \yd$\;
+									\ForEach{$\calleeField \in \fields{\xd}$}{%
+										$\callerField = \getField{\yd, \calleeField}$\;
+										$\workList \;\cup\!\!= (\calleeField, \callerField)$\;
+									}
+								}
+							}{%
+								\tcp{The callee node is not represented in the caller node}
+								$\needsPointee \;\cup\!\!= (\mParam, \iArg)$\;
+							}
+						}
+						\While{$\workList \;\hat{=}\; \emptyset \;\mathrm{and}\; \needsPointee \ne \emptyset$}{%
+							\ForEach{$(\mParam, \iArg) \in \needsPointee$}{%
+								\eIf{$\pointees{\iArg} \ne \emptyset$}{%
+									\tcp{\mParam's pointees are represented (happens with recursion)}
+								}{%
+									\tcp{Check for other representatives of pointees of \mParam}
+									$\callerObjs = \left\{ \x \left|\; \x \leftarrow \mapsToObj{\y} \left|\; \y \leftarrow \pointees{\mParam} \right.\right.\right\}$\;
+									\eIf{$\callerObjs \ne \emptyset$}{%
+										\addEdges{\iArg, \callerObjs}\;
+									}{%
+										\tcp{Delay adding phantom nodes}
+										\continue\;
+									}
+								}
+								$\needsPointee \;\setminus\!\!= (\mParam, \iArg)$\;
+								$\workList \;\cup\!\!= (\mParam, \iArg)$\;
+							}
+							\If{$\workList \;\hat{=}\; \emptyset$}{%
+								\tcp{\workList is still empty, no pairs found. Add a phantom node.}
+								$(\mParam, \iArg) = \pop{\needsPointee}$\;
+								$\addEdges{\iArg, \createPhantom{\mParam}}$\;
+								$\workList \;\cup\!\!= (\mParam, \iArg)$\;
+							}
+						}
+					}
+				}
+
+				\caption[The \emph{updateNodes} procedure]{The \emph{updateNodes} procedure~\cite[Alg. 2]{lang:12}}
+				\label{algo:ea:basics:updateNodes}
+			\end{algorithm}
 
 		\todonote{Summarize how escape analysis works and how the algorithm published by Choi determined whether objects
 		escape a method. Explain intraprocedural and interprocedural analysis and give a short example (possibly copy this

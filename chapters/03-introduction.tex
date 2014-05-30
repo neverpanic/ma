@@ -151,11 +151,11 @@
 
 	\section{Previous Work}
 		\label{sec:intro:prev}
-		Based on the work of Choi et al.\ published in 2003~\cite{choi:03}, I implemented alias analysis and escape analysis
-		in my bachelor's thesis. Different from the paper it was based on, KESO's implementation does not dynamically
-		allocate memory on the stack. Instead, allocation sites whose objects' liveness regions overlap are allocated in
-		garbage-collected heap memory, keeping the stack usage bounded in the absence of recursion. Since KESO targets
-		embedded systems with real-time constraints, predictable stack usage is important.
+		Based on the work of Choi et al.\ published in 2003~\cite{choi:03:toplas}, I implemented alias analysis and escape
+		analysis in my bachelor's thesis. Different from the paper it was based on, KESO's implementation does not
+		dynamically allocate memory on the stack. Instead, allocation sites whose objects' liveness regions overlap are
+		allocated in garbage-collected heap memory, keeping the stack usage bounded in the absence of recursion. Since KESO
+		targets embedded systems with real-time constraints, predictable stack usage is important.
 
 		It is important to note that most of this work cannot be applied to languages with pointers easily. This is due to
 		the fact that pointer arithmetic might not be predictable at compile time, increasing alias analysis complexity.
