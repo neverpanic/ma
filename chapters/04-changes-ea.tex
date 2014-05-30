@@ -157,9 +157,10 @@
 			called \emph{updateNodes}. A simplified form of the procedure is given in~\cref{algo:ea:basics:updateNodes}. It
 			uses a dual work list approach to avoid creating spurious phantom nodes because some of the relationships might
 			not be known until the algorithm completes. See~\cite[Sec. 3.2.1]{lang:12} for a detailed explanation of the
-			problem that causes unneeded phantom nodes to be added and slows down the analysis.
+			problem that causes unneeded phantom nodes to be added and slows down the analysis. \emph{UpdateNodes} ensures
+			that all object nodes used in a callee are represented in its caller. It also adds field reference nodes present
+			in the callee \gls{cg} but missing from the caller's graph
 
-			\SetAlFnt{\scriptsize}
 			\begin{algorithm}
 				\SetKwData{workList}{workList}
 				\SetKwData{needsPointee}{needsPointee}
@@ -209,7 +210,7 @@
 							\tcp{Find pairs of descendant object nodes}
 							$\xPointees = \pointees{\mParam}$\;
 							$\yPointees = \pointees{\iArg}$\;
-							\eIf{$\xPointees \;\hat{=}\; \emptyset \;\mathrm{or}\; \yPointees \ne \emptyset$}{%
+							\eIf{$\xPointees \equiv \emptyset \;\mathrm{or}\; \yPointees \ne \emptyset$}{%
 								\tcp{Find pairs of field reference nodes}
 								\ForEach{$\left( \xd, \yd \right) \in \left\{ (\x, \y) \left|\; \x \leftarrow \xPointees,\; \y \leftarrow \yPointees \right.\right\}$}{%
 									$\mapsToObj{\xd} \;\cup\!\!= \yd$\;
@@ -223,7 +224,7 @@
 								$\needsPointee \;\cup\!\!= (\mParam, \iArg)$\;
 							}
 						}
-						\While{$\workList \;\hat{=}\; \emptyset \;\mathrm{and}\; \needsPointee \ne \emptyset$}{%
+						\While{$\workList \equiv \emptyset \;\mathrm{and}\; \needsPointee \ne \emptyset$}{%
 							\ForEach{$(\mParam, \iArg) \in \needsPointee$}{%
 								\eIf{$\pointees{\iArg} \ne \emptyset$}{%
 									\tcp{\mParam's pointees are represented (happens with recursion)}
@@ -240,7 +241,7 @@
 								$\needsPointee \;\setminus\!\!= (\mParam, \iArg)$\;
 								$\workList \;\cup\!\!= (\mParam, \iArg)$\;
 							}
-							\If{$\workList \;\hat{=}\; \emptyset$}{%
+							\If{$\workList \equiv \emptyset$}{%
 								\tcp{\workList is still empty, no pairs found. Add a phantom node.}
 								$(\mParam, \iArg) = \pop{\needsPointee}$\;
 								$\addEdges{\iArg, \createPhantom{\mParam}}$\;
@@ -252,6 +253,48 @@
 
 				\caption[The \emph{updateNodes} procedure]{The \emph{updateNodes} procedure~\cite[Alg. 2]{lang:12}}
 				\label{algo:ea:basics:updateNodes}
+			\end{algorithm}
+
+			For the example given in~\cref{lst:ea:basics:ll} and~\cref{subfig:ea:basics:ll:addElement}, this means that the
+			field reference nodes \texttt{head} and \texttt{next} are added below \texttt{obj0} and \texttt{ListElement}
+			respectively. Furthermore, a phantom node is added to represent \texttt{oldhead}. Note that the \texttt{head}
+			reference node does not yet point to the list element object node. The next step of the algorithm called
+			\emph{updateEdges} adds the missing connection. It takes the same parameters as \emph{updateNodes}
+			from~\cref{algo:ea:basics:updateNodes} and adds all missing edges. See~\cref{algo:ea:basics:updateEdges} for
+			a pseudocode listing of the procedure.
+
+			\begin{algorithm}
+				\SetKwData{workList}{workList}
+				\SetKwData{mParam}{mParam}
+				\SetKwData{pairs}{pairs}
+				\SetKwData{x}{x}
+				\SetKwData{y}{y}
+				\SetKwData{xs}{xs}
+				\SetKwData{ys}{ys}
+				\SetKwData{mapsToObj}{mapsToObj}
+				\SetKwFunction{updateEdges}{updateEdges}
+				\SetKwFunction{pop}{pop}
+				\SetKwFunction{pointees}{pointees}
+
+				\SetKwInOut{Input}{Input}
+				\SetKwInOut{Output}{Result}
+				\Input{\xs: method parameters, \ys: invocation arguments}
+				\BlankLine
+				\DontPrintSemicolon
+				\updateEdges$\left( \xs, \ys \right)$\;
+				\PrintSemicolon
+				\Begin{%
+					$\workList = \xs$\;
+					\While{$\workList \ne \emptyset$}{%
+						$\mParam = \pop{\workList}$\;
+						\ForEach{$(\x, \y) \in \left\{ (\x, \y) \left|\; \y \leftarrow \mapsToObj{\x} \left|\; \x \leftarrow \pointees{\mParam} \right.\right.\right\}$}{%
+							\;
+						}
+					}
+				}
+
+				\caption[The \emph{updateEdges} procedure]{The \emph{updateEdges} procedure~\cite[Alg. 3]{lang:12}}
+				\label{algo:ea:basics:updateEdges}
 			\end{algorithm}
 
 		\todonote{Summarize how escape analysis works and how the algorithm published by Choi determined whether objects
