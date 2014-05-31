@@ -261,7 +261,12 @@
 			reference node does not yet point to the list element object node. The next step of the algorithm called
 			\emph{updateEdges} adds the missing connection. It takes the same parameters as \emph{updateNodes}
 			from~\cref{algo:ea:basics:updateNodes} and adds all missing edges. See~\cref{algo:ea:basics:updateEdges} for
-			a pseudocode listing of the procedure.
+			a pseudocode listing of the procedure. It identifies pairs of corresponding object nodes using the
+			\emph{mapsToObj} relation computed in \emph{updateNodes}. For each possible pair it follows outgoing edges to any
+			field reference nodes in the callee graph and finds the corresponding field reference node in the caller's
+			\gls{cg}. Next, the newly found correspondence pair is added to the work list and all outgoing edges to object
+			nodes in the callee graph are added to the caller graph. Note that code to prevent endless loops in cylic data
+			structures has been left out for simplicity, but can be easily added.
 
 			\begin{algorithm}
 				\SetKwData{workList}{workList}
@@ -271,10 +276,17 @@
 				\SetKwData{y}{y}
 				\SetKwData{xs}{xs}
 				\SetKwData{ys}{ys}
+				\SetKwData{i}{i}
+				\SetKwData{j}{j}
+				\SetKwData{k}{k}
 				\SetKwData{mapsToObj}{mapsToObj}
+				\SetKwData{field}{field}
+				\SetKwFunction{fields}{fields}
 				\SetKwFunction{updateEdges}{updateEdges}
 				\SetKwFunction{pop}{pop}
 				\SetKwFunction{pointees}{pointees}
+				\SetKwFunction{getField}{getField}
+				\SetKwFunction{addEdges}{addEdges}
 
 				\SetKwInOut{Input}{Input}
 				\SetKwInOut{Output}{Result}
@@ -288,7 +300,10 @@
 					\While{$\workList \ne \emptyset$}{%
 						$\mParam = \pop{\workList}$\;
 						\ForEach{$(\x, \y) \in \left\{ (\x, \y) \left|\; \y \leftarrow \mapsToObj{\x} \left|\; \x \leftarrow \pointees{\mParam} \right.\right.\right\}$}{%
-							\;
+							\ForEach{$(\i, \j) \in \left\{ (\field, \getField{\y, \field}) \left|\; \field \leftarrow \fields{\x} \right.\right\}$}{%
+								$\workList \;\cup\!\!= (\i, \j)$\;
+								\addEdges{$\j, \left\{ \mapsToObj{\k} \left|\; \k \leftarrow \pointees{\i} \right.\right\}$}\;
+							}
 						}
 					}
 				}
@@ -297,9 +312,12 @@
 				\label{algo:ea:basics:updateEdges}
 			\end{algorithm}
 
-		\todonote{Summarize how escape analysis works and how the algorithm published by Choi determined whether objects
-		escape a method. Explain intraprocedural and interprocedural analysis and give a short example (possibly copy this
-		from the bachelor's thesis).}
+			After interprocedural analysis, nodes marked \emph{local} in the \gls{cg} can be allocated on the stack. Note that
+			KESO does not convert all allocations that fulfill this criterion into stack allocations. Instead, variable
+			liveness information is used to compute whether multiple objects allocated at the same allocation site are needed
+			at the same time. Objects with overlapping liveness regions are not allocated on the stack because the amount of
+			memory used by these allocations might be unbounded, e.g.\ if the allocation is inside a loop.
+			See~\cite[Sec.~3.3]{lang:12} for detailed rationale and a description of the implementation.
 
 	\section{Improvements}
 		\label{sec:ea:improvements}
