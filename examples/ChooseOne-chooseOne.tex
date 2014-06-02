@@ -1,0 +1,20 @@
+% vim:noet:sts=2:ts=2:sw=2:smarttab:tw=120
+\def\hd{2em}%
+\def\vd{5ex}%
+%
+\begin{tikzpicture}[font=\tiny\ttfamily]
+	\path
+		  (    0,      0)
+		 +( -\hd,      0) node[cgarn,method] (a)     {a}
+		 +( -\hd,   -\vd) node[cgpon,method] (obj0)  {obj0}
+		 +(  \hd,      0) node[cgarn,method] (b)     {b}
+		 +(  \hd,   -\vd) node[cgpon,method] (obj1)  {obj1}
+		 +(    0, -2*\vd) node[cgarn,method] (ret)   {ret}
+	;
+
+	\draw[cgpe] (a) -- (obj0);
+	\draw[cgpe] (b) -- (obj1);
+
+	\draw[cgpe] (ret) -| (obj0);
+	\draw[cgpe] (ret) -| (obj1);
+\end{tikzpicture}%
