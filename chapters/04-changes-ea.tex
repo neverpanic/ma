@@ -6,7 +6,7 @@
 	runtime of their allocating method. The algorithm was implemented in~\cite{lang:12} and is largely based on the work
 	of Choi et al.\ in 2003~\cite{choi:03:toplas}. The following section contains a brief description of the
 	implementation and highlights differences. For an in-depth explanation, please refer to~\cite{lang:12}
-	and~\cite{choi:03:toplas}. \Cref{sec:ea:improvements} lists and explains the improvements written for this thesis.
+	and~\cite{choi:03:toplas}. \Cref{sec:ea:improve} lists and explains the improvements written for this thesis.
 
 	\section{Basics}
 		\label{sec:ea:basics}
@@ -36,7 +36,7 @@
 			\emph{deferred edges}. Deferred edges are used to simplify updates of the \gls{cg} while processing assignments.
 			After intraprocedural analysis, these edges are removed by replacing all incoming deferred edges of a reference
 			node with edges to its successors. Different from the work of Choi et al.\ reference nodes with incoming deferred
-			but no outgoing edges are preserved without change. \Cref{subsec:ea:improvements:bug} gives the rationale
+			but no outgoing edges are preserved without change. \Cref{subsec:ea:improve:bug} gives the rationale
 			underlying this difference. Finally, object nodes can point to field reference nodes, denoting that the pointed
 			field exists inside the object where the edge originates.
 
@@ -156,10 +156,11 @@
 			builds a relation of object nodes in the callee and the caller \gls{cg} called \emph{mapsToObj}. This step is
 			called \emph{updateNodes}. A simplified form of the procedure is given in~\cref{algo:ea:basics:updateNodes}. It
 			uses a dual work list approach to avoid creating spurious phantom nodes because some of the relationships might
-			not be known until the algorithm completes. See~\cite[Sec. 3.2.1]{lang:12} for a detailed explanation of the
+			not be known until the algorithm completes. See~\cite[Sec.~3.2.1]{lang:12} for a detailed explanation of the
 			problem that causes unneeded phantom nodes to be added and slows down the analysis. \emph{UpdateNodes} ensures
 			that all object nodes used in a callee are represented in its caller. It also adds field reference nodes present
-			in the callee \gls{cg} but missing from the caller's graph
+			in the callee \gls{cg} but missing from the caller's graph and marks the counterparts of globally escaping nodes
+			in the callee's \gls{cg} as globally escaping in the caller \gls{cg}.
 
 			\begin{algorithm}
 				\SetKwData{workList}{workList}
@@ -320,37 +321,77 @@
 			See~\cite[Sec.~3.3]{lang:12} for detailed rationale and a description of the implementation.
 
 	\section{Improvements}
-		\label{sec:ea:improvements}
-		\todonote{Explain the changes I implemented in the escape analysis written in my bachelor's thesis, why they were
-		required or beneficial and how they were implemented.}
+		\label{sec:ea:improve}
+		The algorithm implemented in~\cite{lang:12}, which is based on~\cite{choi:03:toplas}, was improved for this thesis
+		in a number of ways. Among these improvements was flow-sensitivity, which was proposed by Choi et al.\ in 2003, but
+		not implemented in my bachelor's thesis. The changes required to achieve flow-sensitivity are outlined in the
+		following~\cref{subsec:ea:improve:fs}. Furthermore, a problem producing possibly incorrect
+		results was discovered in the algorithm given in~\cite{choi:03:toplas}. \Cref{subsec:ea:improve:bug} gives an
+		example and explains where the incorrect analysis results occur and how they were fixed in KESO's implementation.
+
+		Last but not least, the algorithm's runtime on large examples amounted to several minutes and was deemed
+		unsatisfactory. Especially recursive and virtual method invocations significantly increased the size of the
+		generated \glspl{cg}, raising the runtime of interprocedural analysis. \Cref{subsec:ea:improve:opt} deals with
+		modifications implemented to reduce the runtime of the alias analysis.
 
 		\subsection{Flow-Sensitivity}
-			\label{subsec:ea:improvements:flow-sensitivity}
-			\todonote{Explain what Choi et al.\@ meant by \enquote{we kill only local variables} and how the \texttt{transfer}
-			and \texttt{meet} functions are implemented in JINO to achieve flow sensitivity of the escape analysis.}
+			\label{subsec:ea:improve:fs}
+			For flow-sensitive alias analysis a standard forward data flow analysis~\cite[Sec.~9.2]{aho:07:compilers} is used.
+			The set of operations needed for data flow analysis is
+			\begin{align}
+				C_o^b &= f_b\left( C_i^b \right)\label{eq:ea:improve:fs:transfer}\\
+				C_i^b &= \bigwedge_{x \;\in\; \operatorname{pred}(b)} C_o^x\label{eq:ea:improve:fs:meet}
+			\end{align}
+			where $C_i^b$ and $C_o^b$ are input and output data flow information for the basic block $b$, $f_b$
+			in~\cref{eq:ea:improve:fs:transfer} is called the \emph{transfer function} for the basic block $b$, and $\wedge_{x
+			\;\in\; \operatorname{pred}(b)}$ in~\cref{eq:ea:improve:fs:meet} is the \emph{meet} operation. The data flow
+			transfer function modifies the data flow information (i.e., the \acrlong{cg}) according to the statements in the
+			basic block $b$. The meet operation combines the output information of all predecessors of a basic block into the
+			input information of a given basic block $b$. The basics of the transfer function are explained in~\cite{lang:12,
+			choi:03:toplas}. In theory, all $C^b$ are distinct. In practice, this would manifold the memory requirements for
+			the \glspl{cg}. Instead of copying the graph in each invocation of the transfer and meet operations, KESO's
+			implementation uses a single representation. This idea is also present in~\cite[Sec.~3]{choi:03:toplas}, but is
+			not explained very well. In specific, it is not clear to the author of this thesis what Choi et al.\ meant when
+			they wrote \enquote{in the flow-sensitive version, we only kill local variables}~\cite[p.~885]{choi:03:toplas}.
+
+			The KESO compiler achieves flow-sensitivity while retaining a single representation of the \gls{cg} by tagging all
+			reference nodes with the basic block for which they are valid. Object nodes are not modified for flow-sensitive
+			analysis. For each reference node used in at least one predecessor, the meet operation creates a representation of
+			the reference in the current basic block and subsumes all outgoing edges present in the predecessors. For each
+			assignment operation encountered by the transfer function, \emph{ByPass(p)} is called on the reference to be
+			written. \emph{ByPass(p)} (as explained in~\cite{choi:03:toplas}) redirects all incoming deferred edges of $p$ to
+			its successors and removes any outgoing edges (i.e., it ensures that strong updates are performed).
+
+			After implementing this improvement, a fixpoint iteration used to reduce the number of unnecessary phantom nodes
+			in intraprocedural analysis did no longer terminate for some inputs. This happened because the iteration tracked
+			changes to the \gls{cg} rather than comparing the graph against an older copy. Due to the use of \emph{ByPass(p)},
+			the graph was modified in every loop, but further processing returned to the previous state again. Switching to
+			a comparison against an old copy of the \gls{cg} rather than tracking of modifications fixed this particular
+			problem. To efficiently implement comparisons against older versions of the same graph, the \acrlong{cg}'s nodes
+			were extended with the ability to store a copy of a single older state of outgoing edges.
 
 		\subsection{Fixing Incorrect Results}
-			\label{subsec:ea:improvements:bug}
+			\label{subsec:ea:improve:bug}
 			\todonote{Show that \texttt{Object chooseOne(Object a, Object b)} is not correctly handled by Choi's algorithm if
 			the return value of this function is itself returned again. Show what I have done to improve that.}
 
 		\subsection{Interprocedural Analysis Optimizations}
-			\label{subsec:ea:improvements:opt}
+			\label{subsec:ea:improve:opt}
 			\todonote{The work I did in my bachelor's thesis did take rather long especially on large examples. I have
 			implemented a few optimizations to make it run faster. These are:}
 
 			\subsubsection{No Propagation of Read Operations}
-				\label{subsub:ea:improvements:opt:writeonly}
+				\label{subsub:ea:improve:opt:writeonly}
 				\todonote{Ignore read operations and propagate only writes. Explain how that has the potential of cutting down
 				lots of nodes generated by vcalls to \texttt{equals(Object other)} (and why that does not work in the
 				implementation we use).}
 
 			\subsubsection{No Reprocessing of Unchanged Invocations}
-				\label{subsub:ea:improvements:opt:quick-fixpoint}
+				\label{subsub:ea:improve:opt:quick-fixpoint}
 				\todonote{When iterating to find a fixpoint in a strongly connected component, only re-compute the summary
 				information for a method if its callees actually changed; re-use the old results otherwise.}
 
 			\subsubsection{Connection Graph Compression}
-				\label{subsub:ea:improvements:opt:compression}
+				\label{subsub:ea:improve:opt:compression}
 				\todonote{Compress multiple sibling nodes if they likely represent the same node. This gives us a huge speedup
 				without giving up too much information (explain how I made sure the relevant information is kept).}

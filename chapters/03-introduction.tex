@@ -157,10 +157,10 @@
 		allocated in garbage-collected heap memory, keeping the stack usage bounded in the absence of recursion. Since KESO
 		targets embedded systems with real-time constraints, predictable stack usage is important.
 
-		It is important to note that most of this work cannot be applied to languages with pointers easily. This is due to
-		the fact that pointer arithmetic might not be predictable at compile time, increasing alias analysis complexity.
-		Because conservative assumptions must often be made for code using pointers, determining whether an object does not
-		escape its method of allocation is much harder~\cite{horwitz:97:toplas, hind:99:toplas, landi:92:loplas,
+		Note that most of this work cannot be applied to languages with pointers easily. This is due to the fact that
+		pointer arithmetic might not be predictable at compile time, increasing alias analysis complexity. Because
+		conservative assumptions must often be made for code using pointers, determining whether an object does not escape
+		its method of allocation is much harder~\cite{horwitz:97:toplas, hind:99:toplas, landi:92:loplas,
 		ramalingam:94:toplas}.
 
 	\section{Document Structure}
