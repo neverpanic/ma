@@ -1,0 +1,23 @@
+% vim:noet:sts=2:ts=2:sw=2:smarttab:tw=120
+\def\hd{6em}%
+\def\vd{6ex}%
+%
+\begin{tikzpicture}[font=\tiny\ttfamily]
+	\path
+		  (    0,      0)
+		 +(    0, -2*\vd) node[cgarn,method] (ret)    {ret}
+		 +( -\hd, -2*\vd) node[cgarn,method] (coRet)  {chooseOne(ret)}
+		 +( -\hd,   -\vd) node[cgon,method]  (obj0)   {Object\textsuperscript{(a)}}
+		 +(    0,   -\vd) node[cgon,method]  (obj1)   {Object\textsuperscript{(b)}}
+		 +( -\hd,      0) node[cgarn]        (coA)    {chooseOne(a)}
+		 +(    0,      0) node[cgarn]        (coB)    {chooseOne(b)}
+	;
+
+	\draw[cgpe] (coA) -- (obj0);
+	\draw[cgpe] (coB) -- (obj1);
+
+	\draw[cgpe] (coRet) -- (obj0);
+	\draw[cgpe] (coRet) -- (obj1);
+	\draw[cgpe] (ret) -- (obj0);
+	\draw[cgpe] (ret) -- (obj1);
+\end{tikzpicture}%

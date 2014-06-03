@@ -437,14 +437,33 @@
 
 			\begin{table}
 				\centering
-				\begin{tabular}{cc}
-					\textbf{chooseOne} & \textbf{getObject} \\\hline\hline
-					obj0 & Object\textsuperscript{(a)}, objret\\
-					obj1 & Object\textsuperscript{(b)}, objret\\
-				\end{tabular}
-				\caption[The \emph{mapsToObj} relation for the call of \emph{chooseOne} from \emph{getObject}]{%
-					The \emph{mapsToObj} relation for the call of \emph{chooseOne} from \emph{getObject} as given
-					in~\cref{lst:ea:improve:bug}. Constructed using \emph{updateNodes} as given in~\cite{choi:03:toplas}.}
+				\subcaptionbox{%
+					The \emph{mapsToObj} relation constructed using \emph{updateNodes} as given in~\cite{choi:03:toplas}. Note
+					that this is the same even after KESO's modifications.%
+					\label{subtbl:ea:improve:bug:mto}}[.54\linewidth]{%
+						\centering%
+						\begin{tabular}{rl}
+							\textbf{chooseOne} & \textbf{getObject} \\\hline\hline
+							obj0 & Object\textsuperscript{(a)}, objret\\
+							obj1 & Object\textsuperscript{(b)}, objret\\ \\
+						\end{tabular}%
+				}%
+				\hspace{\fill}%
+				\subcaptionbox{%
+					The \emph{mapsToRef} relation constructed using KESO's modified \emph{updateNodes} algorithm.%
+					\label{subtbl:ea:improve:bug:mtr}}[.44\linewidth]{%
+						\centering%
+						\begin{tabular}{rl}
+							\textbf{chooseOne} & \textbf{getObject} \\\hline\hline
+							a   & chooseOne(a)\\
+							b   & chooseOne(b)\\
+							ret & chooseOne(ret)
+						\end{tabular}%
+				}%
+				\caption[%
+					The \emph{mapsToObj} and \emph{mapsToRef} relations for the call of \emph{chooseOne} from \emph{getObject}]{%
+					The \emph{mapsToObj} and \emph{mapsToRef} relations for the call of \emph{chooseOne} from \emph{getObject} as
+					given in~\cref{lst:ea:improve:bug}.}
 				\label{tbl:ea:improve:bug:mapsTo}
 			\end{table}
 
@@ -453,7 +472,7 @@
 			\emph{mapsToObj} relation) and adds phantom nodes for objects that have no equivalence in the caller yet.
 			\emph{UpdateEdges} ensures all relevant edges present in the callee's \gls{cg} are propagates into the caller's
 			graph. The \emph{mapsToObj} relation for the call from \emph{getObject} to \emph{chooseOne} is given
-			in~\cref{tbl:ea:improve:bug:mapsTo}. If \emph{chooseOne(ret)} did not yet have any pointees at this point of the
+			in~\cref{subtbl:ea:improve:bug:mto}. If \emph{chooseOne(ret)} did not yet have any pointees at this point of the
 			analysis, statement 7 in \emph{UpdateNodes} as displayed in~\cite[Fig.~7]{choi:03:toplas} would have created it as
 			a phantom node, leading to the same problem. No new edges are inserted in interprocedural analysis for this
 			example, because no structure of the form $p \rightarrow f_p \rightarrow q$ (where $p, q$ are object nodes and
@@ -466,10 +485,34 @@
 
 			To work around this problem, KESO's alias analysis (outlined in~\cref{algo:ea:basics:updateNodes,%
 			algo:ea:basics:updateEdges}) was extended to not only track equivalences between object nodes in \emph{mapsToObj},
-			but also between reference nodes in a new relation called \emph{mapsToRef}.
+			but also between reference nodes in a new relation called \emph{mapsToRef}. This data is used in a modified
+			version of \emph{updateEdges} to add the missing edges in the caller's \gls{cg}. On each occasion of
+				$p \rightarrow o$
+			in the callee's \gls{cg} where $p$ is a reference node that does not represent a parameter and $o$ is an object
+			node, an edge
+				$x \rightarrow y$
+			is added in the caller's \gls{cg} for each
+				$x \in \text{\emph{mapsToRef}}(p)$ and $y \in \text{\emph{mapsToObj}}(o)$,
+			if no such edge exists yet. Edges outgoing from parameters must be ignored in this step because Java has
+			call-by-value semantics which means that the arguments given at a method invocation will always remain unchanged.
+			All references reachable via other edges below the arguments can be modified, however, as can the return value.
 
-			\todonote{Show that \texttt{Object chooseOne(Object a, Object b)} is not correctly handled by Choi's algorithm if
-			the return value of this function is itself returned again. Show what I have done to improve that.}
+			Using this extension for the running example generates the \emph{mapsToRef} relation as given
+			in~\cref{subtbl:ea:improve:bug:mtr}. To avoid the superfluous phantom node \emph{objret} that would be added
+			because of the removal of deferred edges before interprocedural analysis, KESO's alias analysis does not attach
+			phantom nodes to nodes that have incoming deferred but not outgoing edges. This required modifying the analysis to
+			be able to deal with deferred edges in interprocedural analysis. After the modified interprocedural analysis
+			finishes, the \gls{cg} of \emph{getObject} (depicted in~\cref{fig:ea:improve:bug:fix}) contains the missing edges.
+
+			\begin{figure}
+				\centering%
+				\input{examples/ChooseOne-getObject-fixed.tex}%
+
+				\caption[The \gls{cg} for \emph{getObject} with the double return flaw fixed]{%
+					The \gls{cg} for \emph{getObject} as generated by KESO's modified algorithm to fix the double return flaw. The
+					two object nodes are correctly marked \emph{method}-escaping. Colors and shapes c.f.~\cref{fig:ea:basics:ll}.}%
+				\label{fig:ea:improve:bug:fix}%
+			\end{figure}
 
 		\subsection{Interprocedural Analysis Optimizations} \label{subsec:ea:improve:opt}
 			\todonote{The work I did in my bachelor's thesis did take rather long especially on large examples. I have
