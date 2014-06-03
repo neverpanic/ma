@@ -387,7 +387,13 @@
 
 			However, the \gls{cg} constructed according to~\cite[Sec.~4]{choi:03:toplas} does not correctly identify the two
 			objects as method-escaping. The \acrlong{cg} for \texttt{chooseOne} is straightforward and given
-			in~\cref{subfig:ea:improve:bug:chooseOne}.
+			in~\cref{subfig:ea:improve:bug:chooseOne}. For the \gls{cg} of \texttt{getObject}, Sections~4.3 \enquote{The
+			Connection Graph Immediately Before a Method Invocation} and 4.4 \enquote{The Connection Graph Immediately After
+			a Method Invocation} are the relevant parts of~\cite{choi:03:toplas}. According to the first section a new
+			\emph{actual reference node} is created for each argument of the invocation and an assignment $\hat{a_i} = u_i$ is
+			processed. $\hat{a_i}$ denotes the actual reference nodes, $u_i$ are the corresponding invocation arguments. The
+			statement causes the creation of deferred edges from the $\hat{a_i}$'s to the $u_i$'s, which will later be
+			compressed.
 
 			\begin{figure}
 				\centering%
@@ -411,6 +417,51 @@
 					c.f.~\cref{fig:ea:basics:ll}.}%
 				\label{fig:ea:improve:bug}%
 			\end{figure}
+
+			The handling of return values is not explicitly explained in this section, but the next section mentions them as
+			\enquote{$\hat{a_i}$'s (representing actual arguments and return value) of the caller's CG,}
+			\cite[p.~891]{choi:03:toplas} suggesting that an \emph{actual reference node} for the return value is added in the
+			caller's \gls{cg}. \Cref{subfig:ea:improve:bug:getObject} shows this \acrlong{cg}: The rounded rectangles with
+			blue dotted borders are said \emph{actual reference nodes}. Both \texttt{chooseOne(a)} and \texttt{chooseOne(b)}
+			initially have a single outgoing edge pointing to a local variable, which in turn points to the allocated objects.
+			This indirection is omitted from the graph in~\cref{subfig:ea:improve:bug:getObject} for simplicity. The return
+			value of \texttt{getObject} is modelled using assignments to a special \enquote{phantom} variable called
+			\emph{return} (in KESO's implementation: \texttt{ret}). Since the result of the call to \texttt{chooseOne} is
+			returned from \texttt{getObject}, a deferred edge from the phantom return variable to the \emph{actual reference
+			node} representing \texttt{chooseOne}'s return value is added. After completing intraprocedural escape analysis
+			all deferred edges are removed from the graph according to Choi et al., adding phantom nodes where necessary. This
+			leads to the creation of the phantom node denoted \texttt{objret} in \cref{subfig:ea:improve:bug:getObject}. The
+			following path compression removes the deferred edges from \texttt{ret} to \texttt{chooseOne(ret)} and adds
+			a \emph{points-to} edge to \texttt{ret}. The \emph{method} escape state of \texttt{chooseOne(ret)} is retained,
+			but is not relevant for the further problem description.
+
+			The rest of the analysis is called the \emph{UpdateCaller} routine, which determines the \emph{mapsToObj}
+			relation, adds phantom nodes for objects that are not represented in the caller and ensures all relevant edges are
+			propagated into the caller's \gls{cg}. The \emph{mapsToObj} relation for the call from \texttt{getObject} to
+			\texttt{chooseOne} is given in~\cref{tbl:ea:improve:bug:mapsTo}. If \texttt{chooseOne(ret)} did not yet have any
+			pointees at this point of the analysis, statement 7 in \emph{UpdateNodes} as displayed
+			in~\cite[Fig.~7]{choi:03:toplas} would have created it as a phantom node, leading to the same problem. No new
+			edges are inserted in interprocedural analysis for this example, because no structure of the form $p \rightarrow
+			f_p \rightarrow q$ (where $p, q$ are object nodes and $f_p$ is a field reference node) exists in the \gls{cg} of
+			\texttt{chooseOne}.
+
+			Note that both phantom nodes in \texttt{chooseOne}'s \gls{cg} map to both their respective object node and the
+			\texttt{objret} phantom node, but the equivalence of \texttt{Object\textsuperscript{(x) $\forall x \in \{a,b\}$}}
+			and \texttt{objret} is not represented in \texttt{getObject}'s \gls{cg}, leading to incorrect escape states for the
+			two allocated objects.
+
+			\begin{table}
+				\centering
+				\begin{tabular}{cc}
+					\textbf{chooseOne} & \textbf{getObject} \\\hline\hline
+					obj0 & Object\textsuperscript{(a)}, objret\\
+					obj1 & Object\textsuperscript{(b)}, objret\\
+				\end{tabular}
+				\caption[The \emph{mapsToObj} relation for the call of \texttt{chooseOne} from \texttt{getObject}]{%
+					The \emph{mapsToObj} relation for the call of \texttt{chooseOne} from \texttt{getObject} as given
+					in~\cref{lst:ea:improve:bug}. Constructed using \emph{updateNodes} as given in~\cite{choi:03:toplas}.}
+				\label{tbl:ea:improve:bug:mapsTo}
+			\end{table}
 
 			\todonote{Show that \texttt{Object chooseOne(Object a, Object b)} is not correctly handled by Choi's algorithm if
 			the return value of this function is itself returned again. Show what I have done to improve that.}
