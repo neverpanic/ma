@@ -50,43 +50,44 @@
 			the connection graph. Allocations whose object node representation in the \gls{cg} is tagged local are considered
 			for stack allocation.
 
-			See~\cref{lst:ea:basics:ll} for source code corresponding to the \glspl{cg} to be explained in depth. The
-			code example is a simple generic linked list. Using common sense we can deduce that, in the absence of a removal
+			See~\cref{lst:ea:basics:ll} for source code corresponding to the \glspl{cg} to be explained in depth. The code
+			example is a simple generic linked list. Using common sense we can deduce that, in the absence of a removal
 			operation, all list elements will be reachable until the list itself has reached the end of its lifetime.
 			Consequently, the only allocation in the given example can not be allocated on the stack, because it must outlive
-			the method of its allocation \texttt{addElement}. Due to the structure of the example, intraprocedural analysis
-			will not suffice to determine this. Global analysis will be necessary.
+			the method of its allocation \emph{addElement}. Due to the structure of the example, intraprocedural analysis will
+			not suffice to determine this. Global analysis will be necessary.
 
 			\inputthesiscode{java}{lst:ea:basics:ll}{A simple generic linked list in Java}{%
-				A simple generic linked list implementation in Java. Note that this example is more complex than it would have to
-				be, especially due to the \texttt{insert} method, for demonstration purposes.\\[.5em]
-				An inner class is used to wrap the list entries with references to their successor. The \texttt{addElement} method
-				allows insertion of new entries. Internally, \texttt{addElement} uses \texttt{insert}, which enqueues the given
-				new element at the start of a list.
+				A simple generic linked list implementation in Java. Note that this example is more complex than it would have
+				to be, especially due to the \emph{insert} method, for demonstration purposes.\\[.5em] An inner class is used to
+				wrap the list entries with references to their successor. The \emph{addElement} method allows insertion of new
+				entries. Internally, \emph{addElement} uses \emph{insert}, which enqueues the given new element at the start of
+				a list.
 			}{examples/LinkedList.java}
 
 			\begin{figure}
 				\centering%
 				\subcaptionbox{%
-					\Acrlong{cg} for \texttt{addElement}. \texttt{insert(list)} and \texttt{insert(elem)} represent the parameters
-					passed to the \texttt{insert} method at its invocation. \texttt{<init>(this)} and \texttt{<init>(elem)} do the
-					same for the implicit invocation of \texttt{ListElement}'s constructor.%
+					\Acrlong{cg} for \emph{addElement}. \emph{insert(list)} and \emph{insert(elem)} represent the parameters
+					passed to the \emph{insert} method at its invocation. \emph{$\langle$init$\rangle$(this)} and
+					\emph{$\langle$init$\rangle$(elem)} do the same for the implicit invocation of \emph{ListElement}'s
+					constructor.%
 					\label{subfig:ea:basics:ll:addElement}}[.5\textwidth]{%
 						\centering%
 						\input{examples/LinkedList-addElement-intra.tex}%
 				}%
 				\hspace{\fill}%
 				\subcaptionbox{%
-					\Acrlong{cg} for \texttt{insert}. The edge from \texttt{head} to \texttt{obj1} is the one that prevents stack
-					allocation of the list element in \texttt{addElement}. Interprocedural analysis needs to propagate this edge
+					\Acrlong{cg} for \emph{insert}. The edge from \emph{head} to \emph{obj1} is the one that prevents stack
+					allocation of the list element in \emph{addElement}. Interprocedural analysis needs to propagate this edge
 					into the caller context to determine this.\label{subfig:ea:basics:ll:insert}}[.48\textwidth]{%
 						\centering%
 						\input{examples/LinkedList-insert-intra.tex}%
 				}%
-				\caption[The \glsentryshortpl{cg} for \texttt{addElement} and \texttt{insert} after intraprocedural analysis]{%
-					The \acrlongpl{cg} for the \texttt{addElement} and \texttt{insert} methods given in~\cref{lst:ea:basics:ll}
-					after intraprocedural analysis. Vertices with rounded corners represent \emph{reference nodes}, where
-					\emph{field reference nodes} have a red {\color{cgred}\blacksquare}, other reference nodes a blue
+				\caption[The \glsentryshortpl{cg} for \emph{addElement} and \emph{insert} after intraprocedural analysis]{%
+					The \acrlongpl{cg} for the \emph{addElement} and \emph{insert} methods given in~\cref{lst:ea:basics:ll} after
+					intraprocedural analysis. Vertices with rounded corners represent \emph{reference nodes}, where \emph{field
+					reference nodes} have a red {\color{cgred}\blacksquare}, other reference nodes a blue
 					{\color{cgblue}\blacksquare} border. Dotted borders mark artificial reference nodes representing a method's
 					parameter or return value. Rectangles with green {\color{cggreen}\blacksquare} borders are \emph{object
 					nodes}. If the border is dashed, the node is a \emph{phantom node}. The escape state of nodes is encoded in
@@ -95,51 +96,51 @@
 				\label{fig:ea:basics:ll}%
 			\end{figure}
 
-			See~\cref{fig:ea:basics:ll} for the \acrlongpl{cg} of the methods \texttt{insert} and \texttt{addElement} given
-			in~\cref{lst:ea:basics:ll}. The \texttt{addElement} method has two parameters, but only the second one is visible
-			in the code listing. Java implicitly passes the \texttt{this} reference as first argument. These parameters are
+			See~\cref{fig:ea:basics:ll} for the \acrlongpl{cg} of the methods \emph{insert} and \emph{addElement} given
+			in~\cref{lst:ea:basics:ll}. The \emph{addElement} method has two parameters, but only the second one is visible in
+			the code listing. Java implicitly passes the \emph{this} reference as first argument. These parameters are
 			represented in \cref{subfig:ea:basics:ll:addElement} by two reference nodes with dotted borders. Since they are
 			reachable after the method returns, they are marked as \emph{method}-escaping, denoted by the orange fill color.
-			Because the allocation sites of the pointees of both \texttt{this} and \texttt{elem} are unknown, these objects
-			are represented using \emph{phantom nodes} (dashed green rectangle). Note that the escape state propagates along
-			the edges from \texttt{this} into \texttt{obj0} and from \texttt{elem} into its pointee \texttt{obj1}. The first
-			statement in the bytecode representation of \texttt{addElement} is the allocation of a new list element, which
-			causes the creation of an object node (green rectangle) in the \gls{cg}. The constructor of the newly created
-			\texttt{ListElement} is called with two arguments: a reference to the object and a reference to the given
-			parameter \texttt{elem}, represented in the \acrlong{cg} by the \texttt{<init>(this)} and \texttt{<init>(elem)}
-			reference nodes. The \texttt{this} parameter of the constructor invocation points to the allocated list element,
-			denoted by a solid edge in the graph. The algorithm can deduce that \texttt{<init>(elem)} points to the same
-			object as \texttt{elem}, but the pointees of \texttt{elem} are unknown at this point. Adding a deferred edge
-			encodes this situation. Finally, processing the invocation of \texttt{insert} creates a similar set of nodes
-			\texttt{insert(list)} and \texttt{insert(elem)} pointing to the \texttt{this} reference and the
-			\texttt{ListElement} object respectively.
+			Because the allocation sites of the pointees of both \emph{this} and \emph{elem} are unknown, these objects are
+			represented using \emph{phantom nodes} (dashed green rectangle). Note that the escape state propagates along the
+			edges from \emph{this} into \emph{obj0} and from \emph{elem} into its pointee \emph{obj1}. The first statement in
+			the bytecode representation of \emph{addElement} is the allocation of a new list element, which causes the
+			creation of an object node (green rectangle) in the \gls{cg}. The constructor of the newly created
+			\emph{ListElement} is called with two arguments: a reference to the object and a reference to the given parameter
+			\emph{elem}, represented in the \acrlong{cg} by the \emph{$\langle$init$\rangle$(this)} and
+			\emph{$\langle$init$\rangle$(elem)} reference nodes. The \emph{this} parameter of the constructor invocation
+			points to the allocated list element, denoted by a solid edge in the graph. The algorithm can deduce that
+			\emph{$\langle$init$\rangle$(elem)} points to the same object as \emph{elem}, but the pointees of \emph{elem} are
+			unknown at this point. Adding a deferred edge encodes this situation. Finally, processing the invocation of
+			\emph{insert} creates a similar set of nodes \emph{insert(list)} and \emph{insert(elem)} pointing to the
+			\emph{this} reference and the \emph{ListElement} object respectively.
 
-			The graph for \texttt{insert} is given in~\cref{subfig:ea:basics:ll:insert}. The two parameters are again
-			represented by a reference node and a phantom node each. The first few statements create the \texttt{next} field
-			node below \texttt{obj1} and add a deferred edge to \texttt{head}. This edge is not shown in the graph, because
-			the next statement in the code changes the value of \texttt{head}. Depending on whether the analysis is
-			flow-sensitive or not, the outcome will differ. The \gls{cg} given uses the flow-sensitive variant, which causes
-			all incoming deferred edges of a reference node to be compressed and all outgoing edges to be removed before
-			pointing to the new target. Because compression of deferred edges requires at least one edge outgoing from the
-			target of the deferred edge, but \texttt{head} did not have any at this point in the analysis, a phantom node
-			representing the previous pointees of \texttt{head} was created. It is denoted \texttt{oldhead}
-			in~\cref{subfig:ea:basics:ll:insert}. Using flow-insensitive analysis, the deferred edge from \texttt{next} to
-			\texttt{head} would have been preserved and later compressed into an edge from \texttt{next} to \texttt{obj1}.
-			Finally, the edge from \texttt{head} to \texttt{obj1} is added to represent the effect of the statement in
-			line~\ref{line:ea:basics:ll:headassign} in~\cref{lst:ea:basics:ll}, completing intraprocedural analysis.
+			The graph for \emph{insert} is given in~\cref{subfig:ea:basics:ll:insert}. The two parameters are again
+			represented by a reference node and a phantom node each. The first few statements create the \emph{next} field
+			node below \emph{obj1} and add a deferred edge to \emph{head}. This edge is not shown in the graph, because the
+			next statement in the code changes the value of \emph{head}. Depending on whether the analysis is flow-sensitive
+			or not, the outcome will differ. The \gls{cg} given uses the flow-sensitive variant, which causes all incoming
+			deferred edges of a reference node to be compressed and all outgoing edges to be removed before pointing to the
+			new target. Because compression of deferred edges requires at least one edge outgoing from the target of the
+			deferred edge, but \emph{head} did not have any at this point in the analysis, a phantom node representing the
+			previous pointees of \emph{head} was created. It is denoted \emph{oldhead} in~\cref{subfig:ea:basics:ll:insert}.
+			Using flow-insensitive analysis, the deferred edge from \emph{next} to \emph{head} would have been preserved and
+			later compressed into an edge from \emph{next} to \emph{obj1}. Finally, the edge from \emph{head} to \emph{obj1}
+			is added to represent the effect of the statement in line~\ref{line:ea:basics:ll:headassign}
+			in~\cref{lst:ea:basics:ll}, completing intraprocedural analysis.
 
 		\subsection{Interprocedural Analysis}
 			\label{sub:ea:basics:global}
 			Looking at the summary information generated for both methods given in~\cref{lst:ea:basics:ll}, the object node
-			that represents the only allocation (\texttt{LinkedList} in~\cref{subfig:ea:basics:ll:addElement}) has an escape
+			that represents the only allocation (\emph{LinkedList} in~\cref{subfig:ea:basics:ll:addElement}) has an escape
 			state of \emph{local} at this point in the analysis. Recall that local nodes are considered for stack allocation,
 			but entries of a linked list cannot be allocated on stack. The results are thus not sound and further analysis is
-			required. Looking at the example, the edge from \texttt{head} to \texttt{obj1} in the \gls{cg} of \texttt{insert}
-			is the edge that will prevent stack allocation of the list element in \texttt{addElement}. To determine this
-			algorithmically, the edges found while processing \texttt{insert} need to be propagated to its caller
-			\texttt{addElement}. Once the connection from \texttt{obj0} via a new field reference node \texttt{head} to the
-			list element is established, the escape state of the \texttt{ListElement} object node increase to \emph{method},
-			making the result sound.
+			required. Looking at the example, the edge from \emph{head} to \emph{obj1} in the \gls{cg} of \emph{insert} is the
+			edge that will prevent stack allocation of the list element in \emph{addElement}. To determine this
+			algorithmically, the edges found while processing \emph{insert} need to be propagated to its caller
+			\emph{addElement}. Once the connection from \emph{obj0} via a new field reference node \emph{head} to the list
+			element is established, the escape state of the \emph{ListElement} object node increase to \emph{method}, making
+			the result sound.
 
 			A second analysis pass propagates information from the non-\emph{local} subgraph of the \glspl{cg} into the
 			\glspl{cg} of all calling methods. This \emph{interprocedural} analysis modifies the summary information of the
@@ -257,17 +258,16 @@
 			\end{algorithm}
 
 			For the example given in~\cref{lst:ea:basics:ll} and~\cref{subfig:ea:basics:ll:addElement}, this means that the
-			field reference nodes \texttt{head} and \texttt{next} are added below \texttt{obj0} and \texttt{ListElement}
-			respectively. Furthermore, a phantom node is added to represent \texttt{oldhead}. Note that the \texttt{head}
-			reference node does not yet point to the list element object node. The next step of the algorithm called
-			\emph{updateEdges} adds the missing connection. It takes the same parameters as \emph{updateNodes}
-			from~\cref{algo:ea:basics:updateNodes} and adds all missing edges. See~\cref{algo:ea:basics:updateEdges} for
-			a pseudocode listing of the procedure. It identifies pairs of corresponding object nodes using the
-			\emph{mapsToObj} relation computed in \emph{updateNodes}. For each possible pair it follows outgoing edges to any
-			field reference nodes in the callee graph and finds the corresponding field reference node in the caller's
-			\gls{cg}. Next, the newly found correspondence pair is added to the work list and all outgoing edges to object
-			nodes in the callee graph are added to the caller graph. Note that code to prevent endless loops in cylic data
-			structures has been left out for simplicity, but can be easily added.
+			field reference nodes \emph{head} and \emph{next} are added below \emph{obj0} and \emph{ListElement} respectively.
+			Furthermore, a phantom node is added to represent \emph{oldhead}. Note that the \emph{head} reference node does
+			not yet point to the list element object node. The next step of the algorithm called \emph{updateEdges} adds the
+			missing connection. It takes the same parameters as \emph{updateNodes} from~\cref{algo:ea:basics:updateNodes} and
+			adds all missing edges. See~\cref{algo:ea:basics:updateEdges} for a pseudocode listing of the procedure. It
+			identifies pairs of corresponding object nodes using the \emph{mapsToObj} relation computed in \emph{updateNodes}.
+			For each possible pair it follows outgoing edges to any field reference nodes in the callee graph and finds the
+			corresponding field reference node in the caller's \gls{cg}. Next, the newly found correspondence pair is added to
+			the work list and all outgoing edges to object nodes in the callee graph are added to the caller graph. Note that
+			code to prevent endless loops in cylic data structures has been left out for simplicity, but can be easily added.
 
 			\begin{algorithm}
 				\SetKwData{workList}{workList}
@@ -374,20 +374,20 @@
 			\label{subsec:ea:improve:bug}
 			KESO's implementation of escape analysis produced incorrect results given inputs similar to those generated by the
 			idea outlined in~\cref{sec:eea:idea}. Further analysis suggests this is a conceptual flaw in the work of Choi et
-			al. See~\cref{lst:ea:improve:bug} for an example triggering this bug. The \texttt{getObject} method allocates two
-			objects, passes them to \texttt{chooseOne}, which selects one of the two arguments at random and returns it. The
-			return value of \texttt{chooseOne} is returned from \texttt{getObject}. Because either of the two objects
-			allocated in \texttt{getObject} might escape, both allocations must not use stack memory.
+			al. See~\cref{lst:ea:improve:bug} for an example triggering this bug. The \emph{getObject} method allocates two
+			objects and passes them to \emph{chooseOne}, which selects one of them at random and returns it. The return value
+			of \emph{chooseOne} is then returned from \emph{getObject}. Because either of the two objects allocated in
+			\emph{getObject} might escape, both allocations must not use stack memory.
 
 			\inputthesiscode{java}{lst:ea:improve:bug}{Example exposing the double return flaw}{%
 				A simplified example exposing the double return bug in KESO's escape analysis. One of the objects allocated in
-				\texttt{getObject} is returned from its allocating method, but escape analysis did not detect this due to the
-				use of phantom nodes to represent return values.
+				\emph{getObject} is returned from its allocating method, but escape analysis did not detect this due to the use
+				of phantom nodes to represent return values.
 			}{examples/ChooseOne.java}
 
 			However, the \gls{cg} constructed according to~\cite[Sec.~4]{choi:03:toplas} does not correctly identify the two
-			objects as method-escaping. The \acrlong{cg} for \texttt{chooseOne} is straightforward and given
-			in~\cref{subfig:ea:improve:bug:chooseOne}. For the \gls{cg} of \texttt{getObject}, Sections~4.3 \enquote{The
+			objects as method-escaping. The \acrlong{cg} for \emph{chooseOne} is straightforward and given
+			in~\cref{subfig:ea:improve:bug:chooseOne}. For the \gls{cg} of \emph{getObject}, Sections~4.3 \enquote{The
 			Connection Graph Immediately Before a Method Invocation} and 4.4 \enquote{The Connection Graph Immediately After
 			a Method Invocation} are the relevant parts of~\cite{choi:03:toplas}. According to the first section a new
 			\emph{actual reference node} is created for each argument of the invocation and an assignment $\hat{a_i} = u_i$ is
@@ -398,21 +398,21 @@
 			\begin{figure}
 				\centering%
 				\subcaptionbox{%
-					The \gls{cg} for \texttt{chooseOne}.%
-					\label{subfig:ea:improve:bug:chooseOne}}[.4\textwidth]{%
+					The \gls{cg} for \emph{chooseOne}.%
+					\label{subfig:ea:improve:bug:chooseOne}}[.35\textwidth]{%
 						\centering%
 						\input{examples/ChooseOne-chooseOne.tex}%
 				}%
 				\hspace{\fill}%
 				\subcaptionbox{%
-					The \gls{cg} for \texttt{getObject} according to~\cite[Sec.~4]{choi:03:toplas}.%
-					\label{subfig:ea:improve:bug:getObject}}[.58\textwidth]{%
+					The \gls{cg} for \emph{getObject} according to~\cite[Sec.~4]{choi:03:toplas}.%
+					\label{subfig:ea:improve:bug:getObject}}[.62\textwidth]{%
 						\centering%
 						\input{examples/ChooseOne-getObject.tex}%
 				}%
-				\caption[The \glspl{cg} for \texttt{getObject} and \texttt{chooseOne} exhibiting the double return flaw]{%
-					The \glspl{cg} for \texttt{getObject} and \texttt{chooseOne} from~\cref{lst:ea:improve:bug}, exhibiting the
-					double return flaw. The object nodes in \texttt{getObject} should be pointed-to by \texttt{ret}, which would
+				\caption[The \glspl{cg} for \emph{getObject} and \emph{chooseOne} exhibiting the double return flaw]{%
+					The \glspl{cg} for \emph{getObject} and \emph{chooseOne} from~\cref{lst:ea:improve:bug}, exhibiting the
+					double return flaw. The object nodes in \emph{getObject} should be pointed-to by \emph{ret}, which would
 					raise their escape state to \emph{method}, but these edges are missing. Colors and shapes
 					c.f.~\cref{fig:ea:basics:ll}.}%
 				\label{fig:ea:improve:bug}%
@@ -422,33 +422,18 @@
 			\enquote{$\hat{a_i}$'s (representing actual arguments and return value) of the caller's CG,}
 			\cite[p.~891]{choi:03:toplas} suggesting that an \emph{actual reference node} for the return value is added in the
 			caller's \gls{cg}. \Cref{subfig:ea:improve:bug:getObject} shows this \acrlong{cg}: The rounded rectangles with
-			blue dotted borders are said \emph{actual reference nodes}. Both \texttt{chooseOne(a)} and \texttt{chooseOne(b)}
+			blue dotted borders are said \emph{actual reference nodes}. Both \emph{chooseOne(a)} and \emph{chooseOne(b)}
 			initially have a single outgoing edge pointing to a local variable, which in turn points to the allocated objects.
 			This indirection is omitted from the graph in~\cref{subfig:ea:improve:bug:getObject} for simplicity. The return
-			value of \texttt{getObject} is modelled using assignments to a special \enquote{phantom} variable called
-			\emph{return} (in KESO's implementation: \texttt{ret}). Since the result of the call to \texttt{chooseOne} is
-			returned from \texttt{getObject}, a deferred edge from the phantom return variable to the \emph{actual reference
-			node} representing \texttt{chooseOne}'s return value is added. After completing intraprocedural escape analysis
-			all deferred edges are removed from the graph according to Choi et al., adding phantom nodes where necessary. This
-			leads to the creation of the phantom node denoted \texttt{objret} in \cref{subfig:ea:improve:bug:getObject}. The
-			following path compression removes the deferred edges from \texttt{ret} to \texttt{chooseOne(ret)} and adds
-			a \emph{points-to} edge to \texttt{ret}. The \emph{method} escape state of \texttt{chooseOne(ret)} is retained,
-			but is not relevant for the further problem description.
-
-			The rest of the analysis is called the \emph{UpdateCaller} routine, which determines the \emph{mapsToObj}
-			relation, adds phantom nodes for objects that are not represented in the caller and ensures all relevant edges are
-			propagated into the caller's \gls{cg}. The \emph{mapsToObj} relation for the call from \texttt{getObject} to
-			\texttt{chooseOne} is given in~\cref{tbl:ea:improve:bug:mapsTo}. If \texttt{chooseOne(ret)} did not yet have any
-			pointees at this point of the analysis, statement 7 in \emph{UpdateNodes} as displayed
-			in~\cite[Fig.~7]{choi:03:toplas} would have created it as a phantom node, leading to the same problem. No new
-			edges are inserted in interprocedural analysis for this example, because no structure of the form $p \rightarrow
-			f_p \rightarrow q$ (where $p, q$ are object nodes and $f_p$ is a field reference node) exists in the \gls{cg} of
-			\texttt{chooseOne}.
-
-			Note that both phantom nodes in \texttt{chooseOne}'s \gls{cg} map to both their respective object node and the
-			\texttt{objret} phantom node, but the equivalence of \texttt{Object\textsuperscript{(x) $\forall x \in \{a,b\}$}}
-			and \texttt{objret} is not represented in \texttt{getObject}'s \gls{cg}, leading to incorrect escape states for the
-			two allocated objects.
+			value of \emph{getObject} is modelled using assignments to a special \enquote{phantom} variable called
+			\emph{return} (in KESO's implementation: \emph{ret}). Since the result of the call to \emph{chooseOne} is returned
+			from \emph{getObject}, a deferred edge from the phantom return variable to the \emph{actual reference node}
+			representing \emph{chooseOne}'s return value is added. After completing intraprocedural escape analysis all
+			deferred edges are removed from the graph according to Choi et al., adding phantom nodes where necessary. This
+			leads to the creation of the phantom node denoted \emph{objret} in \cref{subfig:ea:improve:bug:getObject}. The
+			following path compression removes the deferred edges from \emph{ret} to \emph{chooseOne(ret)} and adds
+			a \emph{points-to} edge to \emph{ret}. The \emph{method} escape state of \emph{chooseOne(ret)} is retained, but is
+			not relevant for the further problem description.
 
 			\begin{table}
 				\centering
@@ -457,17 +442,36 @@
 					obj0 & Object\textsuperscript{(a)}, objret\\
 					obj1 & Object\textsuperscript{(b)}, objret\\
 				\end{tabular}
-				\caption[The \emph{mapsToObj} relation for the call of \texttt{chooseOne} from \texttt{getObject}]{%
-					The \emph{mapsToObj} relation for the call of \texttt{chooseOne} from \texttt{getObject} as given
+				\caption[The \emph{mapsToObj} relation for the call of \emph{chooseOne} from \emph{getObject}]{%
+					The \emph{mapsToObj} relation for the call of \emph{chooseOne} from \emph{getObject} as given
 					in~\cref{lst:ea:improve:bug}. Constructed using \emph{updateNodes} as given in~\cite{choi:03:toplas}.}
 				\label{tbl:ea:improve:bug:mapsTo}
 			\end{table}
 
+			The analysis ends with the \emph{UpdateCaller} routine. It consists of \emph{UpdateNodes} and \emph{UpdateEdges}.
+			The former computes equivalence pairs of object nodes in the callee's and caller's \glspl{cg} (the so-called
+			\emph{mapsToObj} relation) and adds phantom nodes for objects that have no equivalence in the caller yet.
+			\emph{UpdateEdges} ensures all relevant edges present in the callee's \gls{cg} are propagates into the caller's
+			graph. The \emph{mapsToObj} relation for the call from \emph{getObject} to \emph{chooseOne} is given
+			in~\cref{tbl:ea:improve:bug:mapsTo}. If \emph{chooseOne(ret)} did not yet have any pointees at this point of the
+			analysis, statement 7 in \emph{UpdateNodes} as displayed in~\cite[Fig.~7]{choi:03:toplas} would have created it as
+			a phantom node, leading to the same problem. No new edges are inserted in interprocedural analysis for this
+			example, because no structure of the form $p \rightarrow f_p \rightarrow q$ (where $p, q$ are object nodes and
+			$f_p$ is a field reference node) exists in the \gls{cg} of \emph{chooseOne}.
+
+			Note that both phantom nodes in \emph{chooseOne}'s \gls{cg} map to both their respective object node and the
+			\emph{objret} phantom node, but the equivalence of \emph{Object\textsuperscript{(x) $\forall x \in \{a,b\}$}} and
+			\emph{objret} is not represented in \emph{getObject}'s \gls{cg}, leading to incorrect escape states for the two
+			allocated objects.
+
+			To work around this problem, KESO's alias analysis (outlined in~\cref{algo:ea:basics:updateNodes,%
+			algo:ea:basics:updateEdges}) was extended to not only track equivalences between object nodes in \emph{mapsToObj},
+			but also between reference nodes in a new relation called \emph{mapsToRef}.
+
 			\todonote{Show that \texttt{Object chooseOne(Object a, Object b)} is not correctly handled by Choi's algorithm if
 			the return value of this function is itself returned again. Show what I have done to improve that.}
 
-		\subsection{Interprocedural Analysis Optimizations}
-			\label{subsec:ea:improve:opt}
+		\subsection{Interprocedural Analysis Optimizations} \label{subsec:ea:improve:opt}
 			\todonote{The work I did in my bachelor's thesis did take rather long especially on large examples. I have
 			implemented a few optimizations to make it run faster. These are:}
 
