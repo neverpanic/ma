@@ -1,0 +1,27 @@
+% vim:noet:sts=2:ts=2:sw=2:smarttab:tw=120
+\def\hd{6em}%
+\def\vd{6ex}%
+\def\num{5}%
+\def\radius{3em}%
+\def\margin{8}%
+%
+\begin{tikzpicture}[font=\tiny\ttfamily, relative]
+	\foreach \s in {1, 2, 3, 4, 5} {
+		\node[callgraphnode]
+			(node-\s) at ({360/\num * (\s - 1)}:\radius) {\s};
+	}
+	\node[callgraphnodefinal, right of=node-1] (dep-1) {a};
+	\node[callgraphnodefinal,  left of=node-3] (dep-3) {b};
+	\node[callgraphnodefinal,  left of=node-4] (dep-4) {c};
+
+	\draw[calledge] (node-1) to [out=-20, in=200] (node-2);
+	\draw[calledge] (node-2) to [out=-20, in=200] (node-3);
+	\draw[calledge] (node-3) to [out=-20, in=200] (node-4);
+	\draw[calledge] (node-4) to [out=-20, in=200] (node-5);
+	\draw[calledge] (node-5) to [out=-20, in=200] (node-1);
+	\draw[calledge] (node-1) to                   (dep-1);
+	\draw[calledge] (node-5) to [out=-30, in=180] (dep-1);
+	\draw[calledge] (node-3) to                   (dep-3);
+	\draw[calledge] (node-4) to                   (dep-4);
+	\draw[calledge]  (dep-3) to                   (dep-4);
+\end{tikzpicture}%

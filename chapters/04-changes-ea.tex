@@ -550,14 +550,42 @@
 				These edges are then propagated into all other invocations of \emph{equals}, causing further edges to be
 				considered important, nullifying the effect of the optimization for \emph{equals}. Other implementations and
 				functions might however still benefit from the improvement. If Java did have constant methods like \C++{} does,
-				\emph{equals} could be marked constant and automatically ignored in alias analysis.
+				\emph{equals} (and other methods that are marked constant and only have constant reference parameters) could be
+				automatically ignored in alias analysis.
 
 			\subsubsection{No Reprocessing of Unchanged Invocations}
 				\label{subsub:ea:improve:opt:quick-fixpoint}
-				\todonote{When iterating to find a fixpoint in a strongly connected component, only re-compute the summary
-				information for a method if its callees actually changed; re-use the old results otherwise.}
+				Strongly connected components in an application's call graph (i.e., recursive methods) are handled in
+				interprocedural analysis by iterating until a fixpoint has been reached. During this process, invocations might
+				be reprocessed even though their callees' \glspl{cg} did not change since the last iteration. This happens for
+				all call graph edges leaving the strongly connected component. See~\cref{fig:ea:improve:quick-fixpoint} for
+				a graphical representation of this situation.
+
+				\begin{figure}
+					\centering%
+					\input{examples/invocation-reprocessing.tex}%
+
+					\caption[Example call graph where avoiding reprocessing saves time]{%
+						Call graph with a strongly connected component (blue {\color{cgblue}\blacksquare} vertices) and a few
+						dependent nodes (green {\color{cggreen}\blacksquare} vertices). While methods inside the strongly connected
+						component might have to be visited multiple times in interprocedural analysis, the summary information from
+						\texttt{a}–\texttt{c} only needs to be propagated into their callers once.}%
+					\label{fig:ea:improve:quick-fixpoint}%
+				\end{figure}
+
+				KESO's implementation of interprocedural analysis only re-runs the \emph{updateNodes} and \emph{updateEdges}
+				steps if a callee's \gls{cg} changed since the last iteration, avoiding unnecessary overhead. Unfortunately the
+				savings from this optimizations are marginal.
 
 			\subsubsection{Connection Graph Compression}
 				\label{subsub:ea:improve:opt:compression}
+				While the improvements in~\cref{subsub:ea:improve:opt:writeonly,subsub:ea:improve:opt:quick-fixpoint} reduced
+				the compile time of large applications, the savings were still not enough to enable escape analysis by default
+				in KESO without having a noticeable effect during development. \Acrlong{cg} sizes would still surpass 10000
+				vertices on large inputs with these optimizations enabled, slowing down further steps of the analysis. Most of
+				these nodes were created in interprocedural analysis as phantom nodes to represent objects allocated in callees
+				of the current function and often had siblings that would represent the same objects. To reduce the size of the
+				\acrlongpl{cg}, a graph compression transformation inspired by Gay and Steensgaard's~\cite{gay:00:cc}.
+
 				\todonote{Compress multiple sibling nodes if they likely represent the same node. This gives us a huge speedup
 				without giving up too much information (explain how I made sure the relevant information is kept).}
