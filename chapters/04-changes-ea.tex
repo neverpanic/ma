@@ -585,7 +585,24 @@
 				vertices on large inputs with these optimizations enabled, slowing down further steps of the analysis. Most of
 				these nodes were created in interprocedural analysis as phantom nodes to represent objects allocated in callees
 				of the current function and often had siblings that would represent the same objects. To reduce the size of the
-				\acrlongpl{cg}, a graph compression transformation inspired by Gay and Steensgaard's~\cite{gay:00:cc}.
+				\acrlongpl{cg}, a graph compression transformation inspired by Steensgaard's almost linear time points-to
+				analysis~\cite{steensgaard:96:popl} was implemented.
 
-				\todonote{Compress multiple sibling nodes if they likely represent the same node. This gives us a huge speedup
-				without giving up too much information (explain how I made sure the relevant information is kept).}
+				Starting at each entry point into a method's \gls{cg} (i.e., every method parameter and the return value), the
+				graph compression algorithm processes each reference node recursively but avoids loops using a color bit. For
+				each reference node, lists of pointees segregated by escape state are collected. The separation into different
+				escape states ensures that object nodes are only unified with nodes that have the same escape state. This avoids
+				deterioration of the computed results up to this point. Each list that contains at least two object nodes and at
+				least one phantom node is compressed by removing the phantom nodes. Note that any two non-phantom object nodes
+				(i.e., any two nodes with a known allocation site) are not consolidated to preserve the one-to-one mapping
+				between intermediate code allocation instruction and its \gls{cg} representation.
+
+				Incoming edges pointing to the phantom nodes to be removed are redirected to the retained object nodes. Field
+				reference nodes reachable from the phantom nodes are re-created below the object nodes in the compression set.
+				Edges outgoing from the removed field reference nodes are moved to their equivalents below the retained object
+				nodes. Since this might create new graph constellations that can be compressed, the color bit possibly marking
+				the descendant field reference nodes as visited is reset.
+
+				Since these modifications always preserve object nodes and do not unify subgraphs with different escape states,
+				the effect on the results is negligible. However, the compile time required for alias analysis has improved by
+				an order of magnitude.
