@@ -82,16 +82,32 @@
 			Virtual method invocations further complicate the decision whether to move an allocation into calling methods or
 			not. Because all candidates of a virtual method invocation must share the same signature (i.e., the same parameter
 			and return types), a method cannot be optimized individually without considering other invocations possibly
-			calling this method and these call site's possible callees.
+			calling this method and these call site's possible callees. \Cref{fig:eea:analysis:virtual} contains a graphical
+			representation of this problem. Interdependencies between methods quickly cause methods to form up into groups
+			sharing the same signature. Extended escape analysis, however, depends only on the code of the methods in these
+			groups, which is in general unrelated. A single method in such a group could cause the optimization to add
+			a number of arguments to all its invocations, which in turn would require that the same parameters be added to all
+			other candidates for these invocation sites. These parameters would be unused in all other methods and cause
+			overhead at runtime as well as the allocation of unused memory.
 
 			\begin{figure}
 				\centering%
 				\input{examples/vcall-eea.tex}%
 
 				\caption[Call graph showing the complexity of extended escape allocation for virtual method calls]{%
-					Call graph showing the complexity of extended escape allocation for virtual method calls.}%
+					Call graph showing the complexity of extended escape allocation for virtual method calls. Green
+					{\color{cggreen}\blacksquare} vertices mark methods that contain allocations eligible for scope extensions,
+					blue {\color{cgblue}\blacksquare} vertices represent other methods. Solid lines are method invocations. Assume
+					that both \emph{a} and \emph{b} contain a single virtual method invocation each, i.e., the possible callees
+					are \emph{1}–\emph{3} for \emph{a} and \emph{3}–\emph{5} for \emph{b}. Dashed lines point from methods
+					eligible for extended escape analysis to methods that must share their signature. Since this relation is
+					transitive, nodes \emph{1} through \emph{5} and their invocation sites must be adjusted for each optimization
+					in \emph{2}, \emph{3}, and \emph{4}.}%
 				\label{fig:eea:analysis:virtual}%
 			\end{figure}
+
+			Because of the overhead and the complexity inherent to applying this optimization correctly in the presence of
+			virtual method calls, KESO does not currently perform scope extension across virtual method calls.
 
 			\todonote{Explain why virtual method calls are a much harder problem for scope extension and which possibilities
 			can be employed to also apply the optimization in these cases (i.e., create a copy that has the optimization

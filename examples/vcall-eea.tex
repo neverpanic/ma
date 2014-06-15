@@ -1,6 +1,6 @@
 % vim:noet:sts=2:ts=2:sw=2:smarttab:tw=120
-\def\hd{3em}%
-\def\vd{6ex}%
+\def\hd{4em}%
+\def\vd{8ex}%
 %
 \begin{tikzpicture}[font=\tiny\ttfamily, relative]
 	\path
@@ -22,5 +22,12 @@
 	\draw[calledge] (b) to (n4);
 	\draw[calledge] (b) to (n5);
 
-	\draw[calledge] (a) to (b);
+	\draw[influence] (n2) to                 (n1);
+	\draw[influence] (n2) to [bend left=15]  (n3);
+	\draw[influence] (n3) to [bend left]     (n1);
+	\draw[influence] (n3) to [bend left=15]  (n2);
+	\draw[influence] (n3) to [bend right=15] (n4);
+	\draw[influence] (n3) to [bend right]    (n5);
+	\draw[influence] (n4) to [bend right=15] (n3);
+	\draw[influence] (n4) to                 (n5);
 \end{tikzpicture}%
