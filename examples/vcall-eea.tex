@@ -1,0 +1,26 @@
+% vim:noet:sts=2:ts=2:sw=2:smarttab:tw=120
+\def\hd{3em}%
+\def\vd{6ex}%
+%
+\begin{tikzpicture}[font=\tiny\ttfamily, relative]
+	\path
+		 (     0,     0)
+		+(  -\hd,     0) node[callgraphnode]      (a)  {a}
+		+(   \hd,     0) node[callgraphnode]      (b)  {b}
+		+(-2*\hd,  -\vd) node[callgraphnode]      (n1) {1}
+		+(  -\hd,  -\vd) node[callgraphnodefinal] (n2) {2}
+		+(     0,  -\vd) node[callgraphnodefinal] (n3) {3}
+		+(  +\hd,  -\vd) node[callgraphnodefinal] (n4) {4}
+		+( 2*\hd,  -\vd) node[callgraphnode]      (n5) {5}
+	;
+
+	\draw[calledge] (a) to (n1);
+	\draw[calledge] (a) to (n2);
+	\draw[calledge] (a) to (n3);
+
+	\draw[calledge] (b) to (n3);
+	\draw[calledge] (b) to (n4);
+	\draw[calledge] (b) to (n5);
+
+	\draw[calledge] (a) to (b);
+\end{tikzpicture}%

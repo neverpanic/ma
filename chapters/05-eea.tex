@@ -8,7 +8,7 @@
 	the same. Using alias information and escape analysis, objects that escape their method of alloction into the caller
 	but no further can be automatically identified. Allocating these objects on the caller's stack and passing a reference
 	avoids the need for garbage collection for these objects and can improve worst and average case execution times of
-	programs. In the KESO context, this is called \emph{extended escape analysis} or \emph{variable scope extension}.
+	programs. In the KESO context, this is called \emph{extended escape analysis} or \emph{(variable) scope extension}.
 
 	\section{Algorithmic Idea}
 		\label{sec:eea:idea}
@@ -73,15 +73,25 @@
 			Each object node with a known allocation site (i.e., each non-phantom object node) and an escape state of
 			\emph{method} will be optimized in KESO\@. Interference information for the allocated objects is not computed.
 			This causes multiple allocations to be moved into calling methods even if they are allocated in mutually exclusive
-			control flow paths. In some examples, this causes a large amount of moved allocation instructions and new method
-			parameters even though only a few are used simultaneously. See~\cref{sec:conclusion:future-work} for possible ways
-			to avoid this problem and a discussion of the challenges in solving it.
+			control flow paths. In some examples, this causes a large number of allocations and new method parameters even
+			though only a few are used simultaneously. See~\cref{sec:conclusion:future-work} for possible ways to avoid this
+			problem and a discussion of the challenges in solving it.
 
 		\subsection{Virtual Calls}
 			\label{sub:eea:analysis:virtual}
 			Virtual method invocations further complicate the decision whether to move an allocation into calling methods or
 			not. Because all candidates of a virtual method invocation must share the same signature (i.e., the same parameter
-			and return types) TBC\ldots
+			and return types), a method cannot be optimized individually without considering other invocations possibly
+			calling this method and these call site's possible callees.
+
+			\begin{figure}
+				\centering%
+				\input{examples/vcall-eea.tex}%
+
+				\caption[Call graph showing the complexity of extended escape allocation for virtual method calls]{%
+					Call graph showing the complexity of extended escape allocation for virtual method calls.}%
+				\label{fig:eea:analysis:virtual}%
+			\end{figure}
 
 			\todonote{Explain why virtual method calls are a much harder problem for scope extension and which possibilities
 			can be employed to also apply the optimization in these cases (i.e., create a copy that has the optimization
