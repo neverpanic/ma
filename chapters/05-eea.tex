@@ -194,7 +194,7 @@
 			date when it is needed in a subsequent pass turning \emph{local} heap allocations into stack allocations
 			(see~\cref{chapter:ea}).
 
-		\subsection{Local Domain Heaps}
+		\subsection{Local Task Heaps}
 			\label{sub:eea:opt:ldh}
 			Turning allocations into stack allocations for automatic memory management is not necessarily the best solution,
 			depending on the circumstances. Especially in safety-critical embedded systems allocating objects and small arrays
@@ -205,6 +205,28 @@
 			allocations. If this condition is fulfilled, the allocation is inside a loop and the allocated objects are still
 			used outside the loop. This causes memory requirements proportional to the number of loop runs, where an upper
 			bound is not known. To avoid stack overflows, KESO will always serve these allocations from heap memory.
+
+			In order to address these shortcomings, an alternative to stack memory is necessary. A special region can be used
+			for all objects that can be automatically managed by the compiler. To provide a runtime advantage over the normal
+			heap, this region must be exempt from garbage collector sweeps. There should be one logical region for each
+			method, while empty regions (from methods without local objects) can be omitted. At the end of the method, its
+			associated region can be reclaimed as a whole. To retain the semantics of stack allocations and reclaim-on-return,
+			these logical regions should be organized in a stack. One possible implementation of these constraints are small
+			specialized heap regions associated with tasks – each task has its own local heap for these regions. The logical
+			regions are implemented in KESO similar to a traditional stack in C: Each task-local heap has a start address,
+			a size, and a fill marker. At method entry, the fill marker is saved and necessary objects are allocated by
+			increasing the fill marker. At method exit, the fill marker is reset to its previous value. Storing the fill
+			marker can be avoided if the amount of memory that will be allocated is known at compile time, since it can be
+			calculated using offsets from the current fill marker.
+
+			Memory shortages can be detected by checking whether the next operation would move the fill marker above the
+			maximum level, preventing unforeseen behavior in case of stack overflows. Since object allocation on stack no
+			longer occurs with this method of region based memory management enabled, finding a tight upper bound for stack
+			usage is simplified. With precise and quick checks preventing task-local heap overflows in place, liveness
+			interference avoidance can be disabled, further reducing garbage collector load (likely disproportionate to the
+			number of allocations that were previously not stack-allocated due to the constraint). This, of course, requires
+			worst-case memory usage analysis for these local heaps, which JINO does not currently support autonomously. Future
+			work (see~\cref{sec:conclusion:future-work}) could provide this analysis.
 
 	\section{Potential Problems}
 		\label{sec:eea:probs}
