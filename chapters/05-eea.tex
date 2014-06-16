@@ -10,6 +10,17 @@
 	avoids the need for garbage collection for these objects and can improve worst and average case execution times of
 	programs. In the KESO context, this is called \emph{extended escape analysis} or \emph{(variable) scope extension}.
 
+	Stack allocation is not the only possible optimization using these results, and may not be the best. Several other
+	approaches such as thread-local heap regions or explicit deallocation operations come to mind. Unbounded usage of the
+	optimizations discussed in the chapter may lead to problems and sub-par performance.
+
+	\Cref{sec:eea:idea}~outlines the general idea of the optimization implemented for this master's thesis and gives and
+	example showing where, why, and how it can be applied. The following~\cref{sec:eea:analysis} discusses in detail which
+	preconditions must be fulfilled, which constellations hinder or prevent optimization, and how these shortcomings could
+	be addressed. Two different transformations using the analysis results and their advantages and drawbacks are
+	presented in~\cref{sec:eea:opt}, before~\cref{sec:eea:probs} concludes this chapter with a consideration of possible
+	problems caused by excessive usage of extended escape analysis.
+
 	\section{Algorithmic Idea}
 		\label{sec:eea:idea}
 		\inputthesiscode{java}{lst:eea:idea:builder}{Example containing a candidate for extended escape analysis}{%
@@ -83,12 +94,12 @@
 			not. Because all candidates of a virtual method invocation must share the same signature (i.e., the same parameter
 			and return types), a method cannot be optimized individually without considering other invocations possibly
 			calling this method and these call site's possible callees. \Cref{fig:eea:analysis:virtual} contains a graphical
-			representation of this problem. Interdependencies between methods quickly cause methods to form up into groups
-			sharing the same signature. Extended escape analysis, however, depends only on the code of the methods in these
-			groups, which is in general unrelated. A single method in such a group could cause the optimization to add
-			a number of arguments to all its invocations, which in turn would require that the same parameters be added to all
-			other candidates for these invocation sites. These parameters would be unused in all other methods and cause
-			overhead at runtime as well as the allocation of unused memory.
+			representation of this problem. Interdependencies between methods cause methods to form up into groups sharing the
+			same signature. Extended escape analysis, however, depends only on the code of the methods in these groups, which
+			is in general unrelated. A single method in such a group could cause the optimization to add a number of arguments
+			to all its invocations, which in turn would require that the same parameters be added to all other candidates for
+			these invocation sites. These parameters would be unused in all other methods and cause overhead at runtime as
+			well as the allocation of unused memory.
 
 			\begin{figure}
 				\centering%
@@ -107,15 +118,40 @@
 			\end{figure}
 
 			Because of the overhead and the complexity inherent to applying this optimization correctly in the presence of
-			virtual method calls, KESO does not currently perform scope extension across virtual method calls.
+			virtual method calls, KESO does not currently perform scope extension across virtual method calls. Note that some
+			of the challenges are caused by the way the results of alias and escape analysis are used to optimize allocations.
+			Different intermediate code transformations that do not require changing a method's signature could simplify the
+			problem.
 
-			\todonote{Explain why virtual method calls are a much harder problem for scope extension and which possibilities
-			can be employed to also apply the optimization in these cases (i.e., create a copy that has the optimization
-			enabled, do not move the allocation but add explicit \texttt{free(3)}s, or employ some other method of automatic
-			region inference).}
+			For example, instead of using stack memory, a separate thread-local heap section with a simple bump pointer memory
+			management strategy could be used (see~\cref{sub:eea:opt:ldh} where this is discussed). Memory could be allocated
+			in the section corresponding to a calling method in these thread-local heaps during a method's prologue before
+			creating a new method frame. Memory allocated in this way would automatically be reclaimed after the calling
+			method terminates.
+
+			A different approach to solve the same problem could be not changing the allocations at all (i.e., allocating
+			objects that escape only a single level in the call graph in heap memory) and modifying the caller to explicitly
+			reclaim the objects that are no longer used. However, in the presence of a garbage collector this does not
+			necessarily reduce the memory management overhead: Marking a section as free does neither reduce the time required
+			for the mark phase (the unreferenced section will not be marked, whether it was explicitly freed or not), nor the
+			sweep phase (the task is the same, it will either by run by the garbage collector, or by the explicit statement).
+			As a consequence, the only possible improvement achieved by explicit deallocations could be a reduction in the
+			number of garbage collector runs. By keeping a list of memory areas that can be re-used immediately, the runtime
+			system could avoid a garbage collector run entirely if enough memory can be made available using the known unused
+			areas.
+
+			Because KESO's current escape analysis summarizes a method's effect independent of any calling contexts, but both
+			approaches outlined in the last paragraphs depend on the caller, further analyses would have to be implemented to
+			use these ideas.
 
 	\section{Optimization}
 		\label{sec:eea:opt}
+		Based on the results of alias and escape analysis and the decisions presented in~\cref{sec:eea:analysis}, KESO's
+		compiler can apply optimizing transformations. The first transformation operates on the intermediate code
+		representation of the compiled program and moves certain allocations into a method's callers. To preserve soundness
+		a reference to the allocated memory is instead passed as argument to the method previously containing the
+		allocation. The newly created allocation can potentially be served from stack memory, but~\cref{sub:eea:opt:ldh}
+		introduces a different concept to avoid potential problems with excessive stack usage.
 
 		\subsection{Extending Variable Scope}
 			\label{sub:eea:opt:scopeext}
@@ -123,4 +159,6 @@
 		\subsection{Local Domain Heaps}
 			\label{sub:eea:opt:ldh}
 
-	\todonote{What problems and undesirable results could occur due to excessive usage of the optimization?}
+	\section{Potential Problems}
+		\label{sec:eea:probs}
+		\todonote{What problems and undesirable results could occur due to excessive usage of the optimization?}
