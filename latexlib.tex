@@ -237,7 +237,7 @@
 		},
 		colback = black!5!white,
 		colframe = black!75!white,
-		fonttitle = \bfseries,
+		fonttitle = \bfseries\scriptsize,
 		listing and comment,
 		enhanced,
 		segmentation hidden,
@@ -253,13 +253,14 @@
 	thesiscodetitled/.style n args = {4}{%
 		thesiscode={#1}{#2},
 		label={#3},
-		title={\scriptsize{}Listing~\thetcbcounter: #4}
+		before title={Listing~\thetcbcounter: },
+		title={#4}
 	}
 }
 \newtcblisting[auto counter,number within=chapter,crefname={Listing}{Listings},Crefname={Listing}{Listings}]{thesiscode}[5][]{%
 	thesiscodetitled={#1}{#2}{#3}{#4},
-	comment={\scriptsize{}#5}}
+	comment={#5}}
 \newtcbinputlisting[use counter from=thesiscode, list inside=mls]{\inputthesiscode}[6][]{%
 	thesiscodetitled={#1}{#2}{#3}{#4},
-	comment={\scriptsize{}#5},
+	comment={#5},
 	listing file={#6}}
