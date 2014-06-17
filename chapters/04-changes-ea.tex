@@ -50,13 +50,6 @@
 			the connection graph. Allocations whose object node representation in the \gls{cg} is tagged local are considered
 			for stack allocation.
 
-			See~\cref{lst:ea:basics:ll} for source code corresponding to the \glspl{cg} to be explained in depth. The code
-			example is a simple generic linked list. Using common sense we can deduce that, in the absence of a removal
-			operation, all list elements will be reachable until the list itself has reached the end of its lifetime.
-			Consequently, the only allocation in the given example can not be allocated on the stack, because it must outlive
-			the method of its allocation \emph{addElement}. Due to the structure of the example, intraprocedural analysis will
-			not suffice to determine this. Global analysis will be necessary.
-
 			\inputthesiscode{java}{lst:ea:basics:ll}{A simple generic linked list in Java}{%
 				A simple generic linked list implementation in Java. Note that this example is more complex than it would have
 				to be, especially due to the \emph{insert} method, for demonstration purposes.\\[.5em] An inner class is used to
@@ -64,6 +57,13 @@
 				entries. Internally, \emph{addElement} uses \emph{insert}, which enqueues the given new element at the start of
 				a list.
 			}{examples/LinkedList.java}
+
+			See~\cref{lst:ea:basics:ll} for source code corresponding to the \glspl{cg} to be explained in depth. The code
+			example is a simple generic linked list. Using common sense we can deduce that, in the absence of a removal
+			operation, all list elements will be reachable until the list itself has reached the end of its lifetime.
+			Consequently, the only allocation in the given example can not be allocated on the stack, because it must outlive
+			the method of its allocation \emph{addElement}. Due to the structure of the example, intraprocedural analysis will
+			not suffice to determine this. Global analysis will be necessary.
 
 			\begin{figure}
 				\centering%
