@@ -2,11 +2,26 @@
 
 \chapter{Appendix}
 	\label{chapter:appendix}
+
+	\section{The Author}
+		\label{sec:appendix:author}
+		Add the CV of the author.
+
+
+	\clearpage
+	\section{Source Code}
+		\label{sec:appendix:source}
+		Explain how to download and use the source code.
+
+
 	% don't use a full chapter, only a section
 	\let\chapter\section
 
+	\clearpage
 	\bibliographystyle{alpha}
 	\bibliography{bibtex/bib,bibtex/all/all}
+
+	\clearpage
 	\listoffigures
 	\listoftables
 	\tcblistof{mls}{List of Source Code Listings}
@@ -18,6 +33,7 @@
 	\@starttoc{loa}
 	\makeatother
 
+	\clearpage
 	\printglossary
 
 	% ensure todonotes are rendered as a section
