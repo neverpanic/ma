@@ -247,7 +247,31 @@
 		using a modification of Sreedhar's $\phi$ congruence classes~\cite{sreedhar:99:sas}, which are already implemented
 		in KESO to remove unnecessary copies of variables in \gls{ssa} deconstruction, but are not used for this purpose
 		yet. Summarizing so far, extended escape analysis can increase memory usage due to the allocation of unused objects
-		and it can cause subpar performance when a lot of allocations are optimized because a lot of new arguments must be
-		passed to the optimized method.
+		and it can cause subpar performance when a large number of allocations is optimized because of the increased
+		overhead of the modified method invocation.
 
-		\todonote{What problems and undesirable results could occur due to excessive usage of the optimization?}
+		The necessary modification of a method's call sites induces another set of potential problems. First and foremost,
+		optimizing a method with more than one call site will increase code size. Because the allocation instruction is
+		removed from the callee and replicated in all callers instead, the optimization is only neutral with respect to the
+		code size if a method only has a single caller.
+		\begin{alignat}{3}
+			C_\text{after}
+				&= C_\text{before} &&+ (r - a)   &&+ c \cdot (a + p) \label{eq:eea:probs:size}\\
+			C_\text{after}
+				&= C_\text{before} &&+ \Theta(1) &&+ \Theta(c) \label{eq:eea:probs:size-asym}
+		\end{alignat}
+		\Cref{eq:eea:probs:size} gives a relation between the code sizes before and after applying the optimization. In the
+		equation, $r$ denotes the code size of a \emph{aload} (read from variable) operation, $a$ is the size of an
+		allocation, $p$ the size of passing an argument to a method and $c$ is the number of callees of the optimized
+		method. As~\cref{eq:eea:probs:size-asym} shows, the change in code size is dominated by the number of callers $c$.
+		Note that the number of objects allocated at runtime does not change even though the number of allocation
+		instructions increases. This is obvious when considering the number of calls to the object's constructor, which is
+		not touched by the transformation and hence stays the same.
+
+		The use of appropriate heuristics can prevent the potential problems with methods that have a lot of candidates for
+		the optimization: To avoid allocating memory that is not actually used later, interference analysis can be
+		implemented. The overhead of passing a lot of parameters can be countered by limiting the number of applications of
+		the optimization per method. Code size explosion can be prevented by avoiding the optimization for methods whose
+		number of callers is above a certain threshold. Techniques that do not require adjusting the calling context (see
+		also~\cref{sub:eea:analysis:virtual}) would completely remove the overhead of argument passing and prevent code size
+		from increasing.
