@@ -71,11 +71,6 @@
 		that is is not necessarily beneficial to run the pass often, since it may lead to undesirable results
 		(see~\cref{sec:eea:probs}).
 
-		\todonote{Give an overview of the algorithm JINO uses to extend the scope of a variable. Explain how and why it
-		works and why we use stack allocation (and make sure to point out that stack allocation isn't the only possible
-		optimization and may in fact be not the best). Quote my future work list on what other cool stuff could be done here
-		and also outline which problems make this a hard problem.}
-
 		\subsection{Nonvirtual Calls}
 			\label{sub:eea:analysis:nonvirtual}
 			Nonvirtual call sites, i.e., those where the invoked method is unique and known at compile time, constitute the
@@ -197,14 +192,15 @@
 		\subsection{Local Task Heaps}
 			\label{sub:eea:opt:ldh}
 			Turning allocations into stack allocations for automatic memory management is not necessarily the best solution,
-			depending on the circumstances. Especially in safety-critical embedded systems allocating objects and small arrays
-			on the stack could lead to increased worst-case stack usage estimations. Since the stack space needs to be
-			reserved for each task even if it is not going to be used simultaneously, the overall memory requirement can
-			increase compared to a system without escape analysis. Furthermore, to keep stack usage bounded and simplify
-			finding an upper bound of stack usage, KESO does not turn allocations whose liveness regions overlap into stack
-			allocations. If this condition is fulfilled, the allocation is inside a loop and the allocated objects are still
-			used outside the loop. This causes memory requirements proportional to the number of loop runs, where an upper
-			bound is not known. To avoid stack overflows, KESO will always serve these allocations from heap memory.
+			depending on the circumstances. Especially in safety-critical embedded systems allocating objects and arrays on
+			the stack could lead to increased worst-case stack usage estimations. Since the stack space needs to be reserved
+			for each task even if it is not going to be used simultaneously, the overall memory requirement can increase
+			compared to a system without escape analysis. This situation occurs when the sum of upper bounds is larger than
+			the upper bound of the sum. Furthermore, to keep stack usage limited and simplify finding an upper bound of stack
+			usage, KESO does not turn allocations whose liveness regions overlap into stack allocations. Overlapping objects
+			occur because they are allocated inside a loop and alive after the loop. This requires memory proportional to the
+			number of loop runs, where an upper bound might be unknown. To avoid stack overflows, KESO will always serve these
+			allocations from heap memory.
 
 			In order to address these shortcomings, an alternative to stack memory is necessary. A special region can be used
 			for all objects that can be automatically managed by the compiler. To provide a runtime advantage over the normal
@@ -217,17 +213,41 @@
 			a size, and a fill marker. At method entry, the fill marker is saved and necessary objects are allocated by
 			increasing the fill marker. At method exit, the fill marker is reset to its previous value. Storing the fill
 			marker can be avoided if the amount of memory that will be allocated is known at compile time, since it can be
-			calculated using offsets from the current fill marker.
+			calculated using offsets from the current fill marker. This implementation does not require any synchronization
+			for allocations, which constitutes another advantage over a heap allocations.
 
 			Memory shortages can be detected by checking whether the next operation would move the fill marker above the
 			maximum level, preventing unforeseen behavior in case of stack overflows. Since object allocation on stack no
 			longer occurs with this method of region based memory management enabled, finding a tight upper bound for stack
 			usage is simplified. With precise and quick checks preventing task-local heap overflows in place, liveness
-			interference avoidance can be disabled, further reducing garbage collector load (likely disproportionate to the
-			number of allocations that were previously not stack-allocated due to the constraint). This, of course, requires
-			worst-case memory usage analysis for these local heaps, which JINO does not currently support autonomously. Future
-			work (see~\cref{sec:conclusion:future-work}) could provide this analysis.
+			interference avoidance can be disabled, further reducing garbage collector load (likely exceeding amounts
+			proportional to the number affected allocations due to the use in loops). The necessary size of these local heaps
+			can be statically configured using results from manual worst-case memory usage analysis. Future work
+			(see~\cref{sec:conclusion:future-work}) could automate this process and determine the size of these local heaps
+			automatically.
 
 	\section{Potential Problems}
 		\label{sec:eea:probs}
+		Applying the optimization to all candidates does not yield a better program in all cases. A number of situations
+		could actually decrease the performance. Heuristics are necessary to avoid these transformations.
+
+		For example, suboptimal results are generated for methods that allocate a large number of objects that are eligible
+		for the optimization. A particular specimen exposing this behavior is a generated recursive descent parser used in
+		the CD\textsubscript{j} benchmark~\cite{kalibera:09:jtres}: The method that shows the undesirable behavior consists
+		of a large distinction of cases where each case allocates and returns an object. Applying scope extension creates
+		a new parameter for each object and adds the corresponding allocation to all callers. Besides the overhead caused by
+		passing a lot of parameters, this example also exhibits two further problems.
+
+		First, since the control flows in the \emph{switch} statement of the optimized method are mutually exclusive, at
+		most a single object is allocated and returned in the example. After extended escape analysis, however, all objects
+		are allocated in the caller methods and references are passed for each one. Only one of the arguments is actually
+		used, though. In this case, the memory usage is thus actually increased by the optimization. This problem could be
+		avoided by consolidating memory areas (and the corresponding method parameters) that are used in mutually exclusive
+		control flows. Interference analysis is needed to determine this information. Good results can probably be achieved
+		using a modification of Sreedhar's $\phi$ congruence classes~\cite{sreedhar:99:sas}, which are already implemented
+		in KESO to remove unnecessary copies of variables in \gls{ssa} deconstruction, but are not used for this purpose
+		yet. Summarizing so far, extended escape analysis can increase memory usage due to the allocation of unused objects
+		and it can cause subpar performance when a lot of allocations are optimized because a lot of new arguments must be
+		passed to the optimized method.
+
 		\todonote{What problems and undesirable results could occur due to excessive usage of the optimization?}
