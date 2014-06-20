@@ -205,16 +205,17 @@
 			In order to address these shortcomings, an alternative to stack memory is necessary. A special region can be used
 			for all objects that can be automatically managed by the compiler. To provide a runtime advantage over the normal
 			heap, this region must be exempt from garbage collector sweeps. There should be one logical region for each
-			method, while empty regions (from methods without local objects) can be omitted. At the end of the method, its
-			associated region can be reclaimed as a whole. To retain the semantics of stack allocations and reclaim-on-return,
-			these logical regions should be organized in a stack. One possible implementation of these constraints are small
-			specialized heap regions associated with tasks – each task has its own local heap for these regions. The logical
-			regions are implemented in KESO similar to a traditional stack in C: Each task-local heap has a start address,
-			a size, and a fill marker. At method entry, the fill marker is saved and necessary objects are allocated by
-			increasing the fill marker. At method exit, the fill marker is reset to its previous value. Storing the fill
-			marker can be avoided if the amount of memory that will be allocated is known at compile time, since it can be
-			calculated using offsets from the current fill marker. This implementation does not require any synchronization
-			for allocations, which constitutes another advantage over a heap allocations.
+			method, while empty regions (i.e., those corresponding to methods without local objects) can be omitted. At the
+			end of the method, its associated region can be reclaimed as a whole. To retain the semantics of stack allocations
+			and reclaim-on-return, these logical regions should be organized in a stack. One possible implementation of these
+			constraints are small specialized heap regions associated with tasks – each task has its own local heap for these
+			regions. The logical regions are implemented similar to a stack in KESO: Each task-local heap has a fill marker
+			and a maximum fill level. At method entry, the fill marker is saved and necessary objects are allocated by moving
+			the fill marker. At method exit, the fill marker is reset to its previous value. Saving the fill marker in the
+			stack can be avoided if the amount of memory that will be allocated in a function and all alignment offcuts are
+			known at compile time, because this knowledge can be used to calculate the value at method entry. KESO's
+			implementation does not currently support this optimization. The approach does not require any synchronization for
+			allocations, which constitutes another advantage over a heap allocations.
 
 			Memory shortages can be detected by checking whether the next operation would move the fill marker above the
 			maximum level, preventing unforeseen behavior in case of stack overflows. Since object allocation on stack no
@@ -225,6 +226,20 @@
 			can be statically configured using results from manual worst-case memory usage analysis. Future work
 			(see~\cref{sec:conclusion:future-work}) could automate this process and determine the size of these local heaps
 			automatically.
+
+			It is worth noting that this optimization can only be applied to code that will always be called in a task
+			context. Class initializers and methods called from class initializers may not use a task-local heap because they
+			are called during startup and not in a specific task. Since tasks and their code are implementations of Java's
+			\emph{Runnable} interface, they may have fields and a constructor. While the constructor of these task objects
+			will also be called from outside any task context, task-local allocations can still be enabled by using the
+			task-local heap corresponding to the task that is being constructed.
+
+			Furthermore, KESO's implementation does currently not use static analysis to determine which tasks use a specific
+			function or allocation, but always uses a dynamic lookup of the current task descriptor to find the task-local
+			heap to be used for an allocation. Computing this information and replacing the lookup with the address of the
+			task descriptor would remove another pointer dereference operation. The analysis results could also be used for
+			error detection, because allocations of task-local objects in a task that does not have a task-local heap
+			configured could be detected at compile time.
 
 	\section{Potential Problems}
 		\label{sec:eea:probs}
