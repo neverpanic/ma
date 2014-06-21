@@ -215,35 +215,35 @@
 			stack can be avoided if the amount of memory that will be allocated in a function and all alignment offcuts are
 			known at compile time, because this knowledge can be used to calculate the value at method entry. KESO's
 			implementation does not currently support this optimization. The approach does not require any synchronization for
-			allocations, which constitutes another advantage over a heap allocations.
+			allocations, which constitutes another advantage over heap allocation.
 
 			Memory shortages can be detected by checking whether the next operation would move the fill marker above the
 			maximum level, preventing unforeseen behavior in case of stack overflows. Since object allocation on stack no
 			longer occurs with this method of region based memory management enabled, finding a tight upper bound for stack
 			usage is simplified. With precise and quick checks preventing task-local heap overflows in place, liveness
-			interference avoidance can be disabled, further reducing garbage collector load (likely exceeding amounts
-			proportional to the number affected allocations due to the use in loops). The necessary size of these local heaps
-			can be statically configured using results from manual worst-case memory usage analysis. Future work
-			(see~\cref{sec:conclusion:future-work}) could automate this process and determine the size of these local heaps
+			interference avoidance can be disabled, further reducing garbage collector load (possibly exceeding amounts
+			proportional to the number of affected allocations due to the use in loops). The necessary size of these local
+			heaps can be statically configured using results from manual worst-case memory usage analysis. Future work
+			(see~\cref{sec:conclusion:future-work}) could automate this process and determine the size of task-local heaps
 			automatically.
 
 			It is worth noting that this optimization can only be applied to code that will always be called in a task
 			context. Class initializers and methods called from class initializers may not use a task-local heap because they
 			are called during startup and not in a specific task. Since tasks and their code are implementations of Java's
-			\emph{Runnable} interface, they may have fields and a constructor. While the constructor of these task objects
-			will also be called from outside any task context, task-local allocations can still be enabled by using the
-			task-local heap corresponding to the task that is being constructed.
+			\emph{Runnable} interface in KESO, they have a constructor. While this constructor will also be called from
+			outside any task context, task-local allocations can still be enabled by using the task-local heap corresponding
+			to the task that is being constructed.
 
-			Furthermore, KESO's implementation does currently not use static analysis to determine which tasks use a specific
-			function or allocation, but always uses a dynamic lookup of the current task descriptor to find the task-local
-			heap to be used for an allocation. Computing this information and replacing the lookup with the address of the
-			task descriptor would remove another pointer dereference operation. The analysis results could also be used for
-			error detection, because allocations of task-local objects in a task that does not have a task-local heap
-			configured could be detected at compile time.
+			KESO's implementation uses static analysis to determine which tasks reach a specific method. If only a single task
+			uses an allocation site, the dynamic lookup of the task descriptor (which contains the task-local heap descriptor)
+			is replaced with a simple address-of operation that can be resolved to a memory address by the compiler and
+			linker. If multiple tasks use an allocation, a dynamic lookup is required and preserved. If an allocation is not
+			reachable from any task constructor or entry point, it must not use local heaps. KESO's compiler will detect this
+			situation and generate an error message to prevent runtime errors.
 
 	\section{Potential Problems}
 		\label{sec:eea:probs}
-		Applying the optimization to all candidates does not yield a better program in all cases. A number of situations
+		Applying scope extensions to all candidates does not yield a better program in all cases. A number of situations
 		could actually decrease the performance. Heuristics are necessary to avoid these transformations.
 
 		For example, suboptimal results are generated for methods that allocate a large number of objects that are eligible
@@ -255,20 +255,23 @@
 
 		First, since the control flows in the \emph{switch} statement of the optimized method are mutually exclusive, at
 		most a single object is allocated and returned in the example. After extended escape analysis, however, all objects
-		are allocated in the caller methods and references are passed for each one. Only one of the arguments is actually
-		used, though. In this case, the memory usage is thus actually increased by the optimization. This problem could be
+		are allocated in the caller methods and references are passed for each one, even though only one of the arguments is
+		actually used. In this case, the memory usage is thus actually increased by the optimization. This problem could be
 		avoided by consolidating memory areas (and the corresponding method parameters) that are used in mutually exclusive
 		control flows. Interference analysis is needed to determine this information. Good results can probably be achieved
 		using a modification of Sreedhar's $\phi$ congruence classes~\cite{sreedhar:99:sas}, which are already implemented
-		in KESO to remove unnecessary copies of variables in \gls{ssa} deconstruction, but are not used for this purpose
-		yet. Summarizing so far, extended escape analysis can increase memory usage due to the allocation of unused objects
-		and it can cause subpar performance when a large number of allocations is optimized because of the increased
-		overhead of the modified method invocation.
+		in KESO to remove unnecessary copies of variables in \gls{ssa} deconstruction, but are not used in scope extension
+		yet. Since consolidated memory areas might be used for objects of different types and sizes, garbage collectors
+		would have to support uninitialized chunks of memory as method arguments.
+
+		Summarizing so far, extended escape analysis can increase memory usage due to the allocation of unused objects and
+		it can cause subpar performance when a large number of allocations is optimized because of the increased overhead of
+		the modified method invocation.
 
 		The necessary modification of a method's call sites induces another set of potential problems. First and foremost,
 		optimizing a method with more than one call site will increase code size. Because the allocation instruction is
 		removed from the callee and replicated in all callers instead, the optimization is only neutral with respect to the
-		code size if a method only has a single caller.
+		code size if a method has exactly one caller.
 		\begin{alignat}{3}
 			C_\text{after}
 				&= C_\text{before} &&+ (r - a)   &&+ c \cdot (a + p) \label{eq:eea:probs:size}\\
@@ -276,7 +279,7 @@
 				&= C_\text{before} &&+ \Theta(1) &&+ \Theta(c) \label{eq:eea:probs:size-asym}
 		\end{alignat}
 		\Cref{eq:eea:probs:size} gives a relation between the code sizes before and after applying the optimization. In the
-		equation, $r$ denotes the code size of a \emph{aload} (read from variable) operation, $a$ is the size of an
+		equation, $r$ denotes the code size of an \emph{aload} (read from variable) operation, $a$ is the size of an
 		allocation, $p$ the size of passing an argument to a method and $c$ is the number of callees of the optimized
 		method. As~\cref{eq:eea:probs:size-asym} shows, the change in code size is dominated by the number of callers $c$.
 		Note that the number of objects allocated at runtime does not change even though the number of allocation
@@ -284,9 +287,10 @@
 		not touched by the transformation and hence stays the same.
 
 		The use of appropriate heuristics can prevent the potential problems with methods that have a lot of candidates for
-		the optimization: To avoid allocating memory that is not actually used later, interference analysis can be
-		implemented. The overhead of passing a lot of parameters can be countered by limiting the number of applications of
-		the optimization per method. Code size explosion can be prevented by avoiding the optimization for methods whose
-		number of callers is above a certain threshold. Techniques that do not require adjusting the calling context (see
-		also~\cref{sub:eea:analysis:virtual}) would completely remove the overhead of argument passing and prevent code size
-		from increasing.
+		the optimization. To avoid allocating memory that is not actually used later, interference analysis can be
+		implemented. For interference analysis and consolidation, garbage collectors must be adjusted to tolerate chunks of
+		uninitialized memory in method arguments. The overhead of passing a lot of parameters can be countered by limiting
+		the number of applications of the optimization per method. Code size explosion can be prevented by avoiding the
+		optimization for methods whose number of callers is above a certain threshold. Techniques that do not require
+		adjusting the calling context (see also~\cref{sub:eea:analysis:virtual}) would completely remove the overhead of
+		argument passing and prevent code size from increasing.
