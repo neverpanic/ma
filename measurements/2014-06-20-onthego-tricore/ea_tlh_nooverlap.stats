@@ -1,0 +1,7 @@
+43 of 146 (29.45%) allocation sites in this repository use task-local heaps
+13 allocations have overlapping liveness regions and are thus not considered for task-local heap allocation
+Remove the tasklocal_heaps_avoid_overlap flag to allocate those from task-local heaps anyway.
+Escape count distribution:
+         local: 56 (38.36%)
+        method: 37 (25.34%)
+        global: 53 (36.30%)

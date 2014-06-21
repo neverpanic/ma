@@ -1,0 +1,1 @@
+-nobuild -X:ssa:const_arg_prop:ssa_alias_prop:production:escape_analysis:scope_extension:tasklocal_heaps:tasklocal_alloc_stats

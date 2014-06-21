@@ -1,0 +1,6 @@
+info: extended the scope of 12 allocations.
+89 of 174 (51.15%) allocation sites in this repository use task-local heaps
+Escape count distribution:
+         local: 89 (51.15%)
+        method: 32 (18.39%)
+        global: 53 (30.46%)

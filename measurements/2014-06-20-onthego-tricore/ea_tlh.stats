@@ -1,0 +1,5 @@
+57 of 146 (39.04%) allocation sites in this repository use task-local heaps
+Escape count distribution:
+         local: 57 (39.04%)
+        method: 36 (24.66%)
+        global: 53 (36.30%)
