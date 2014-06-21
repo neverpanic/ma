@@ -549,7 +549,9 @@
 				inside the hash table class. This write operation causes all edges leading up to it to be marked important.
 				These edges are then propagated into all other invocations of \emph{equals}, causing further edges to be
 				considered important, nullifying the effect of the optimization for \emph{equals}. Other implementations and
-				functions might however still benefit from the improvement. If Java did have constant methods like \C++{} does,
+				functions might however still benefit from the improvement, and this is in fact the case for the
+				CD\textsubscript{j} benchmark used in~\cref{chapter:eval} where the data gathered in this modification causes an
+				allocation in a hotspot of the application to be optimized. If Java did have constant methods like \C++{} does,
 				\emph{equals} (and other methods that are marked constant and only have constant reference parameters) could be
 				automatically ignored in alias analysis.
 
@@ -622,13 +624,41 @@
 			portals, the KESO runtime environment creates deep copies of the objects in the target domain's heap. This ensures
 			that modifications of the object in the target domain do not affect the object in the source domain. Especially
 			for large trees of objects, this is very expensive. Results from escape and alias analysis can be used to
-			determine whether the copy can be omitted.
+			determine whether the copy can be omitted. This optimization pass is called \emph{superfluous portal copy
+			removal}.
 
 			Objects must be copied, if they, or any object reachable from one of their fields, \begin{inparaenum}[(a)]
 				\item live longer than the runtime of the methods handling the portal call on the destination side, i.e., if
 					they have a global escape state in the callee's \gls{cg}, or \label{item:sub:ea:apps:spca:escape}
 				\item are modified by the caller. \label{item:sub:ea:apps:spca:write}
-			\end{inparaenum}
+			\end{inparaenum} Whether~(\ref{item:sub:ea:apps:spca:escape}) applies can be determined using the connection graph
+			for the method handling the portal call. For each argument passed into a portal, the corresponding representation
+			on the callee side and its descendant nodes must not have a \emph{global} escape state. A simple worklist
+			algorithm suffices to check for globally escaping objects.
+
+			Avoiding the removal of copies that are required because they are modified according to
+			(\ref{item:sub:ea:apps:spca:write}) is more complicated. KESO's implementation starts by constructing a mapping
+			between the \gls{cg} representation of objects and the index of the portal call argument that initially brought
+			them into the portal handler's protection domain, if any. In a pass over all code reachable from the portal
+			handler, each write operation's operands are checked for the presence of this mapping. If no mapping exists, the
+			modified object was not passed through the portal but originated in the portal handler's domain. As such, it can
+			be freely modified. On the other hand, if a mapping exists, the currently processed instruction modifies an object
+			passed through a portal, i.e., the instruction is a witness stating that the parameter must be copied. Hence, the
+			argument, whose index is obtained from the mapping, is marked as \emph{must-copy}. If the code traversal
+			encounters method invocations that reference any of the objects in question, the mapping is extended and the
+			method's code is visited recursively. If no witnesses against the copy removal are found after the traversal is
+			complete, the copy operation is omitted.
+
+			KESO's portal mechanism supports replication and voting on the results as an approach to software-based fault
+			tolerance. By default, each object tree passed into a replicated portal is copied three times, once for each
+			replicated portal handler. Superfluous portal copy removal is used to avoid the third copy, if copying is not
+			necessary.
+
+			Note that KESO's implementation either completely copies an object and its dependents, or it does not copy any
+			part of the object. While it is possible to compute which descendants of an object are modified or escape the
+			callee and only copy these parts rather than the whole tree, the additional runtime support and runtime
+			representation of the partial copy information made this a refinement not considered worthwhile by the KESO
+			developers.
 
 		\subsection{Synchronization Optimizations}
 			\label{sub:ea:apps:sync}
