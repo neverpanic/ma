@@ -664,6 +664,59 @@
 
 		\subsection{Synchronization Optimizations}
 			\label{sub:ea:apps:sync}
+			The information computed in escape analysis and stored in the \glspl{cg} can be used to remove unneeded
+			synchronization operations. Objects that are only reachable from a single thread (or task in the KESO context) and
+			are used for synchronization will never have to wait for a lock. Blocking can only occur when a different thread
+			currently holds the lock of the object, but this is not possible if the object is not reachable from within more
+			than one thread. The \acrlong{cg} can be used to determine whether objects are local in a thread using the escape
+			state. An escape state of \emph{method} or lower implies that the object does not escape its thread of creation.
+
+			Since KESO does not currently synchronize at objects but uses OSEK's \emph{resource} abstraction for mutual
+			exclusion, this optimization's potential for performance improvement and code size reduction is likely to be low,
+			and it has not been implemented in KESO\@. However, other situations that require synchronization in KESO could
+			still benefit from the information. On target platforms with small word sizes, such as AVR microcontrollers, KESO
+			ensures multi-word data writes are not interrupted by disabling interrupts for the duration of the write
+			operation. If the written objects are task-local, this safety precaution is not necessary, because the modified
+			object cannot be read in an inconsistent state by other tasks. Once execution of the interrupted task resumes, the
+			write operation will resume and bring the multi-word data field into a consistent state.
 
 		\subsection{Cycle-Aware Reference Counting}
-			\label{sub:ea:apps:cycledescriptors}
+			\label{sub:ea:apps:cyclerefcnt}
+			Automatic reference counting as a method of automatic, compiler-assisted memory management that does not require
+			garbage collection has been gaining popularity lately. For example, Apple's Objective-C used in iPhones and on
+			OS~X uses compiler-generated reference counting. Unfortunately, it is a well-known limitation of reference
+			counting that it cannot automatically reclaim self-referential (i.e., cyclic) data structures. Cyclic data
+			structures either require the additional use of a garbage collector, or the use of special pointer types called
+			\emph{weak pointers} that do not increase the reference count of objects to break the cyclic structure.
+
+			Using the \acrlongpl{cg} constructed in alias and escape analysis, cyclic structures, their components and
+			corresponding allocation sites can be computed at compile time. Using this information, cycles could be
+			automatically managed by assigning a cycle descriptor to each object that is part of a cyclic structure and
+			keeping a reference count for the whole strcuture in the cycle descriptor. Once this reference count drops to zero
+			due to the release of an object that references the structure, the whole cycle could be reclaimed.
+
+			\Cref{fig:ea:apps:cyclerefcnt}~has a graphical representation of the approach. The structure consisting of the
+			three nodes \texttt{1}--\texttt{3} is identified as self-referential at compile time. A cycle descriptor is
+			allocated with the first object of the cycle, and each object's header references the cycle descriptor. Adding the
+			reference from \texttt{a} to \texttt{1} increases the cycle's reference count. When the cycle reference count
+			drops to zero, the complete cycle must be unreferenced and can be reclaimed.
+
+			\begin{figure}
+				\centering%
+				\input{examples/cycledescriptors.tex}%
+				\caption[Cycle-aware reference counting using cycle descriptors]{%
+					Cycle-aware reference counting using cycle descriptors. Blue {\color{cgblue}\blacksquare} vertices are part of
+					a cyclic data structure, green {\color{cggreen}\blacksquare} ones reference cyclic structures. Nodes
+					\texttt{1}–\texttt{3} share a cycle descriptor. Adding a reference to an object inside the cycle looks up its
+					cycle descriptor and increases the cycle's reference count.}%
+				\label{fig:ea:apps:cyclerefcnt}%
+			\end{figure}
+
+			Unfortunately the representation of the alias information in JINO makes it difficult to apply this idea, because
+			the \gls{cg} of a method is independent of its calling contexts (which is one of the significant contributions of
+			Choi et al.\ in~\cite{choi:03:toplas}). Cycles in connection graphs can be identified, but are useless when
+			containing phantom representations of nodes passed into a method from a caller. Because a single static
+			representation exists for multiple instances of cycles, the approach is unlikely to perform well: For example,
+			when used on KESO's current alias analysis results, all objects stored in a doubly linked list (which is a cyclic
+			data structure) can only ever be reclaimed on the whole, even if the lists are completely separate. The approach
+			might work reasonably well given a global \emph{points-to} graph, but this has not been tested in KESO.

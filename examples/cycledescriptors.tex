@@ -1,0 +1,26 @@
+% vim:noet:sts=2:ts=2:sw=2:smarttab:tw=120
+\def\hd{6em}%
+\def\vd{6ex}%
+\def\num{3}%
+\def\radius{2em}%
+%
+\begin{tikzpicture}[
+		font=\tiny\ttfamily,
+		relative,
+		node distance=4em]
+	\foreach \s in {1, 2, 3} {%
+		\node[callgraphnode]
+			(node-\s) at ({360/\num * (\s - 1)}:\radius) {\s};
+	}
+	\node[callgraphnodefinal, right of=node-1] (dep-1) {a};
+
+	\draw[calledge] (node-1) to [out=-20, in=200] (node-2);
+	\draw[calledge] (node-2) to [out=-20, in=200] (node-3);
+	\draw[calledge] (node-3) to [out=-20, in=200] (node-1);
+	\draw[calledge]  (dep-1) to                   (node-1);
+
+	\coordinate (refcntcoord) at ($(node-3)+(0, -1.8em)$);
+	\node[cycledescriptor, fit=(node-1) (node-2) (node-3) (refcntcoord)] (cdesc) {};
+	\draw ($(cdesc.south west)+(0, 1.2em)$) -- ($(cdesc.south east)+(0, 1.2em)$);
+	\node[anchor = center] at ($(cdesc.south)+(0, 0.65em)$) {refcnt: 1};
+\end{tikzpicture}%
