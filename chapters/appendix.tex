@@ -5,14 +5,96 @@
 
 	\section{The Author}
 		\label{sec:appendix:author}
-		Add the CV of the author.
+		Clemens Lang was born in August~1988 in Lichtenfels, Germany. He finished his Abitur at \emph{Clavius-Gymnasium
+		Bamberg} in May~2007 and interned as web developer at \emph{webDa~Medien~GmbH} from November~2011 to April~2008.
+		With an awakened interest in computer science, he worked for \emph{Upjers~GmbH~\&~Co.~KG} before enrolling in
+		computer science at the University of Erlangen-Nuremberg in October~2008.
 
+		During his studies, Clemens worked as teaching assistant, instructing undergraduate students in exercises on
+		algorithms and data structures in Java, and system programming for Linux in C starting May~2009 until October~2012.
+		In summer 2011, he participated in the Google Summer of Code program for the \emph{MacPorts Project}, a package
+		manager for open source software targeting OS~X systems. Clemens is an active MacPorts contributor and enthusiast to
+		this day.
+
+		After finishing his bachelor's thesis~\cite{lang:12} and earning the Bachelor of Science degree, he took a research
+		assistant position at the KESO project of the \emph{System Software Group at FAU}. Clemens' tasks included code
+		refactoring, build automation, setting up and administrating continuous integration, gathering and graphing of
+		statistics and implementing new optimizations. This thesis concludes the work on alias and escape analysis started
+		in his bachelor's thesis.
+
+		During his time at the University of Erlangen-Nuremberg, Clemens held office as one of two student representatives
+		in the computer science study commission for five semesters. Furthermore, he contributed to the foundation of
+		a fabrication laboratory at the university.
+
+		Current contact details can be found on his website \url{https://neverpanic.de}.
 
 	\clearpage
 	\section{Source Code}
 		\label{sec:appendix:source}
-		Explain how to download and use the source code.
+		KESO is distributed under the terms of the \emph{GNU Lesser General Public License}, version 3. The source code is
+		published in irregular snapshots available for download from \url{https://www4.cs.fau.de/Research/KESO/#download}.
+		The implementation described in this thesis is not available in any snapshots created earlier than 2014-06-23.
 
+		The website also has a documentation section at \url{https://www4.cs.fau.de/Research/KESO/doc/} that can be very
+		helpful in starting to work with KESO. The \enquote{First steps} and \enquote{Toolchain} articles are a must-read to
+		work with the analyses and optimizations outlined in this thesis.
+
+		\Cref{tbl:appendix:jinoflags} lists the flags for KESO's \emph{JINO} compiler related to this thesis that can be set
+		in the \texttt{\$JINOFLAGS} environment variable. Some of the source files that have been written or modified for
+		this thesis are given in~\cref{tbl:appendix:src}.
+
+		\begin{table}[p]
+			\centering
+			{\footnotesize
+				\begin{tabular}{p{.35\textwidth}p{.55\textwidth}}
+					\textbf{Flag Name}                          & \textbf{Meaning} \\ \hline\hline
+					{\scriptsize\texttt{escape\_analysis}} &
+						Enables escape analysis and, unless \texttt{tasklocal\_heaps} is set, stack allocation.\\
+					{\scriptsize\texttt{production}} &
+						Enable production mode, omits debug strings, reduces binary size. Used for measurements.\\
+					{\scriptsize\texttt{scope\_extension}} &
+						Enable scope extension. See~\cref{chapter:eea}.\\
+					{\scriptsize\texttt{stack\_alloc\_stats}} &
+						Print statistics about the number of stack allocations and objects' escape states.\\
+					{\scriptsize\texttt{superfluous\_portal\_copy\_removal}} &
+						Enable removal of unneeded copy operations in portal calls, see~\cref{sub:ea:apps:spca}.\\
+					{\scriptsize\texttt{tasklocal\_alloc\_stats}} &
+						Print statistics about the number of task-local heap allocations and object's escape states.\\
+					{\scriptsize\texttt{tasklocal\_heaps}} &
+						Use task-local heaps instead of stack allocation. Requires tasks to have the size of the task local heaps
+						configured using the \texttt{LocalHeapSize} property in the KESO configuration file.\\
+					{\scriptsize\texttt{tasklocal\_heaps\_avoid\_overlap}} &
+						Avoid allocating objects with overlapping liveness regions from task-local heap memory like it is the
+						default for stack allocation.
+				\end{tabular}
+			}
+			\caption{JINO configuration flags used by escape analysis and extended escape analysis and their meaning.}
+			\label{tbl:appendix:jinoflags}
+		\end{table}
+
+		\begin{table}[p]
+			\centering
+
+			{\footnotesize
+				\begin{tabular}{lp{.40\textwidth}}
+					\textbf{File} & \textbf{Contents} \\ \hline\hline
+					{\scriptsize\texttt{analysis/EscapeAnalysis.java}} &
+						Alias and escape analysis.\\
+					{\scriptsize\texttt{analysis/SuperfluousPortalCopyOptimizaton.java}} &
+						Removal of unneeded copy operations in portal calls, see~\cref{sub:ea:apps:spca}.\\
+					{\scriptsize\texttt{transform/ScopeExtension.java}} &
+						Scope extension, see~\cref{chapter:eea}.\\
+					{\scriptsize\texttt{transform/StackAllocation.java}} &
+						Stack allocation and liveness overlap analysis, see~\cref{sub:ea:basics:global}.\\
+					{\scriptsize\texttt{transform/TaskLocalHeapAllocation.java}} &
+						Task-local heap allocation, see~\cref{sub:eea:opt:ldh}.\\
+				\end{tabular}
+			}
+
+			\caption{Paths in the KESO source code that were written or modified for this thesis. All paths are relative to
+			\texttt{keso/src/builder/keso/compiler} in the KESO source tree.}
+			\label{tbl:appendix:src}
+		\end{table}
 
 	% don't use a full chapter, only a section
 	\let\chapter\section
@@ -21,7 +103,7 @@
 	\bibliographystyle{alpha}
 	\bibliography{bibtex/bib,bibtex/all/all}
 
-	\clearpage
+	\cleardoublepage
 	\listoffigures
 	\listoftables
 	\tcblistof{mls}{List of Source Code Listings}
