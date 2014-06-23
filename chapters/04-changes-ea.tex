@@ -128,11 +128,11 @@
 
 			\inputthesiscode{java}{lst:ea:basics:local:fs}{Example exposing the difference between flow-sensitive and
 				flow-insensitive analysis.}{%
-				Simple Java example exposing the different between flow-sensitive and flow-insensitive alias analysis.
-				Flow-sensitive analysis will correctly determine that \texttt{c} will point to the \texttt{I} object at the end
-				of the given method. Hence, escape analysis will determine that \texttt{H} and \texttt{J} do not escape
-				\emph{run}. Flow-insensitive analysis will list \texttt{H}, \texttt{I}, and \texttt{J} as possible pointees of
-				\texttt{c}. As a consequence, all of the three allocations will be assigned a \emph{global} escape state.
+				Simple Java example exposing the difference between flow-sensitive and flow-insensitive alias analysis.
+				Flow-sensitive analysis will correctly determine that \emph{c} will point to the \emph{I} object at the end of
+				the given method. Hence, escape analysis will determine that \emph{H} and \emph{J} do not escape \emph{run}.
+				Flow-insensitive analysis will list \emph{H}, \emph{I}, and \emph{J} as possible pointees of \emph{c}. As
+				a consequence, all of the three allocations will be assigned a \emph{global} escape state.
 
 				\flushright{}Adapted from~\cite[Sec.~12.4.3]{aho:07:compilers}.
 			}{examples/FlowSensitivity.java}
