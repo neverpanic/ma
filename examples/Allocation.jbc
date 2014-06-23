@@ -1,0 +1,4 @@
+new $1           # 1 is constant pool entry for the object type
+dup
+invokespecial $2 # 2 is constant pool entry for the object's constructor
+astore_0         # stores a reference to the object in a local variable
