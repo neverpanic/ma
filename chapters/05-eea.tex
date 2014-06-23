@@ -315,3 +315,45 @@
 		optimization for methods whose number of callers is above a certain threshold. Techniques that do not require
 		adjusting the calling context (see also~\cref{sub:eea:analysis:virtual}) would completely remove the overhead of
 		argument passing and prevent code size from increasing.
+
+		\inputthesiscode{java}{lst:eea:ex}{Scope extension example}{%
+			Example for scope extension. The \emph{StringBuilder} object allocated in \emph{buildString} is returned into the
+			\emph{run} method. Extending its scope will make it a local object in \emph{run} and subject to optimization.
+		}{examples/ScopeExtExample.java}
+
+	\section{Example}
+		\label{sec:eea:ex}
+		Consider the example given in~\cref{lst:eea:ex} and its Java bytecode representation in~\cref{lst:eea:ex:bc}. The
+		\emph{StringBuilder} object allocated in \emph{buildString} escapes its method of creation into \emph{run}.
+		Consequently, its \gls{cg} object node representation has a \emph{method} escape state due to its incoming edge from
+		the node representing \emph{buildString}'s return value. In the \acrlong{cg} for \emph{run}, the
+		\emph{StringBuilder} object is is represented as a phantom node. This phantom node has a \emph{local} escape state
+		because it does not escape \emph{run} and is not assigned to any global variables inside \emph{toString}.
+
+		\inputthesiscode{java}{lst:eea:ex:bc}{Bytecode for the scope extension example}{%
+			Excerpts from the Java bytecode compiled from the source given in~\cref{lst:eea:ex}, generated using
+			\texttt{javac~1.7.0\_55} from OpenJDK~7.
+		}{examples/ScopeExtExample.jbc}
+		\inputthesiscode{java}{lst:eea:ex:after}{Bytecode after scope extension}{%
+			Excerpts from the Java bytecode compiled from the source given in~\cref{lst:eea:ex} after KESO's scope extension.
+			The allocation has moved into \emph{run}, where it is \emph{local} and subject to optimizations such as stack
+			allocation.
+		}{examples/ScopeExtExampleFinished.jbc}
+
+		When scope extension encounters the allocation, it removes the \emph{new} instruction at bytecode position 0 in
+		\emph{buildString} and creates an equivalent instruction between bytecode positions 0 and
+		1 in \emph{run}. It also adds an additional parameter to the invocation of \emph{buildString}.
+		See~\cref{lst:eea:ex:after} for bytecode excerpts from both methods after scope extension. The allocation has been
+		moved into \emph{run}, where its representation in the \gls{cg} after another run of alias and escape analysis will
+		be \emph{local}. The previous \emph{new} instruction has been replaced with an operation that reads the new
+		parameter. \Gls{ssa} deconstruction removes the unnecessary copy that would occur if the \emph{new} operation was
+		naively replaced with the appropriate \emph{aload} instruction due to the sequence \emph{aload}, \emph{dup},
+		constructor invocation, \emph{astore}.
+
+		The remaining allocation can be turned into a stack allocation or use a task-local heap of the
+		\emph{ScopeExtExample} task. Garbage collection is no longer required for the object previously allocated in
+		\emph{buildString}. Note that the \emph{toString} method of the \emph{StringBuilder} class contains the allocation
+		of a \emph{String} object that escapes its method of creation into \emph{run}. This allocation would also be moved
+		into its calling method, despite being part of the standard library. This behavior is not limited to scope
+		extension, but is a general feature of KESO\@. All Java library code used in an application is analyzed and tailored
+		just like application code.

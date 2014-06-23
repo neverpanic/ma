@@ -1,0 +1,29 @@
+public class ScopeExtExample implements java.lang.Runnable {
+  // $\ldots$
+  public java.lang.StringBuilder buildString();
+     0: new           $2  // StringBuilder
+     3: dup
+     4: invokespecial $3  // StringBuilder."<init>":()V
+     7: astore_1
+     8: aload_1
+     9: ldc           $4  // Ground control to Major Tom\n
+    11: invokevirtual $5  // StringBuilder.append:(LString;)LStringBuilder;
+    14: pop
+    15: aload_1
+    16: ldc           $4  // Ground control to Major Tom\n
+    18: invokevirtual $5  // StringBuilder.append:(LString;)LStringBuilder;
+    21: pop
+        // $\ldots$
+    50: aload_1
+    51: areturn
+
+  public void run();
+     0: aload_0
+     1: invokevirtual $9   // buildString:()LStringBuilder;
+     4: astore_1
+     5: getstatic     $10  // System.out:Ljava/io/PrintStream;
+     8: aload_1
+     9: invokevirtual $11  // StringBuilder.toString:()LString;
+    12: invokevirtual $12  // java/io/PrintStream.println:(LString;)V
+    15: return
+}
