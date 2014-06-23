@@ -173,9 +173,9 @@
 			the sequence of Java bytecode instructions generated for each allocation.
 
 			\inputthesiscode{gas}{lst:eea:opt:scopeext:alloc}{Java bytecode of a complete object allocation}{%
-				Java bytecode of a complete object allocation. The \texttt{new} instruction allocates new memory. The following
-				\texttt{dup} operation is required because of the JVM's stack machine semantics. Before \texttt{astore\_0} stores
-				a reference to the allocated object in the variable number 0, \texttt{invokespecial} calls the object's
+				Java bytecode of a complete object allocation. The \emph{new} instruction allocates new memory. The following
+				\emph{dup} operation is required because of the JVM's stack machine semantics. Before \emph{astore\_0} stores
+				a reference to the allocated object in the variable number 0, \emph{invokespecial} calls the object's
 				constructor and passes a reference to the memory area as first parameter.
 			}{examples/Allocation.jbc}
 
