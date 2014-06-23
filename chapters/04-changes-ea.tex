@@ -23,20 +23,20 @@
 			representation is being computed. It is a key contribution of Choi et al.\ that this representation is independent
 			of the calling context. Since the origin of objects might not be known for some objects (e.g., if the have been
 			passed as argument), a special type of placeholder called \emph{phantom node} is used to represent these objects.
-			For pointer analysis as discussed in~\cref{sec:intro:prev} summarizing independent of the aliasing relationships
-			in the calling context is impossible~\cite[p.~886]{choi:03:toplas}. For each allocation, assignment, field or
-			array access, return statement, method invocation, and exception throw, the \gls{cg} is modified appropriately,
-			ensuring possible alias relations are represented accurately.
+			For pointer analysis as discussed in~\cref{sec:intro:prev}, summarizing a method's effect independent of aliasing
+			relationships in the calling context is impossible~\cite[p.~886]{choi:03:toplas}. For each allocation, assignment,
+			field or array access, return statement, method invocation, and exception throw, the \gls{cg} is modified
+			appropriately, ensuring possible alias relations are represented accurately.
 
 			Nodes in the \gls{cg} have different types: \emph{Object nodes} are added for each encountered allocation site.
 			Note that a single object node in the graph might represent multiple objects at runtime because an allocation
 			might be executed multiple times (e.g., if it is inside a loop). Local variables, static class members, and member
 			variables are represented using \emph{local reference nodes}, \emph{global reference nodes}, and \emph{field
-			reference nodes} respectively. Array indices are treated like fields and are thus also represented by field
+			reference nodes}, respectively. Array indices are treated like fields and are thus also represented by field
 			reference nodes. Each reference node can point to a series of object nodes and via so-called \emph{deferred edges}
 			to other reference nodes. Deferred edges are used to simplify updates of the \gls{cg} while processing
 			assignments. After intraprocedural analysis, these edges are removed by replacing all incoming deferred edges of
-			a reference node with edges to its successors. Different from the work of Choi et al.\ reference nodes with
+			a reference node with edges to its successors. Different from the work of Choi et al., reference nodes with
 			incoming deferred but no outgoing edges are preserved without change. \Cref{subsec:ea:improve:bug} gives the
 			rationale underlying this difference. Finally, object nodes can point to field reference nodes, denoting that the
 			pointed field exists inside the object where the edge originates.
@@ -44,12 +44,16 @@
 			Each node in the \gls{cg} has one of three \emph{escape states}, indicating whether a node will outlive its
 			allocating method or thread. Among these states, a total order exists. \emph{Local} is the lowest state. Nodes
 			marked local do not escape the analyzed method. Next after local is \emph{method}. Nodes that outlive a method by
-			being returned or assigned to an object passed as parameter are tagged method-escaping. The highest escape state
-			is \emph{global} and is given to objects and references that are assigned to static class members or thrown as
-			exceptions. While processing a method's instructions and building the \gls{cg}, operations that cause the escape
-			state of one of their operands to change trigger the appropriate change in the escape states recorded in the
-			connection graph. Allocations whose object node representation in the \gls{cg} is tagged \emph{local} are
-			considered for stack allocation.
+			being returned or assigned to an object passed as parameter are tagged method-escaping. Objects with an escape
+			state of \emph{method} are only reachable from the thread that allocated them. The highest escape state is
+			\emph{global} and is given to objects and references that are assigned to static class members (which exist once
+			in each domain to ensure the isolation of the protection realms) or thrown as exceptions. While processing
+			a method's instructions and building the \gls{cg}, operations that cause the escape state of one of their operands
+			to change trigger the appropriate change in the escape states recorded in the connection graph. Allocations whose
+			object node representation in the \gls{cg} is tagged \emph{local} are considered for stack allocation. Note that
+			not all of these objects are converted into stack allocations. Allocations inside loops that return objects whose
+			liveness periods overlap are not allocated on the stack, because that would require moving the stack pointer
+			during the runtime of a method, which KESO avoids deliberately.
 
 			\inputthesiscode{java}{lst:ea:basics:ll}{A simple generic linked list in Java}{%
 				A simple generic linked list implementation in Java. Note that this example is more complex than it would have
@@ -93,7 +97,7 @@
 					parameter or return value. Rectangles with green {\color{cggreen}\blacksquare} borders are \emph{object
 					nodes}. If the border is dashed, the node is a \emph{phantom node}. The escape state of nodes is encoded in
 					the fill color. White, orange {\color{cgorange}\blacksquare}, and red {\color{cgwarn}\blacksquare} represent
-					\emph{local}, \emph{method}, and \emph{global} respectively.}%
+					\emph{local}, \emph{method}, and \emph{global}, respectively.}%
 				\label{fig:ea:basics:ll}%
 			\end{figure}
 
@@ -115,21 +119,44 @@
 			two encodes this situation (note that the deferred edge is not visible in the graph, because it has been
 			compressed into an edge from \emph{$\langle$init$\rangle$(this)} to \emph{obj1}). Finally, processing the
 			invocation of \emph{insert} creates a similar set of nodes \emph{insert(list)} and \emph{insert(elem)} pointing to
-			the \emph{this} reference and the \emph{ListElement} object respectively.
+			the \emph{this} reference and the \emph{ListElement} object, respectively.
 
 			The graph for \emph{insert} is given in~\cref{subfig:ea:basics:ll:insert}. The two parameters are again
 			represented by a reference node and a phantom node each. The first few statements create the \emph{next} field
 			node below \emph{obj1} and add a deferred edge to \emph{head}. This edge is not shown in the graph, because the
-			next statement in the code changes the value of \emph{head}. Depending on whether the analysis is flow-sensitive
-			or not, the outcome will differ. The \gls{cg} given uses the flow-sensitive variant, which causes all incoming
-			deferred edges of a reference node to be compressed and all outgoing edges to be removed before pointing to the
-			new target. Because compression of deferred edges requires at least one edge outgoing from the target of the
-			deferred edge, but \emph{head} did not have any at this point in the analysis, a phantom node representing the
-			previous pointees of \emph{head} was created. It is denoted \emph{oldhead} in~\cref{subfig:ea:basics:ll:insert}.
-			Using flow-insensitive analysis, the deferred edge from \emph{next} to \emph{head} would have been preserved and
-			later compressed into an edge from \emph{next} to \emph{obj1}. Finally, the edge from \emph{head} to \emph{obj1}
-			is added to represent the effect of the statement in line~\ref{line:ea:basics:ll:headassign}
-			in~\cref{lst:ea:basics:ll}, completing intraprocedural analysis.
+			next statement in the code changes the value of \emph{head}.
+
+			\inputthesiscode{java}{lst:ea:basics:local:fs}{Example exposing the difference between flow-sensitive and
+				flow-insensitive analysis.}{%
+				Simple Java example exposing the different between flow-sensitive and flow-insensitive alias analysis.
+				Flow-sensitive analysis will correctly determine that \texttt{c} will point to the \texttt{I} object at the end
+				of the given method. Hence, escape analysis will determine that \texttt{H} and \texttt{J} do not escape
+				\emph{run}. Flow-insensitive analysis will list \texttt{H}, \texttt{I}, and \texttt{J} as possible pointees of
+				\texttt{c}. As a consequence, all of the three allocations will be assigned a \emph{global} escape state.
+
+				\flushright{}Adapted from~\cite[Sec.~12.4.3]{aho:07:compilers}.
+			}{examples/FlowSensitivity.java}
+
+			The next step of processing differs depending on whether the analysis is flow-sensitive or flow-insensitive. Since
+			KESO's alias analysis was modified to be flow-sensitive for this thesis (see~\cref{subsec:ea:improve:fs}), the
+			discussion of the current example will use the flow-sensitive approach. The difference between the approaches is
+			best explained using the simple example given in~\cref{lst:ea:basics:local:fs}. Flow-sensitive analysis follows
+			the control flow and computes the possible pointees of each variable after each statements. In the given example,
+			the statement \texttt{a = b} removes the previous pointees of \emph{a} (i.e., the \emph{H} object) from the list
+			of possible pointees of \emph{a}. Flow-insensitive analysis on the other hand ignores the control flow. This means
+			that statements are treated as if they could be executed in random order. Flow-sensitive analysis thus generates
+			more accurate information at the cost of building a representation that is specific for a point in the control
+			flow graph. The results generated by flow-insensitive analysis are valid for the entire method.
+
+			Returning to the current example, the flow-sensitive variant is used, which causes all incoming deferred edges of
+			a reference node to be compressed and all outgoing edges to be removed before pointing to the new target.
+			Compressing deferred edges requires the target of the deferred edge to have at least one pointee. Since
+			\emph{head} does not have any pointees at this point in the analysis, a phantom node representing the possible
+			previous pointees of \emph{head} is created. This node is denoted \emph{oldhead}
+			in~\cref{subfig:ea:basics:ll:insert}. Using flow-insensitive analysis, the deferred edge from \emph{next} to
+			\emph{head} would have been preserved and later compressed into an edge from \emph{next} to \emph{obj1}. Finally,
+			the edge from \emph{head} to \emph{obj1} is added to represent the effect of the statement in
+			line~\ref{line:ea:basics:ll:headassign} in~\cref{lst:ea:basics:ll}, completing intraprocedural analysis.
 
 		\subsection{Interprocedural Analysis}
 			\label{sub:ea:basics:global}
@@ -260,16 +287,17 @@
 			\end{algorithm}
 
 			For the example given in~\cref{lst:ea:basics:ll} and~\cref{subfig:ea:basics:ll:addElement}, this means that the
-			field reference nodes \emph{head} and \emph{next} are added below \emph{obj0} and \emph{ListElement} respectively.
-			Furthermore, a phantom node is added to represent \emph{oldhead}. Note that the \emph{head} reference node does
-			not yet point to the list element object node. The next step of the algorithm called \emph{updateEdges} adds the
-			missing connection. It takes the same parameters as \emph{updateNodes} from~\cref{algo:ea:basics:updateNodes} and
-			adds all missing edges. See~\cref{algo:ea:basics:updateEdges} for a pseudocode listing of the procedure. It
-			identifies pairs of corresponding object nodes using the \emph{mapsToObj} relation computed in \emph{updateNodes}.
-			For each possible pair it follows outgoing edges to any field reference nodes in the callee graph and finds the
-			corresponding field reference node in the caller's \gls{cg}. Next, the newly found correspondence pair is added to
-			the work list and all outgoing edges to object nodes in the callee graph are added to the caller graph. Note that
-			code to prevent endless loops in cylic data structures has been left out for simplicity, but can be easily added.
+			field reference nodes \emph{head} and \emph{next} are added below \emph{obj0} and \emph{ListElement},
+			respectively. Furthermore, a phantom node is added to represent \emph{oldhead}. Note that the \emph{head}
+			reference node does not yet point to the list element object node. The next step of the algorithm called
+			\emph{updateEdges} adds the missing connection. It takes the same parameters as \emph{updateNodes}
+			from~\cref{algo:ea:basics:updateNodes} and adds all missing edges. See~\cref{algo:ea:basics:updateEdges} for
+			a pseudocode listing of the procedure. It identifies pairs of corresponding object nodes using the
+			\emph{mapsToObj} relation computed in \emph{updateNodes}. For each possible pair it follows outgoing edges to any
+			field reference nodes in the callee graph and finds the corresponding field reference node in the caller's
+			\gls{cg}. Next, the newly found correspondence pair is added to the work list and all outgoing edges to object
+			nodes in the callee graph are added to the caller graph. Note that code to prevent endless loops in cylic data
+			structures has been left out for simplicity, but can be easily added.
 
 			\begin{algorithm}
 				\SetKwData{workList}{workList}
@@ -551,7 +579,7 @@
 				inside the hash table class. This write operation causes all edges leading up to it to be marked important.
 				These edges are then propagated into all other invocations of \emph{equals}, causing further edges to be
 				considered important, nullifying the effect of the optimization for \emph{equals}. Other implementations and
-				functions might however still benefit from the improvement, and this is in fact the case for the
+				functions might, however, still benefit from the improvement, and this is in fact the case for the
 				CD\textsubscript{j} benchmark used in~\cref{chapter:eval} where the data gathered in this modification causes an
 				allocation in a hotspot of the application to be optimized. If Java did have constant methods like \C++{} does,
 				\emph{equals} (and other methods that are marked constant and only have constant reference parameters) could be
@@ -578,7 +606,7 @@
 				\end{figure}
 
 				KESO's implementation of interprocedural analysis only re-runs the \emph{updateNodes} and \emph{updateEdges}
-				steps if a callee's \gls{cg} changed since the last iteration, avoiding unnecessary overhead. Unfortunately the
+				steps if a callee's \gls{cg} changed since the last iteration, avoiding unnecessary overhead. Unfortunately, the
 				savings from this optimizations are marginal.
 
 			\subsubsection{Connection Graph Compression}
