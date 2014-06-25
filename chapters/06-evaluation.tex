@@ -2,20 +2,95 @@
 
 \chapter{Evaluation}
 	\label{chapter:eval}
-	Give a brief overview of our test setup, which boards we use to test and which benchmarks we use.
+	In order to determine whether the optimizations implemented in this thesis actually improve the runtime behavior of
+	compiled programs, its results should be compared to systems generated without the optimizations. A series of criteria
+	can be evaluated to find differences between different runs. Some of them can be determined without running the
+	generated program, such as code size and the number of optimized allocations. Others require measurements at runtime,
+	such as heap memory usage or execution speed.
+
+	Any measured application should be as close as possible to real-world usage to yield representative results. On the
+	other hand, any benchmark should produce output that can be easily processed, compared an graphed. Rather than using
+	a series of micro-benchmarks targeting a certain aspect of the system, previous work on KESO used an open source
+	real-time Java benchmark family for embedded systems~\cite{erhardt:11:diplom, erhardt:11:jtres, stilkerich:11:cpe}.
+	This benchmark is called CD\textsubscript{x}, its Java variant CD\textsubscript{j}, and was published by Kalibera et
+	al.\ in 2009~\cite{kalibera:09:jtres}. It consists of two main components:
+	\begin{inparaenum}[(a)]
+		\item an \emph{air traffic simulator} that generates a stream of radar frames and passes them to
+		\item the \emph{collision detector}, which scans the radar frames for potential aircraft collisions.
+	\end{inparaenum}
+
+	The KESO project uses two variants of this benchmark depending on the size restrictions of the target platform. The
+	\emph{on-the-go} variant generates the radar frames in the collision detector task and avoids the overhead of passing
+	the frames between the two components. At the cost of less realism, this modification significantly shrinks the size
+	of the generated binary and reduces the memory requirements. Due to the lower system requirements, this version of the
+	benchmark fits and runs on an Infineon TriCore TC1796 board used for testing.
+
+	The second, larger version of the CD\textsubscript{j} benchmark used to test the KESO compiler and its optimization
+	result is called the \emph{simulated} variant. This type runs the air traffic simulator in a separate protection
+	domain and passes the generated frames to the collision detector using a queue. When frames are generated faster than
+	they can be processed (i.e., when deadlines are not met), frames are dropped. Due to heap size requirements and code
+	size, this variant of the benchmark does not fit on the TriCore board. Since runtime measurements in a simulated OSEK
+	or AUTOSAR OS environment are heavily affected by jitter, time-sensitive measurements are only conducted using the
+	\emph{on-the-go} variant.
+
+	The test setups consisting of relevant compiler and software versions and system specifications are given
+	in~\cref{tbl:eval:setup}. Measurements of the \emph{on-the-go} benchmark always use the TriCore system, others are
+	built and run on Linux using an OSEK emulation layer. These emulation layers are either JOSEK~\cite{josek:10} or
+	Trampoline~\cite{bechennec:06:etfa}.
+
+	\begin{table}
+		\centering
+		\begin{tabular}{rll}
+				& \textbf{TriCore system} & \textbf{Linux system}\\\hline\hline
+			\multirow{1}{*}{\textbf{CPU}} &
+				  Infineon~TriCore~TC1796 & Intel~Core~i5~650, 3.20~GHz\\
+				& 150~MHz~CPU, 75~MHz~Bus & \\
+			\multirow{1}{*}{\textbf{Memory}} &
+				  2~MiB~internal Flash & 7817~MiB~DDR3~PC1333\\
+				& 1~MiB~external~SRAM & \\
+			\textbf{OS} &
+				CiAO~\textttt{4c19874} & Ubuntu~13.10, Linux~3.11\\
+			\textbf{Compiler} &
+				TriCore~GCC~4.5.2, Binutils~2.20 & GCC~4.8.1, Binutils~2.23.52\\
+			\textbf{KESO} &
+				\multicolumn{2}{c}{r4072}
+		\end{tabular}
+
+		\caption{Hard- and software configurations for the benchmarks}
+		\label{tbl:eval:setup}
+	\end{table}
 
 	\section{Static Results}
 		\label{sec:eval:static}
-		Build a few test configurations and compare the number of stack allocations in the code. Possibly compare the code
-		side and show the improvement compared to the results from my bachelor's thesis. Do this with more than one example,
-		and probably also with Trampoline on x86.
+		The number and percentage share of optimized allocations can be used as a compile time criterion for the quality of
+		KESO's optimizations. The higher the number and share of automatically managed objects, the lower the heap load,
+		which possibly reduces garbage collector usage. \Cref{fig:eval:static:numallocs} lists the number of stack
+		allocations, task-local heap allocations and the total number of allocations in the CD\textsubscript{j}
+		\emph{on-the-go} benchmark. For the number of stack allocations without using scope extension, the share of
+		optimizations fell from 34.4~\% before this thesis to 30.1~\%. This drop is caused by the removal of 43 allocations
+		likely due to improved removal of unused fields, which has been added to KESO between these measurements. Using
+		task-local heaps instead of stack allocation increases the percentage of optimized allocation sites to 39.0~\%. The
+		13 additional optimizations are local objects with overlapping liveness regions that are left unmodified in stack
+		allocation to avoid unbounded growth of stack usage. Enabling scope extension in the same measurement adds another
+		28 allocations created by copying allocation bytecode instructions into multiple callers. This will likely also
+		increase code size (see also~\cref{sec:eea:probs}). The number of stack allocations increases by 32 from 44
+		(30.1~\%) to 76 (43.7~\%). Note that these are statically determined numbers, i.e., the actual number of objects
+		allocated at runtime does not change despite the increase in allocation instructions. The number of allocations not
+		converted into stack allocations due to overlapping liveness regions of the allocated objects stays the same.
+		Consequently, the number of allocations using task-local heaps stays at the same margin to stack-allocated ones in
+		comparison to the measurement without scope extension.
+
+		\begin{figure}
+			\centering
+			\input{measurements/2014-06-21-onthego-tricore/numallocs.tex}
+
+			\caption{%
+				Number of stack and task-local allocations in the \emph{on-the-go} CD\textsubscript{j} before this thesis, after
+				this thesis with and without scope extension.}
+			\label{fig:eval:static:numallocs}
+		\end{figure}
 
 	\section{Runtime Results}
 		\label{sec:eval:runtime}
-		This is awesome: we are saving up to 50\ \% of memory in CDj at runtime. That's cool! Also, the runtime is
-		significantly reduced. Consider measuring GC runtimes and load.
-
-	\section{Improvements by Scope Extension}
-		\label{sec:eval:scopeext}
-		Show that scope extension has improved the results by a factor of a gazillion. Or something. Wishful thinking,
-		I know :(.
+		\todonote{This is awesome: we are saving up to 50\ \% of memory in CDj at runtime. That's cool! Also, the runtime is
+		significantly reduced. Consider measuring GC runtimes and load.}
