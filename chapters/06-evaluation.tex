@@ -127,7 +127,7 @@
 
 		For the \emph{simulated} CD\textsubscript{j} benchmark in~\cref{subfig:eval:static:size:simulated}, code size
 		behaves similar when enabling escape analysis, both with the stack and task-local heap allocation backends. Again,
-		task-local heaps need a little more space, but the growth is smalled in comparison with the code size ($\le$ 1.2~\%
+		task-local heaps need a little more space, but the growth is small in comparison with the code size ($\le$ 1.2~\%
 		relative to the variant with stack allocation). For the simulated benchmark, enabling scope extension significantly
 		increases code size by up to 20.3~KiB or 9.3~\%. Most of the additional allocations are created by a small number of
 		methods (e.g., a generated parser) that, however, allocate a large number of escaping objects. Limiting the number
@@ -157,22 +157,73 @@
 
 	\section{Runtime Results}
 		\label{sec:eval:runtime}
-		While static analysis shows that a significant share of allocations are optimized, it is not immediately obvious
-		that the automatic memory management used reduces the benchmark's runtime. While reducing heap memory usage and the
-		amount of memory managed by a garbage collector itself is a worthwhile end, using a garbage collector might still be
-		the method of choice if the optimization would add a large runtime overhead. Runtime results will also determine
-		whether the optimized allocations are located in heavily used parts of the application, or outside the standard
-		control flow paths (e.g., in error handling code).
+		While static analysis shows a significant share of allocations is optimized, it is not immediately obvious that the
+		use of automatic memory management reduces the benchmark's runtime. While a reduction in execution time is not
+		imperative because reducing heap memory usage (and with it garbage collector load) is a worthwhile end itself,
+		a large runtime overhead of other automatic memory management method might still make garbage collection the method
+		of choice in all but corner cases. Measurements at runtime will also help gauge whether the optimized instructions
+		are located in much frequented code paths or outside the standard control flow (e.g., in error handling code).
+		Hence, runtime data should reveal whether the optimizations improve application behavior and are useful.
+
+		All measurements in this section were conducted on the TriCore system setup as described in~\cref{tbl:eval:setup}.
+		The data always shows the average of five runs. The standard deviation of the measurement values was always lower
+		than 0.06~\% for time measurements and equal to 0 for heap memory usage. For this reason, none of the plots use
+		error bars – they would simply not be visible.
 
 		\begin{figure}
 			\centering
 			\input{measurements/2014-06-21-onthego-tricore/relmemory.tex}
 
-			\caption[Relative memory usage of \emph{on-the-go} CD\textsubscript{j}]{%
-				Number of stack and task-local allocations in the \emph{simulated} CD\textsubscript{j} before this thesis and
-				after this thesis with and without scope extension.}
-			\label{fig:eval:static:numallocs:simulated}
+			\caption[Relative heap memory usage of \emph{on-the-go} CD\textsubscript{j} with escape analysis]{%
+				Heap memory usage of the \emph{on-the-go} variant of the CD\textsubscript{j} benchmark with escape analysis and stack
+				allocation (EA+stack) and escape analysis and task-local heaps (EA+TLH) relative to a run without escape
+				analysis-based optimizations (plain).}
+			\label{fig:eval:rt:relmem:ea}
 		\end{figure}
 
-		\todonote{This is awesome: we are saving up to 50\ \% of memory in CDj at runtime. That's cool! Also, the runtime is
-		significantly reduced. Consider measuring GC runtimes and load.}
+		\Cref{fig:eval:rt:relmem:ea} graphs the relative heap memory usage of the collision detector CD\textsubscript{j}
+		after escape analysis. The median heap usage for escape analysis with the stack allocation optimization backend is
+		only 50.7~\% relative to a run without optimizations based on escape analysis. When using task-local heaps instead
+		of stack allocation, the median heap usage drops to 50.1~\% due to the added optimizations of allocations that
+		create objects with overlapping liveness regions. Other than expected, the impact of those allocations is small,
+		even though they can be executed multiple times because they are in loops.
+
+		\begin{figure}
+			\centering
+			\input{measurements/2014-06-21-onthego-tricore/relmemory-eea.tex}
+
+			\caption[Relative heap memory usage of \emph{on-the-go} CD\textsubscript{j} with scope extension]{%
+				Heap memory usage of the \emph{on-the-go} variant of the CD\textsubscript{j} benchmark with scope extension and
+				stack allocation (SE+stack) and scope extension with task-local heaps (SE+TLH) relative to a run without escape
+				analysis-based optimizations (plain). For comparison, heap memory usage for escape analysis and stack allocation
+				(EA+stack) as in~\cref{fig:eval:rt:relmem:ea} is also shown.}
+			\label{fig:eval:rt:relmem:se}
+		\end{figure}
+
+		When enabling scope extension, the fluctuations in heap memory usage present in the optimized variants given
+		in~\cref{fig:eval:rt:relmem:ea} are smoothed: In~\cref{fig:eval:rt:relmem:se}, the points measured for scope
+		extension have considerably less variation than those of a run with escape analysis only. The median heap usage is
+		reduced to 50.4~\% and its standard deviation is reduced from 1.51 percentage points for escape analysis with stack
+		allocation to 0.94 percentage points. When using task-local heaps, the numbers are again similar to stack allocation
+		but a little lower: The median heap memory usage is 49.8~\%, the standard deviation decreases from 1.41 to 0.76
+		percentage points. The lower variance is probably caused by invocations that only occur in some of the collision
+		detector iterations. The invoked methods allocate objects in heap memory. These allocations seem to be candidates
+		for scope extension and are hence no longer allocated in the heap when the optimization is enabled.
+
+		\begin{figure}
+			\centering
+			\input{measurements/2014-06-21-onthego-tricore/reltime.tex}
+
+			\caption[Relative runtime of \emph{on-the-go} CD\textsubscript{j} with escape analysis]{%
+				FooBarbAz}
+			\label{fig:eval:rt:time:ea}
+		\end{figure}
+
+		\begin{figure}
+			\centering
+			\input{measurements/2014-06-21-onthego-tricore/reltime-eea.tex}
+
+			\caption[Relative runtime of \emph{on-the-go} CD\textsubscript{j} with scope extension]{%
+				FooBarbAz}
+			\label{fig:eval:rt:time:se}
+		\end{figure}

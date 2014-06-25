@@ -22,8 +22,10 @@
 			% on the go
 			\addplot+[sharp plot] table[x expr={\coordindex + 1}, y index=0, header=false]{measurements/2014-06-21-onthego-tricore/relmemory-ea_stack.txt};
 			\addlegendentry{\;EA+stack}
-			\addplot+[sharp plot] table[x expr={\coordindex + 1}, y index=0, header=false]{measurements/2014-06-21-onthego-tricore/relmemory-ea_tlh.txt};
-			\addlegendentry{\;EA+TLH}
+			\addplot+[sharp plot] table[x expr={\coordindex + 1}, y index=0, header=false]{measurements/2014-06-21-onthego-tricore/relmemory-eea_stack.txt};
+			\addlegendentry{\;SE+stack}
+			\addplot+[sharp plot] table[x expr={\coordindex + 1}, y index=0, header=false]{measurements/2014-06-21-onthego-tricore/relmemory-eea_tlh.txt};
+			\addlegendentry{\;SE+TLH}
 		\end{axis}
 	\end{tikzpicture}
 \end{document}
