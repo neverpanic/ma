@@ -1,0 +1,10 @@
+info: extended the scope of 224 allocations.
+========== Executing pass: Liveness analysis ===================================
+========== Executing pass: Flow analysis =======================================
+========== Executing pass: Escape analysis =====================================
+========== Executing pass: Task-local allocation transformation ================
+191 of 873 (21.88%) allocation sites in this repository use task-local heaps
+Escape count distribution:
+	 local: 191 (21.88%)
+	method: 342 (39.18%)
+	global: 340 (38.95%)

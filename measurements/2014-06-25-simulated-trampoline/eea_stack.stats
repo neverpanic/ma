@@ -1,0 +1,7 @@
+info: extended the scope of 224 allocations.
+172 of 873 (19.70%) allocations in this repository are eligible for stack allocation
+19 allocations have overlapping liveness regions and are thus not considered for stack allocation
+Escape count distribution:
+	 local: 191 (21.88%)
+	method: 342 (39.18%)
+	global: 340 (38.95%)
