@@ -85,9 +85,29 @@
 			\input{measurements/2014-06-21-onthego-tricore/numallocs.tex}
 
 			\caption{%
-				Number of stack and task-local allocations in the \emph{on-the-go} CD\textsubscript{j} before this thesis, after
-				this thesis with and without scope extension.}
+				Number of stack and task-local allocations in the \emph{on-the-go} CD\textsubscript{j} before this thesis and
+				after this thesis with and without scope extension.}
 			\label{fig:eval:static:numallocs}
+		\end{figure}
+
+		Results for the \emph{simulated} variant (given in~\cref{fig:eval:static:numallocs:simulated}) show similar behavior
+		albeit with lower percentages of optimized statements. These are caused by the much lower share of \emph{local}
+		objects relative to the total amount of allocations. Between the results from before this thesis and those without
+		scope extension, the number of total allocations was reduced again, likely due to removal of unused fields. The
+		percentage of allocations that use stack memory stayed roughly equal (18.1~\% vs.~18.0~\%). Scope extension
+		increases the total number of allocation sites by 74 to 109.3~\%. This should also result in a significant increase
+		of the code size. Another 28 allocations are eligible for stack allocation after scope extension. Again, number of
+		objects with overlapping liveness regions hardly changes between the measurement with and without scope extension
+		– in the \emph{simulated} variant, it increases by 1 from 20.3~\% to 21.9~\% of all allocations.
+
+		\begin{figure}
+			\centering
+			\input{measurements/2014-06-25-simulated-trampoline/numallocs.tex}
+
+			\caption{%
+				Number of stack and task-local allocations in the \emph{simulated} CD\textsubscript{j} before this thesis and
+				after this thesis with and without scope extension.}
+			\label{fig:eval:static:numallocs:simulated}
 		\end{figure}
 
 	\section{Runtime Results}
