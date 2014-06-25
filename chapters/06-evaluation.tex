@@ -49,7 +49,7 @@
 				  2~MiB~internal Flash & 7817~MiB~DDR3~PC1333\\
 				& 1~MiB~external~SRAM & \\
 			\textbf{OS} &
-				CiAO~\textttt{4c19874} & Ubuntu~13.10, Linux~3.11\\
+				CiAO~\texttt{4c19874} & Ubuntu~13.10, Linux~3.11\\
 			\textbf{Compiler} &
 				TriCore~GCC~4.5.2, Binutils~2.20 & GCC~4.8.1, Binutils~2.23.52\\
 			\textbf{KESO} &
@@ -73,18 +73,20 @@
 		13 additional optimizations are local objects with overlapping liveness regions that are left unmodified in stack
 		allocation to avoid unbounded growth of stack usage. Enabling scope extension in the same measurement adds another
 		28 allocations created by copying allocation bytecode instructions into multiple callers. This will likely also
-		increase code size (see also~\cref{sec:eea:probs}). The number of stack allocations increases by 32 from 44
-		(30.1~\%) to 76 (43.7~\%). Note that these are statically determined numbers, i.e., the actual number of objects
-		allocated at runtime does not change despite the increase in allocation instructions. The number of allocations not
-		converted into stack allocations due to overlapping liveness regions of the allocated objects stays the same.
-		Consequently, the number of allocations using task-local heaps stays at the same margin to stack-allocated ones in
-		comparison to the measurement without scope extension.
+		increase code size (see also~\cref{sec:eea:probs}). The 28 additional allocations are created instead of 12
+		allocation sites that are eligible for scope extension. Each of the dozen allocations is thus propagated into
+		3.33\footnote{$\dfrac{174 - (146 - 12)}{12}$} callers on average. The number of stack allocations increases by 32
+		from 44 (30.1~\%) to 76 (43.7~\%). Note that these are statically determined numbers, i.e., the actual number of
+		objects allocated at runtime does not change despite the increase in allocation instructions. The number of
+		allocations not converted into stack allocations due to overlapping liveness regions of the allocated objects stays
+		the same. Consequently, the number of allocations using task-local heaps stays at the same margin to stack-allocated
+		ones in comparison to the measurement without scope extension.
 
 		\begin{figure}
 			\centering
 			\input{measurements/2014-06-21-onthego-tricore/numallocs.tex}
 
-			\caption{%
+			\caption[Number of stack and task-local allocations in \emph{on-the-go} CD\textsubscript{j}]{%
 				Number of stack and task-local allocations in the \emph{on-the-go} CD\textsubscript{j} before this thesis and
 				after this thesis with and without scope extension.}
 			\label{fig:eval:static:numallocs}
@@ -105,13 +107,72 @@
 			\centering
 			\input{measurements/2014-06-25-simulated-trampoline/numallocs.tex}
 
-			\caption{%
+			\caption[Number of stack and task-local allocations in \emph{simulated} CD\textsubscript{j}]{%
 				Number of stack and task-local allocations in the \emph{simulated} CD\textsubscript{j} before this thesis and
 				after this thesis with and without scope extension.}
 			\label{fig:eval:static:numallocs:simulated}
 		\end{figure}
 
+		As expected, stack allocation and task-local heap allocation increase the size of the code. In the \emph{on-the-go}
+		variant shown in~\cref{subfig:eval:static:size:onthego} increases once escape analysis is enabled. This increase is
+		caused by inlining the code that initializes an object's header data. Previously, this initialization was only
+		present in a single place (the allocation function) in the binary. Because stack allocations have been added in
+		multiple places, this initialization code gets replicated and increases the binary size. Additional runtime code
+		further increases the code size. New runtime functions and the explicit creation and destruction of regions at entry
+		and exit points of methods increase the text segment size when task-local heaps are used. As predicted
+		in~\cref{sec:eea:probs} scope extension further increases the size of the code unless methods with candidates for
+		the optimization only have a single caller. Since the \emph{on-the-go} variant extends variable scope into 3.33
+		callers on average, growth of the text segment is expected. Overall, the text segment's size increases only
+		moderately with a maximum of 104.0~\% compared to the smallest selection.
+
+		For the \emph{simulated} CD\textsubscript{j} benchmark in~\cref{subfig:eval:static:size:simulated}, code size
+		behaves similar when enabling escape analysis, both with the stack and task-local heap allocation backends. Again,
+		task-local heaps need a little more space, but the growth is smalled in comparison with the code size ($\le$ 1.2~\%
+		relative to the variant with stack allocation). For the simulated benchmark, enabling scope extension significantly
+		increases code size by up to 20.3~KiB or 9.3~\%. Most of the additional allocations are created by a small number of
+		methods (e.g., a generated parser) that, however, allocate a large number of escaping objects. Limiting the number
+		of optimizations per method as suggested in~\cref{sec:eea:probs} or other heuristic limits could stem this problem.
+
+		\begin{figure}
+			\centering
+			\subcaptionbox{\emph{On-the-go} variant\label{subfig:eval:static:size:onthego}}[\textwidth]{%
+				\centering%
+				\input{measurements/2014-06-21-onthego-tricore/codesize.tex}%
+			}\\[2ex]
+			\subcaptionbox{\emph{Simulated} variant\label{subfig:eval:static:size:simulated}}[\textwidth]{%
+				\centering%
+				\input{measurements/2014-06-25-simulated-trampoline/codesize.tex}%
+			}%
+			\caption[CD\textsubscript{j} text segment sizes]{%
+				Text segment sizes of the CD\textsubscript{j} benchmark before optimization (plain), after escape analysis with
+				stack allocation (EA+stack), after escape analysis with task-local heaps (EA+TLH), after scope extension with
+				stack allocation (SE+stack), and after scope extension using task-local heaps (SE+TLH).}%
+			\label{fig:eval:static:size}
+		\end{figure}
+
+		The data segment size does not change for stack allocation. When using task-local heaps, each configured task-local
+		heap adds two additional pointers to the data segment. For the \emph{on-the-go} variant, the size of the data
+		section grows by 24 bytes (three task-local heaps). The larger \emph{simulated} variant uses four tasks – its data
+		segment size increases by 32 bytes.
+
 	\section{Runtime Results}
 		\label{sec:eval:runtime}
+		While static analysis shows that a significant share of allocations are optimized, it is not immediately obvious
+		that the automatic memory management used reduces the benchmark's runtime. While reducing heap memory usage and the
+		amount of memory managed by a garbage collector itself is a worthwhile end, using a garbage collector might still be
+		the method of choice if the optimization would add a large runtime overhead. Runtime results will also determine
+		whether the optimized allocations are located in heavily used parts of the application, or outside the standard
+		control flow paths (e.g., in error handling code).
+
+		\begin{figure}
+			\centering
+			\input{measurements/2014-06-21-onthego-tricore/relmemory.tex}
+
+			\caption[Relative memory usage of \emph{on-the-go} CD\textsubscript{j}]{%
+				Number of stack and task-local allocations in the \emph{simulated} CD\textsubscript{j} before this thesis and
+				after this thesis with and without scope extension.}
+			\label{fig:eval:static:numallocs:simulated}
+		\end{figure}
+
 		\todonote{This is awesome: we are saving up to 50\ \% of memory in CDj at runtime. That's cool! Also, the runtime is
 		significantly reduced. Consider measuring GC runtimes and load.}
