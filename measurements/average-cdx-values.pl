@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use List::Util qw(sum);
 
-if ($#ARGV < 2) {
+if ($#ARGV < 1) {
 	print STDERR "Usage: average-cdx-values.pl outfile files...\n";
 	exit 1;
 }
