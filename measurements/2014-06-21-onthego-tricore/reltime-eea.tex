@@ -7,7 +7,7 @@
 	\begin{tikzpicture}%[auto, font=\footnotesize]
 		\begin{axis}[
 			width=\textwidth,
-			height=7.5cm,
+			height=7.8cm,
 			ylabel={runtime in \%},
 			xlabel=collision detector iteration,
 			xmin=-2,
@@ -24,6 +24,8 @@
 			\addlegendentry{\;EA+stack}
 			\addplot+[sharp plot] table[x expr={\coordindex + 1}, y index=0, header=false]{measurements/2014-06-21-onthego-tricore/reltime-eea_stack.txt};
 			\addlegendentry{\;SE+stack}
+			\addplot+[sharp plot] table[x expr={\coordindex + 1}, y index=0, header=false]{measurements/2014-06-21-onthego-tricore/reltime-ea_tlh.txt};
+			\addlegendentry{\;EA+TLH}
 			\addplot+[sharp plot] table[x expr={\coordindex + 1}, y index=0, header=false]{measurements/2014-06-21-onthego-tricore/reltime-eea_tlh.txt};
 			\addlegendentry{\;SE+TLH}
 		\end{axis}

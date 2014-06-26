@@ -98,8 +98,8 @@
 		scope extension, the number of total allocations was reduced again, likely due to removal of unused fields. The
 		percentage of allocations that use stack memory stayed roughly equal (18.1~\% vs.~18.0~\%). Scope extension
 		increases the total number of allocation sites by 74 to 109.3~\%. This should also result in a significant increase
-		of the code size. Another 28 allocations are eligible for stack allocation after scope extension. Again, number of
-		objects with overlapping liveness regions hardly changes between the measurement with and without scope extension
+		of the code size. Another 28 allocations are eligible for stack allocation after scope extension. Again, the number
+		of objects with overlapping liveness regions hardly changes between the measurement with and without scope extension
 		– in the \emph{simulated} variant, it increases by 29 (one allocation more than stack allocation) from 20.3~\% to
 		21.9~\% of all allocations.
 
@@ -175,9 +175,12 @@
 			\input{measurements/2014-06-21-onthego-tricore/relmemory.tex}
 
 			\caption[Relative heap memory usage of \emph{on-the-go} CD\textsubscript{j} with escape analysis]{%
-				Heap memory usage of the \emph{on-the-go} variant of the CD\textsubscript{j} benchmark with escape analysis and stack
-				allocation (EA+stack) and escape analysis and task-local heaps (EA+TLH) relative to a run without escape
-				analysis-based optimizations (plain).}
+				Heap memory usage of the \emph{on-the-go} variant of the CD\textsubscript{j} benchmark with
+				\begin{inparaenum}[(a)]
+					\item escape analysis and stack allocation before this thesis (EA+stack BT),
+					\item escape analysis and stack allocation (EA+stack), and
+					\item escape analysis and task-local heaps (EA+TLH)
+				\end{inparaenum} relative to a run without escape analysis-based optimizations (plain).}
 			\label{fig:eval:rt:relmem:ea}
 		\end{figure}
 
@@ -186,17 +189,26 @@
 		only 50.7~\% relative to a run without optimizations based on escape analysis. When using task-local heaps instead
 		of stack allocation, the median heap usage drops to 50.1~\% due to the added optimizations of allocations that
 		create objects with overlapping liveness regions. Other than expected, the impact of those allocations is small,
-		even though they can be executed multiple times because they are in loops.
+		even though they can be executed multiple times because they are in loops. Compared to the state of escape analysis
+		before the improvements implemented in this thesis (see~\cref{sec:ea:improve}) heap memory usage has been massively
+		improved from the previous median usage of 99.6~\% of the baseline\footnote{Measurements representing the state
+		before this thesis were made using KESO r3092. The version of CiAO used was the same across all measurements. Since
+		the baseline was generated using KESO r4072, the EA+stack BT values are not the percentage of improvements that
+		would be measured if the baseline was generated using r3092. Do not use the line to rate the previous
+		implementation. It can, however, serve as a reference to visualize the improvements in this thesis.}.
 
 		\begin{figure}
 			\centering
 			\input{measurements/2014-06-21-onthego-tricore/relmemory-eea.tex}
 
 			\caption[Relative heap memory usage of \emph{on-the-go} CD\textsubscript{j} with scope extension]{%
-				Heap memory usage of the \emph{on-the-go} variant of the CD\textsubscript{j} benchmark with scope extension and
-				stack allocation (SE+stack) and scope extension with task-local heaps (SE+TLH) relative to a run without escape
-				analysis-based optimizations (plain). For comparison, heap memory usage for escape analysis and stack allocation
-				(EA+stack) as in~\cref{fig:eval:rt:relmem:ea} is also shown.}
+			Heap memory usage of the \emph{on-the-go} variant of the CD\textsubscript{j} benchmark with
+			\begin{inparaenum}[(a)]
+				\item scope extension and stack allocation (SE+stack), and
+				\item scope extension with task-local heaps (SE+TLH)
+			\end{inparaenum} relative to a run without escape analysis-based optimizations (plain). For comparison, heap
+			memory usage for escape analysis and stack allocation (EA+stack) as in~\cref{fig:eval:rt:relmem:ea} is also
+			shown.}
 			\label{fig:eval:rt:relmem:se}
 		\end{figure}
 
@@ -210,26 +222,70 @@
 		detector iterations. The invoked methods allocate objects in heap memory. These allocations seem to be candidates
 		for scope extension and are hence no longer allocated in the heap when the optimization is enabled.
 
+		For runtime measurements, the CD\textsubscript{j} benchmark internally reads values from a high resolution timer
+		before and after a collision detector run. The difference (i.e., the duration) is stored in a global array and
+		printed after the simulation completes. Again, escape analysis shows significant
+		improvements:~\Cref{fig:eval:rt:time:ea} contains the runtimes of three configurations relative to the baseline
+		without optimizations based on escape analysis. Before this thesis (measured using KESO r3092 and a current version
+		of CiAO), the median runtime was 90.5~\% of the reference with a standard deviation of 0.79 percentage
+		points\footnote{Note that the baseline was again generated with KESO r4072.}. Due to the changes implemented, the
+		same configuration with escape analysis and stack allocation now performs significantly better with a median of
+		81.1~\%. As the graph shows, some of the iterations have previously executed slower causing spikes in the graph. The
+		impact of the spikes increases, which explains the higher standard deviation of 2.17 percentage points. As expected
+		due to the additional instructions managing regions in task-local heaps on method entry and exit, stack allocation
+		is faster than the code generated by the task-local heap allocation backend. The median runtime improvement for
+		task-local heaps is 13.7~\% compared to 18.7~\% for stack allocation.
+
 		\begin{figure}
 			\centering
 			\input{measurements/2014-06-21-onthego-tricore/reltime.tex}
 
 			\caption[Relative runtime of \emph{on-the-go} CD\textsubscript{j} with escape analysis]{%
-				Runtime of the \emph{on-the-go} variant of the CD\textsubscript{j} benchmark using escape analysis with stack
-				allocation (EA+stack) and escape analysis with task-local heaps (EA+TLH) relative to a run without escape
-				analysis-based optimizations. Times are measured in the application before and after each collision detector
-				run. The difference computed and shown.}
+				Runtime of the \emph{on-the-go} variant of the CD\textsubscript{j} benchmark using \begin{inparaenum}[(a)]
+					\item escape analysis with stack allocation before this thesis (EA+stack BT),
+					\item escape analysis with stack allocation (EA+stack), and
+					\item escape analysis with task-local heaps (EA+TLH)
+				\end{inparaenum} relative to a run without escape analysis-based optimizations. Times are measured in the
+				application by reading from a high-resolution timer before and after each collision detector run. The difference
+				is computed and shown.}
 			\label{fig:eval:rt:time:ea}
 		\end{figure}
+
+		While enabling scope extension further reduces the heap memory usage, the same is not necessarily true for execution
+		time, as~\cref{fig:eval:rt:time:se} shows. For the stack allocation backend, enabling scope extension slows down the
+		median time needed by the collision detector by 1.14 percentage points to 82.3~\%. The task-local heap backend on
+		the other hand, speeds up with scope extension by 0.59 percentage points to a median value of 85.5~\%. The increased
+		time requirements with stack allocation might be another effect caused by over-optimization of pathologic examples
+		as discussed in~\cref{sec:eea:probs}.
 
 		\begin{figure}
 			\centering
 			\input{measurements/2014-06-21-onthego-tricore/reltime-eea.tex}
 
 			\caption[Relative runtime of \emph{on-the-go} CD\textsubscript{j} with scope extension]{%
-				Runtime of the \emph{on-the-go} variant of the CD\textsubscript{j} benchmark using scope extension with stack
-				allocation (SE+stack) and scope extension with task-local heaps (SE+TLH) relative to a run without escape
-				analysis-based optimizations. For comparison, times for a run with escape analysis and stack allocation but
-				without scope extension are given as EA+stack. Time measurements as in~\cref{fig:eval:rt:time:ea}.}
+				Runtime of the \emph{on-the-go} variant of the CD\textsubscript{j} benchmark using \begin{inparaenum}[(a)]
+					\item escape analysis with stack allocation (EA+stack),
+					\item escape analysis with task-local heaps (EA+TLH),
+					\item scope extension with stack allocation (SE+stack), and
+					\item scope extension with task-local heaps (SE+TLH)
+				\end{inparaenum} relative to a run without escape analysis-based optimizations (plain). Time measurements as
+				in~\cref{fig:eval:rt:time:ea}.}
 			\label{fig:eval:rt:time:se}
 		\end{figure}
+
+		Overall, enabling escape analysis considerably improves the performance and reduces the heap memory requirements. In
+		situations where a danger of stack overflows exists, task-local heaps provide a safe alternative is exchange for
+		a small overhead until KESO supports stack overflow checks or automatic worst-case stack usage and \gls{wcet}
+		analysis. While the changes implemented for this thesis achieve a lower percentage of \emph{local} objects that are
+		candidates for the optimizations, the runtime results are considerably improved: Runtime is reduced by up to 9.5
+		percentage points, heap memory usage in collision detector runs is more than halved. It is thus recommended to
+		enable escape analysis and one of its optimization backends for all applications.
+
+		A similar suggestion can, however, not be given for scope extension. While it does reduce heap memory usage a little
+		and reduces the variance between the collision detector iterations this optimization comes at the price of slower
+		execution speeds in some configurations. Some of the examples tested expose at least some of the erratic behavior
+		predicted in~\cref{sec:eea:probs}, for example by significantly increasing the code size. For some applications, the
+		decreased variance that manifested in the \emph{on-the-go} variant of the benchmark when scope extension was
+		activated might increase the predictability of the application. In real-time systems, this might make the
+		optimization worthwhile. Whether scope extension improves an application's behavior should be determined on
+		a case-by-case basis.
