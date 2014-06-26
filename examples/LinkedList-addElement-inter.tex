@@ -1,0 +1,41 @@
+% vim:noet:sts=2:ts=2:sw=2:smarttab:tw=120
+\def\hd{6em}%
+\def\vd{6ex}%
+%
+\begin{tikzpicture}[font=\tiny\ttfamily]
+	\path
+		  (     0,      0)
+		 +(-2*\hd, -2*\vd) node[cgarn,method] (this)       {this}
+		 +(-2*\hd,   -\vd) node[cgpon,method] (obj0)       {obj0}
+		 +(-2*\hd,      0) node[cgarn]        (insertP0)   {insert(list)}
+		 +(  -\hd,      0) node[cgarn]        (insertP1)   {insert(elem)}
+		 +(     0,   -\vd) node[cgon,method]  (listelem)   {ListElement}
+		 +(  -\hd, -2*\vd) node[cgarn]        (initP0)     {ListElement(this)}
+		 +( 2*\hd,      0) node[cgarn]        (initP1)     {ListElement(elem)}
+		 +( 2*\hd,   -\vd) node[cgpon,method] (obj1)       {obj1}
+		 +( 2*\hd, -2*\vd) node[cgarn,method] (elem)       {elem}
+		 +(  -\hd,   -\vd) node[cgfrn,method] (head)       {head}
+		 +(   \hd,      0) node[cgfrn,method] (next)       {next}
+		 +(   \hd,   -\vd) node[cgpon,method] (oldhead)    {oldhead}
+		 +(   \hd, -2*\vd) node[cgfrn,method] (lelem)      {elem}
+	;
+
+	\draw[cgpe] (this) -- (obj0);
+	\draw[cgpe] (insertP0) -- (obj0);
+
+	\draw[cgpe] (initP0) -| ($(listelem.south)+(-1em,0)$);
+	\draw[cgpe] (insertP1) -| ($(listelem.north)+(-1em,0)$);
+
+	\draw[cgpe] (initP1) -- (obj1);
+	\draw[cgpe] (elem) -- (obj1);
+
+	\draw[cgfe] (obj0) -- (head);
+	\draw[cgpe] (head) -- (listelem);
+
+	\draw[cgfe] ($(listelem.north)+(1em,0)$) |- (next);
+	\draw[cgpe] (next) -- (oldhead);
+
+	\draw[cgfe] ($(listelem.south)+(1em,0)$) |- (lelem);
+	\draw[cgpe] (lelem) -| ($(oldhead.east)!.4!(obj1.west)$) -- (obj1);
+
+\end{tikzpicture}%

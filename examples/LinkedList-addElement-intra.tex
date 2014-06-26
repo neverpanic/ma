@@ -1,5 +1,5 @@
 % vim:noet:sts=2:ts=2:sw=2:smarttab:tw=120
-\def\hd{6em}%
+\def\hd{7em}%
 \def\vd{6ex}%
 %
 \begin{tikzpicture}[font=\tiny\ttfamily]
@@ -10,10 +10,10 @@
 		 +( -\hd,      0) node[cgarn]        (insertP0)   {insert(list)}
 		 +(    0,      0) node[cgarn]        (insertP1)   {insert(elem)}
 		 +(    0,   -\vd) node[cgon]         (listelem)   {ListElement}
-		 +(    0, -2*\vd) node[cgarn]        (initP0)     {<init>(this)}
-		 +(  \hd, -2*\vd) node[cgarn]        (initP1)     {<init>(elem)}
+		 +(    0, -2*\vd) node[cgarn]        (initP0)     {ListElement(this)}
+		 +(  \hd,      0) node[cgarn]        (initP1)     {ListElement(elem)}
 		 +(  \hd,   -\vd) node[cgpon,method] (obj1)       {obj1}
-		 +(  \hd,      0) node[cgarn,method] (elem)       {elem}
+		 +(  \hd, -2*\vd) node[cgarn,method] (elem)       {elem}
 	;
 
 	\draw[cgpe] (this) -- (obj0);

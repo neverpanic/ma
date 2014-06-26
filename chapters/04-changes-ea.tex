@@ -20,19 +20,19 @@
 		\subsection{Intraprocedural Analysis}
 			\label{sub:ea:basics:local}
 			In intraprocedural analysis, each method in the call graph of an application is traversed and a \gls{cg}
-			representation is being computed. It is a key contribution of Choi et al.\ that this representation is independent
-			of the calling context. Since the origin of objects might not be known for some objects (e.g., if the have been
+			representation is computed. It is a key contribution of Choi et al.\ that this representation is independent of
+			the calling context. Since the origin of objects might not be known for some objects (e.g., if they have been
 			passed as argument), a special type of placeholder called \emph{phantom node} is used to represent these objects.
-			For pointer analysis as discussed in~\cref{sec:intro:prev}, summarizing a method's effect independent of aliasing
-			relationships in the calling context is impossible~\cite[p.~886]{choi:03:toplas}. For each allocation, assignment,
-			field or array access, return statement, method invocation, and exception throw, the \gls{cg} is modified
-			appropriately, ensuring possible alias relations are represented accurately.
+			For pointer analysis as discussed in~\cref{sec:intro:prev}, summarizing a method's effect independently of
+			aliasing relationships in the calling context is impossible~\cite[p.~886]{choi:03:toplas}. For each allocation,
+			assignment, field or array access, return statement, method invocation, and exception throw, the \gls{cg} is
+			modified appropriately, ensuring possible alias relations are represented accurately.
 
 			Nodes in the \gls{cg} have different types: \emph{Object nodes} are added for each encountered allocation site.
 			Note that a single object node in the graph might represent multiple objects at runtime because an allocation
 			might be executed multiple times (e.g., if it is inside a loop). Local variables, static class members, and member
 			variables are represented using \emph{local reference nodes}, \emph{global reference nodes}, and \emph{field
-			reference nodes}, respectively. Array indices are treated like fields and are thus also represented by field
+			reference nodes}, respectively. Array members are treated like fields and are thus also represented by field
 			reference nodes. Each reference node can point to a series of object nodes and via so-called \emph{deferred edges}
 			to other reference nodes. Deferred edges are used to simplify updates of the \gls{cg} while processing
 			assignments. After intraprocedural analysis, these edges are removed by replacing all incoming deferred edges of
@@ -52,7 +52,7 @@
 			to change trigger the appropriate change in the escape states recorded in the connection graph. Allocations whose
 			object node representation in the \gls{cg} is tagged \emph{local} are considered for stack allocation. Note that
 			not all of these objects are converted into stack allocations. Allocations inside loops that return objects whose
-			liveness periods overlap are not allocated on the stack, because that would require moving the stack pointer
+			liveness periods overlap are not allocated on the stack, because that would require resizing the stack frame
 			during the runtime of a method, which KESO avoids deliberately.
 
 			\inputthesiscode{java}{lst:ea:basics:ll}{A simple generic linked list in Java}{%
@@ -74,10 +74,9 @@
 				\centering%
 				\subcaptionbox{%
 					\Acrlong{cg} for \emph{addElement}. \emph{insert(list)} and \emph{insert(elem)} represent the parameters
-					passed to the \emph{insert} method at its invocation. \emph{$\langle$init$\rangle$(this)} and
-					\emph{$\langle$init$\rangle$(elem)} do the same for the implicit invocation of \emph{ListElement}'s
-					constructor.%
-					\label{subfig:ea:basics:ll:addElement}}[.5\textwidth]{%
+					passed to the \emph{insert} method at its invocation. \emph{ListElement(this)} and \emph{ListElement(elem)} do
+					the same for the implicit invocation of \emph{ListElement}'s constructor.%
+					\label{subfig:ea:basics:ll:addElement}}[.6\textwidth]{%
 						\centering%
 						\input{examples/LinkedList-addElement-intra.tex}%
 				}%
@@ -85,7 +84,7 @@
 				\subcaptionbox{%
 					\Acrlong{cg} for \emph{insert}. The edge from \emph{head} to \emph{obj1} is the one that prevents stack
 					allocation of the list element in \emph{addElement}. Interprocedural analysis needs to propagate this edge
-					into the caller context to determine this.\label{subfig:ea:basics:ll:insert}}[.48\textwidth]{%
+					into the caller context to determine this.\label{subfig:ea:basics:ll:insert}}[.38\textwidth]{%
 						\centering%
 						\input{examples/LinkedList-insert-intra.tex}%
 				}%
@@ -107,19 +106,19 @@
 			represented in \cref{subfig:ea:basics:ll:addElement} by two reference nodes with dotted borders. Since they are
 			reachable after the method returns, they are marked as \emph{method}-escaping, denoted by the orange fill color.
 			Because the allocation sites of the pointees of both \emph{this} and \emph{elem} are unknown, these objects are
-			represented using \emph{phantom nodes} (dashed green rectangle). Note that the escape state propagates along the
+			represented using \emph{phantom nodes} (dashed green rectangles). Note that the escape state propagates along the
 			edges from \emph{this} into \emph{obj0} and from \emph{elem} into its pointee \emph{obj1}. The first statement in
 			the bytecode representation of \emph{addElement} is the allocation of a new list element, which causes the
 			creation of an object node (green rectangle) in the \gls{cg}. The constructor of the newly created
 			\emph{ListElement} is called with two arguments: a reference to the object and a reference to the given parameter
-			\emph{elem}, represented in the \acrlong{cg} by the \emph{$\langle$init$\rangle$(this)} and
-			\emph{$\langle$init$\rangle$(elem)} reference nodes. The \emph{this} parameter of the constructor invocation
-			points to the allocated list element, denoted by a solid edge in the graph. The algorithm can deduce that
-			\emph{$\langle$init$\rangle$(elem)} points to the same object as \emph{elem}. Adding a deferred edge between the
-			two encodes this situation (note that the deferred edge is not visible in the graph, because it has been
-			compressed into an edge from \emph{$\langle$init$\rangle$(this)} to \emph{obj1}). Finally, processing the
-			invocation of \emph{insert} creates a similar set of nodes \emph{insert(list)} and \emph{insert(elem)} pointing to
-			the \emph{this} reference and the \emph{ListElement} object, respectively.
+			\emph{elem}, represented in the \acrlong{cg} by the \emph{ListElement(this)} and \emph{ListElement(elem)}
+			reference nodes. The \emph{this} parameter of the constructor invocation points to the allocated list element,
+			denoted by a solid edge in the graph. The algorithm can deduce that \emph{ListElement(elem)} points to the same
+			object as \emph{elem}. Adding a deferred edge between the two encodes this situation (note that the deferred edge
+			is not visible in the graph, because it has been compressed into an edge from \emph{ListElement(this)} to
+			\emph{obj1}). Finally, processing the invocation of \emph{insert} creates a similar set of nodes
+			\emph{insert(list)} and \emph{insert(elem)} pointing to the \emph{this} reference and the \emph{ListElement}
+			object, respectively.
 
 			The graph for \emph{insert} is given in~\cref{subfig:ea:basics:ll:insert}. The two parameters are again
 			represented by a reference node and a phantom node each. The first few statements create the \emph{next} field
@@ -163,27 +162,27 @@
 			Looking at the summary information generated for both methods given in~\cref{lst:ea:basics:ll}, the object node
 			that represents the only allocation (\emph{LinkedList} in~\cref{subfig:ea:basics:ll:addElement}) has an escape
 			state of \emph{local} at this point in the analysis. Recall that local nodes are considered for stack allocation,
-			but entries of a linked list cannot be allocated on stack. The results are thus not sound and further analysis is
-			required. Looking at the example, the edge from \emph{head} to \emph{obj1} in the \gls{cg} of \emph{insert} is the
-			edge that will prevent stack allocation of the list element in \emph{addElement}. To determine this
+			but entries of a linked list cannot be allocated on the stack. The results are thus not sound and further analysis
+			is required. Looking at the example, the edge from \emph{head} to \emph{obj1} in the \gls{cg} of \emph{insert} is
+			the edge that will prevent stack allocation of the list element in \emph{addElement}. To determine this
 			algorithmically, the edges found while processing \emph{insert} need to be propagated to its caller
 			\emph{addElement}. Once the connection from \emph{obj0} via a new field reference node \emph{head} to the list
 			element is established, the escape state of the \emph{ListElement} object node increases to \emph{method}, making
 			the result sound.
 
-			A second analysis pass propagates information from the non-\emph{local} subgraph of the \glspl{cg} into the
-			\glspl{cg} of all calling methods. This \emph{interprocedural} analysis modifies the summary information of the
-			callers, which in turn require their callers to be updated again. To prevent unnecessary recalculation of
-			information, this pass should use a bottom-up traversal of the call graph. In the absence of recursion, the call
-			graph will not contain cycles, making this a simple problem. When recursion is used, identifying strongly
-			connected components and iterating in each component until a fixpoint is reached has proved to be effective.
-			KESO's implementation uses Tarjan's algorithm to identify strongly connected components and a topological order
-			among them in the call graph~\cite{tarjan:72:lga}.
+			A second analysis pass propagates information from the subgraph containing all non-\emph{local} nodes of the
+			\glspl{cg} into the \glspl{cg} of all calling methods. This \emph{interprocedural} analysis modifies the summary
+			information of the callers, which in turn require their callers to be updated again. To prevent unnecessary
+			recalculation of information, this pass should use a bottom-up traversal of the call graph. In the absence of
+			recursion, the call graph will not contain cycles, making this a simple problem. When recursion is used,
+			identifying strongly connected components and iterating in each component until a fixed point is reached has
+			proved to be effective. KESO's implementation uses Tarjan's algorithm to identify strongly connected components
+			and a topological order among them in the call graph~\cite{tarjan:72:lga}.
 
 			To update the callers' \acrlongpl{cg}, pairs of corresponding nodes in the graph on the caller and the callee side
 			are identified as starting points and added to a work list. Originating at these anchors, further nodes and their
-			counterparts are found and again added to the work list. While the work list isn't empty, processing continues and
-			builds a relation of object nodes in the callee and the caller \gls{cg} called \emph{mapsToObj}. This step is
+			counterparts are found and again added to the work list. While the work list is not empty, processing continues
+			and builds a relation of object nodes in the callee and the caller \gls{cg} called \emph{mapsToObj}. This step is
 			called \emph{updateNodes}. A simplified form of the procedure is given in~\cref{algo:ea:basics:updateNodes}. It
 			uses a dual work list approach to avoid creating spurious phantom nodes because some of the relationships might
 			not be known until the algorithm completes. See~\cite[Sec.~3.2.1]{lang:12} for a detailed explanation of the
@@ -286,8 +285,18 @@
 				\label{algo:ea:basics:updateNodes}
 			\end{algorithm}
 
-			For the example given in~\cref{lst:ea:basics:ll} and~\cref{subfig:ea:basics:ll:addElement}, this means that the
-			field reference nodes \emph{head} and \emph{next} are added below \emph{obj0} and \emph{ListElement},
+			\begin{figure}
+				\centering%
+				\input{examples/LinkedList-addElement-inter.tex}%
+				\caption[The \glsentryshort{cg} for \emph{addElement} after interprocedural analysis]{%
+					The \acrlong{cg} for the \emph{addElement} given in~\cref{lst:ea:basics:ll} after interprocedural analysis.
+					Colors and shapes c.f.~\cref{fig:ea:basics:ll}}%
+				\label{fig:ea:basics:ll:inter}%
+			\end{figure}
+
+			The example given in~\cref{lst:ea:basics:ll} and~\cref{subfig:ea:basics:ll:addElement} is shown after
+			interprocedural analysis (for both invocations) in~\cref{fig:ea:basics:ll:inter}. In this case, interprocedural
+			analysis adds field reference nodes \emph{head} and \emph{next} below \emph{obj0} and \emph{ListElement},
 			respectively. Furthermore, a phantom node is added to represent \emph{oldhead}. Note that the \emph{head}
 			reference node does not yet point to the list element object node. The next step of the algorithm called
 			\emph{updateEdges} adds the missing connection. It takes the same parameters as \emph{updateNodes}
@@ -360,7 +369,7 @@
 		example and explains where the incorrect analysis results occur and how they were fixed in KESO's implementation.
 
 		Last but not least, the algorithm's runtime on large examples amounted to several minutes and was deemed
-		unsatisfactory. Especially recursive and virtual method invocations significantly increased the size of the
+		unsatisfactory. In particular, recursive and virtual method invocations significantly increased the size of the
 		generated \glspl{cg}, raising the runtime of interprocedural analysis. \Cref{subsec:ea:improve:opt} deals with
 		modifications implemented to reduce the runtime of the alias analysis.
 
@@ -392,13 +401,13 @@
 			written. \emph{ByPass(p)} (as explained in~\cite{choi:03:toplas}) redirects all incoming deferred edges of $p$ to
 			its successors and removes any outgoing edges (i.e., it ensures that strong updates are performed).
 
-			After implementing this improvement, a fixpoint iteration used to reduce the number of unnecessary phantom nodes
-			in intraprocedural analysis did no longer terminate for some inputs. This happened because the iteration tracked
-			changes to the \gls{cg} rather than comparing the graph against an older copy. Due to the use of \emph{ByPass(p)},
-			the graph was modified in every loop, but further processing returned to the previous state again. Switching to
-			a comparison against an old copy of the \gls{cg} rather than tracking of modifications fixed this particular
-			problem. To efficiently implement comparisons against older versions of the same graph, the \acrlong{cg}'s nodes
-			were extended with the ability to store a copy of a single older state of outgoing edges.
+			After implementing this improvement, a fixed point iteration used to reduce the number of unnecessary phantom
+			nodes in intraprocedural analysis did no longer terminate for some inputs. This happened because the iteration
+			tracked changes to the \gls{cg} rather than comparing the graph against an older copy. Due to the use of
+			\emph{ByPass(p)}, the graph was modified in every loop, but further processing returned to the previous state
+			again. Switching to a comparison against an old copy of the \gls{cg} rather than tracking of modifications fixed
+			this particular problem. To efficiently implement comparisons against older versions of the same graph, the
+			\acrlong{cg}'s nodes were extended with the ability to store a copy of a single older state of outgoing edges.
 
 		\subsection{Fixing Incorrect Results: The Double Return Bug}
 			\label{subsec:ea:improve:bug}
@@ -410,9 +419,9 @@
 			\emph{getObject} might escape, both allocations must not use stack memory.
 
 			\inputthesiscode{java}{lst:ea:improve:bug}{Example exposing the double return flaw}{%
-				A simplified example exposing the double return bug in KESO's escape analysis. One of the objects allocated in
-				\emph{getObject} is returned from its allocating method, but escape analysis did not detect this due to the use
-				of phantom nodes to represent return values.
+				A simplified example exposing the double return bug in the escape analysis by Choi et al. One of the objects
+				allocated in \emph{getObject} is returned from its allocating method, but escape analysis did not detect this
+				due to the use of phantom nodes to represent return values.
 			}{examples/ChooseOne.java}
 
 			However, the \gls{cg} constructed according to~\cite[Sec.~4]{choi:03:toplas} does not correctly identify the two
@@ -420,9 +429,9 @@
 			in~\cref{subfig:ea:improve:bug:chooseOne}. For the \gls{cg} of \emph{getObject}, Sections~4.3 \enquote{The
 			Connection Graph Immediately Before a Method Invocation} and 4.4 \enquote{The Connection Graph Immediately After
 			a Method Invocation} are the relevant parts of~\cite{choi:03:toplas}. According to the first section a new
-			\emph{actual reference node} is created for each argument of the invocation and an assignment $\hat{a_i} = u_i$ is
-			processed. $\hat{a_i}$ denotes the actual reference nodes, $u_i$ are the corresponding invocation arguments. The
-			statement causes the creation of deferred edges from the $\hat{a_i}$'s to the $u_i$'s, which will later be
+			\emph{actual reference node} is created for each argument of the invocation and an assignment $\hat{a}_i = u_i$ is
+			processed. $\hat{a}_i$ denotes the actual reference nodes, $u_i$ are the corresponding invocation arguments. The
+			statement causes the creation of deferred edges from the $\hat{a}_i$'s to the $u_i$'s, which will later be
 			compressed.
 
 			\begin{figure}
@@ -449,7 +458,7 @@
 			\end{figure}
 
 			The handling of return values is not explicitly explained in this section, but the next section mentions them as
-			\enquote{$\hat{a_i}$'s (representing actual arguments and return value) of the caller's CG,}
+			\enquote{$\hat{a}_i$'s (representing actual arguments and return value) of the caller's CG,}
 			\cite[p.~891]{choi:03:toplas} suggesting that an \emph{actual reference node} for the return value is added in the
 			caller's \gls{cg}. \Cref{subfig:ea:improve:bug:getObject} shows this \acrlong{cg}: The rounded rectangles with
 			blue dotted borders are said \emph{actual reference nodes}. Both \emph{chooseOne(a)} and \emph{chooseOne(b)}
@@ -500,7 +509,7 @@
 			The analysis ends with the \emph{UpdateCaller} routine. It consists of \emph{UpdateNodes} and \emph{UpdateEdges}.
 			The former computes equivalence pairs of object nodes in the callee's and caller's \glspl{cg} (the so-called
 			\emph{mapsToObj} relation) and adds phantom nodes for objects that have no equivalence in the caller yet.
-			\emph{UpdateEdges} ensures all relevant edges present in the callee's \gls{cg} are propagates into the caller's
+			\emph{UpdateEdges} ensures all relevant edges present in the callee's \gls{cg} are propagated into the caller's
 			graph. The \emph{mapsToObj} relation for the call from \emph{getObject} to \emph{chooseOne} is given
 			in~\cref{subtbl:ea:improve:bug:mto}. If \emph{chooseOne(ret)} did not yet have any pointees at this point of the
 			analysis, statement 7 in \emph{UpdateNodes} as displayed in~\cite[Fig.~7]{choi:03:toplas} would have created it as
@@ -530,7 +539,7 @@
 			Using this extension for the running example generates the \emph{mapsToRef} relation as given
 			in~\cref{subtbl:ea:improve:bug:mtr}. To avoid the superfluous phantom node \emph{objret} that would be added
 			because of the removal of deferred edges before interprocedural analysis, KESO's alias analysis does not attach
-			phantom nodes to nodes that have incoming deferred but not outgoing edges. This required modifying the analysis to
+			phantom nodes to nodes that have incoming deferred but no outgoing edges. This required modifying the analysis to
 			be able to deal with deferred edges in interprocedural analysis. After the modified interprocedural analysis
 			finishes, the \gls{cg} of \emph{getObject} (depicted in~\cref{fig:ea:improve:bug:fix}) contains the missing edges.
 
@@ -546,29 +555,29 @@
 
 		\subsection{Interprocedural Analysis Optimizations}
 			\label{subsec:ea:improve:opt}
-			Some of the larger applications (up to $23.8~k\mathrm{SLOC}$\footnote{generated using David A.\ Wheeler's
+			Some of the larger applications (up to $28.3~k\mathrm{SLOC}$\footnote{generated using David A.\ Wheeler's
 			\enquote{SLOCCount}}) used in testing the KESO compiler took up to 19 minutes to compile with alias and escape
 			analysis enabled. The compile times were dominated by the duration of alias analysis. To reduce this unacceptable
-			overhead, a series of possible culprits were identified and modifications to the algorithm to optimize compile
-			times were implemented. Since the vast majority of the time was spent in interprocedural analysis, all
+			overhead, a series of possible culprits were identified and modifications to the algorithm where implemented in
+			order to improve compile times. Since the vast majority of the time was spent in interprocedural analysis, all
 			optimizations described in the following sections apply to this part of alias analysis.
 
 			\subsubsection{No Propagation of Read Operations}
 				\label{subsub:ea:improve:opt:writeonly}
-				Analyzing the generated \glspl{cg} after interprocedural analysis revealed virtual invocations of methods that
-				in turn call the same set of virtual methods caused the size of the graphs to increase rapidly. This situation
-				commonly occurs in Java with simultaneous use of the \emph{equals} method and collections (whose \emph{equals}
-				implementations call \emph{equals} once for each element in the collection). Since calling \emph{equals} usually
-				does not change any references reachable from its parameters it does not add new aliases. Based on this
-				observation, the intraprocedural analysis was extended to track all edges that were added to the \gls{cg} due to
-				a write operation. KESO's implementation uses a set of properties called \emph{isWritten} and
+				Analyzing the generated \glspl{cg} after interprocedural analysis revealed that virtual invocations of methods
+				which in turn call the same set of virtual methods caused the size of the graphs to increase rapidly. This
+				situation commonly occurs in Java with simultaneous use of the \emph{equals} method and collections (whose
+				\emph{equals} implementations call \emph{equals} once for each element in the collection). Since calling
+				\emph{equals} usually does not change any references reachable from its parameters it does not add new aliases.
+				Based on this observation, the intraprocedural analysis was extended to track all edges that were added to the
+				\gls{cg} due to a write operation. KESO's implementation uses a set of properties called \emph{isWritten} and
 				\emph{isWriteOperand} available in each \acrlong{cg} node to store this, because information cannot be easily
 				attached to the edges themselves in KESO's adjacency list-based implementation of the \gls{cg}. After
 				intraprocedural analysis, a modified version of Tarjan's algorithm to find strongly connected
 				components~\cite{tarjan:72:lga} finds all cycle-free paths from the method's formal parameters to edges created
 				by write operations. All edges that compose this subgraph are called \emph{important} and marked for later use.
 				Note that the subgraph may contain cycles because while \emph{important} edges alone will not cause cycles, an
-				additional edge created by a write operation might. Furthermore, intraprocedural analysis was extended to ignore
+				additional edge created by a write operation might. Furthermore, interprocedural analysis was extended to ignore
 				all nodes and edges that have no role in a write operation and are not marked \emph{important} (i.e., are not on
 				a path from the method's entry points to a write operation edge).
 
@@ -588,10 +597,10 @@
 			\subsubsection{No Reprocessing of Unchanged Invocations}
 				\label{subsub:ea:improve:opt:quick-fixpoint}
 				Strongly connected components in an application's call graph (i.e., recursive methods) are handled in
-				interprocedural analysis by iterating until a fixpoint has been reached. During this process, invocations might
-				be reprocessed even though their callees' \glspl{cg} did not change since the last iteration. This happens for
-				all call graph edges leaving the strongly connected component. See~\cref{fig:ea:improve:quick-fixpoint} for
-				a graphical representation of this situation.
+				interprocedural analysis by iterating until a fixed point has been reached. During this process, invocations
+				might be reprocessed even though their callees' \glspl{cg} have not changed since the last iteration. This
+				happens for all call graph edges leaving the strongly connected component.
+				See~\cref{fig:ea:improve:quick-fixpoint} for a graphical representation of this situation.
 
 				\begin{figure}
 					\centering%
@@ -605,9 +614,9 @@
 					\label{fig:ea:improve:quick-fixpoint}%
 				\end{figure}
 
-				KESO's implementation of interprocedural analysis only re-runs the \emph{updateNodes} and \emph{updateEdges}
-				steps if a callee's \gls{cg} changed since the last iteration, avoiding unnecessary overhead. Unfortunately, the
-				savings from this optimizations are marginal.
+				KESO's interprocedural analysis only re-runs the \nohyphens{\emph{updateNodes}} and \emph{updateEdges} steps if
+				a callee's \gls{cg} changed since the last iteration, avoiding unnecessary overhead. Unfortunately, the savings
+				from this optimizations are marginal.
 
 			\subsubsection{Connection Graph Compression}
 				\label{subsub:ea:improve:opt:compression}
@@ -657,10 +666,10 @@
 			determine whether the copy can be omitted. This optimization pass is called \emph{superfluous portal copy
 			removal}.
 
-			Objects must be copied, if they, or any object reachable from one of their fields, \begin{inparaenum}[(a)]
+			Objects must be copied if they, or any object reachable from one of their fields, \begin{inparaenum}[(a)]
 				\item live longer than the runtime of the methods handling the portal call on the destination side, i.e., if
 					they have a global escape state in the callee's \gls{cg}, or \label{item:sub:ea:apps:spca:escape}
-				\item are modified by the caller. \label{item:sub:ea:apps:spca:write}
+				\item are modified by the callee. \label{item:sub:ea:apps:spca:write}
 			\end{inparaenum} Whether~(\ref{item:sub:ea:apps:spca:escape}) applies can be determined using the connection graph
 			for the method handling the portal call. For each argument passed into a portal, the corresponding representation
 			on the callee side and its descendant nodes must not have a \emph{global} escape state. A simple worklist
@@ -711,16 +720,16 @@
 		\subsection{Cycle-Aware Reference Counting}
 			\label{sub:ea:apps:cyclerefcnt}
 			Automatic reference counting as a method of automatic, compiler-assisted memory management that does not require
-			garbage collection has been gaining popularity lately. For example, Apple's Objective-C used in iPhones and on
-			OS~X uses compiler-generated reference counting. Unfortunately, it is a well-known limitation of reference
-			counting that it cannot automatically reclaim self-referential (i.e., cyclic) data structures. Cyclic data
-			structures either require the additional use of a garbage collector, or the use of special pointer types called
-			\emph{weak pointers} that do not increase the reference count of objects to break the cyclic structure.
+			garbage collection has been gaining popularity lately. For example, Apple's Objective-C used on iOS and OS~X
+			employs compiler-generated reference counting. Unfortunately, it is a well-known limitation of reference counting
+			that it cannot automatically reclaim self-referential (i.e., cyclic) data structures. Cyclic data structures
+			either require the additional use of a garbage collector, or the use of special pointer types called \emph{weak
+			pointers} that do not increase the reference count of objects to break the cyclic structure.
 
 			Using the \acrlongpl{cg} constructed in alias and escape analysis, cyclic structures, their components and
 			corresponding allocation sites can be computed at compile time. Using this information, cycles could be
 			automatically managed by assigning a cycle descriptor to each object that is part of a cyclic structure and
-			keeping a reference count for the whole strcuture in the cycle descriptor. Once this reference count drops to zero
+			keeping a reference count for the whole structure in the cycle descriptor. Once this reference count drops to zero
 			due to the release of an object that references the structure, the whole cycle could be reclaimed.
 
 			\Cref{fig:ea:apps:cyclerefcnt}~has a graphical representation of the approach. The structure consisting of the

@@ -1,5 +1,5 @@
 % vim:noet:sts=2:ts=2:sw=2:smarttab:tw=120
-\def\hd{6em}%
+\def\hd{4.8em}%
 \def\vd{6ex}%
 %
 \begin{tikzpicture}[font=\tiny\ttfamily]
@@ -17,7 +17,7 @@
 	\draw[cgpe] (list) -- (obj0);
 	\draw[cgfe] (elem) -- (obj1);
 	\draw[cgfe] (obj0) -- (head);
-	\draw[cgpe] (head) -| ($(obj0.east)!.5!(obj1.west)$) -- (obj1);
+	\draw[cgpe] (head) -| ($(obj0.east)!.4!(obj1.west)$) -- (obj1);
 	\draw[cgfe] (obj1) -- (next);
-	\draw[cgpe] (next) -| ($(obj1.east)!.5!(oldhead.west)$) -- (oldhead);
+	\draw[cgpe] (next) -| ($(obj1.east)!.4!(oldhead.west)$) -- (oldhead);
 \end{tikzpicture}%

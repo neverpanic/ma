@@ -8,8 +8,8 @@
 	kitchen scale, a dish washer, or even a WiFi-enabled bar code scanner to update shopping lists. All of those contain
 	microcontrollers, each serving a special purpose. And it seems these are just the first vistas of an emerging trend:
 	At the \emph{embedded world} conference 2014 in Nuremberg, the \emph{Internet of Things}, i.e.\ the interconnection of
-	these embedded devices, was a very popular topic. The world might be on the verge of being flooded with highly
-	integrated and networked microcontroller-driven devices.
+	these embedded devices, was a very popular topic. It seems the future will bring loads of highly integrated and
+	networked microcontroller-driven devices.
 
 	% See http://www.is2t.com/java-in-embedded-systems/ http://www.eetimes.com/document.asp?doc_id=1318980
 	% http://www.eetimes.com/document.asp?doc_id=1317511
@@ -25,10 +25,10 @@
 	not only theoretical~\cite{phipps:99:spe}.
 
 	These advantages used to come at the price of reduced performance and increased memory usage due to the need for
-	runtime environment and garbage collection, but are challenged by new virtual machines and compilers.
-	\emph{Ahead-of-time} compilation, i.e.\ translation to native code before execution, has been gaining popularity
-	lately: Google revealed switching its Android platform to a new runtime environment, which is expected to
-	\enquote{speed up apps by around 100~\%}~\cite{anthony:13:android-art} using ahead-of-time
+	runtime environment and garbage collection. New virtual machines and compilers try to overcome the performance
+	penality using new techniques. \emph{Ahead-of-time} compilation, i.e.\ translation to native code before deployment,
+	has been gaining popularity lately: Google revealed switching its Android platform to a new runtime environment, which
+	is expected to \enquote{speed up apps by around 100~\%}~\cite{anthony:13:android-art} using ahead-of-time
 	compilation~\cite{lindner:14:android-art}. Microsoft declared a similar intention for its .NET
 	platform~\cite{lardinois:14:dotnet-aot}. Oracle and others have developed Java virtual machines targeted at embedded
 	systems~\cite{merritt:13:java-for-IoT, maxfield:12:IS2T-JVM}.
@@ -67,12 +67,12 @@
 		Because Java is a type safe language, KESO can employ a combination of compile-time and runtime checks to ensure
 		that applications cannot modify memory outside their protection realm even in the absence of specialized hardware
 		for this task, such as a \gls{mpu} or \gls{mmu}. Since KESO guarantees complete isolation even when one of the tasks
-		misbehaves, multiple applications can be run on the same system without interfering with each other, possibly
-		further reducing required chip size, energy consumption and production costs. Due to the reduction of structure
-		sizes in modern computing chips, dealing with transient soft errors such as bit flips is mandatory for critical
-		applications. Software-based mechanisms for isolation are at a disadvantage compared to \glspl{mcu} with
-		hardware-based memory protection such as \glspl{mpu} and \glspl{mmu}, which offer protection against errors caused
-		by this problem class. Previous work on KESO attempts to compensate this~\cite{thomm:11:jtres, stilkerich:13:lctes}.
+		misbehaves, multiple applications can be run on the same system, possibly further reducing required chip size,
+		energy consumption and production costs. Due to the reduction of structure sizes in modern computing chips, dealing
+		with transient soft errors such as bit flips is mandatory for critical applications. Software-based mechanisms for
+		isolation are at a disadvantage compared to \glspl{mcu} with hardware-based memory protection such as \glspl{mpu}
+		and \glspl{mmu}, which offer protection against errors caused by this problem class. Previous work on KESO attempts
+		to compensate this~\cite{thomm:11:jtres, stilkerich:13:lctes}.
 
 	\section{Motivation}
 		\label{sec:intro:motivation}
@@ -96,20 +96,21 @@
 		reclaiming.
 
 		Another alternative that exists in both manual and automatic variants are \emph{region-based} approaches to managing
-		memory. Each slice of memory is allocated in one of many memory regions (also called \emph{pools}). Unused regions
-		are reclaimed on the whole, avoiding external fragmentation completely. A pool will only be recycled if all of the
-		objects allocated in its memory area are no longer referenced. A bad mapping from allocation to memory pool may thus
-		prevent the recycling of unused memory; in the worst case a single object can hold a whole pool \enquote{hostage},
-		preventing its re-use. On the other hand, region-based memory management does not suffer from external fragmentation
-		because it does not reclaim slices from its pools. The time needed for allocation operations is thus easily
-		predictable and allocation can be implemented in $\Theta(1)$. This is obvious when considering how allocation
-		requests are handled and where the used memory resides: All previously allocated memory is still considered to be in
-		use and occupies a single continuous block at the beginning of the memory pool. New requests can be served by
-		extending this block, which takes a constant number of operations (moving a level marker). Constant runtime is an
-		advantage over both manual memory management and garbage collection, which do not always guarantee tight upper
-		bounds for memory management operations\footnote{This is not to say that they cannot, and there are a few algorithms
-		that achieve good upper bounds for these operations by avoiding fragmentation or embracing it. See~\cite{strotz:14}
-		for previous work in KESO about this problem and~\cite{pizlo:10:pldi} for the work it is based on.}.
+		memory. Each slice of memory is allocated in one of many memory regions (also called \emph{pools}). Regions which
+		are no longer used are reclaimed on the whole, avoiding external fragmentation completely. A pool will only be
+		recycled if all of the objects allocated in its memory area are no longer referenced. A bad mapping from allocation
+		to memory pool may thus prevent the recycling of unused memory; in the worst case a single object can hold a whole
+		pool \enquote{hostage}, preventing its re-use. On the other hand, region-based memory management does not suffer
+		from external fragmentation because it does not reclaim slices from its pools. The time needed for allocation
+		operations is thus easily predictable and allocation can be implemented in $\Theta(1)$. This is obvious when
+		considering how allocation requests are handled and where the used memory resides: All previously allocated memory
+		is still considered to be in use and occupies a single continuous block at the beginning of the memory pool. New
+		requests can be served by extending this block, which takes a constant number of operations (moving a level marker).
+		Constant runtime is an advantage over both manual memory management and garbage collection, which do not always
+		guarantee tight upper bounds for memory management operations\footnote{This is not to say that they cannot, and
+		there are a few algorithms that achieve good upper bounds for these operations by avoiding fragmentation or
+		embracing it. See~\cite{strotz:14} for previous work in KESO about this problem and~\cite{pizlo:10:pldi} for the
+		work it is based on.}.
 
 		\emph{Manual region-based} methods require developers to map allocation operations to the regions that shall be used
 		to satisfy the requests. The Real-Time Specification for Java supports manual region-based approaches to memory
@@ -170,7 +171,7 @@
 		a basic summary of the algorithms and data structures used and contains detailed descriptions of improvements and
 		the fix for a conceptual flaw in the work of Choi et al. The following~\cref{chapter:eea} outlines the idea of
 		improving stack allocation using variable scope extension and explains how this was implemented and which challenges
-		I encountered while doing that. The Evaluation in~\cref{chapter:eval} compares the results of my work to previous
+		I encountered while doing that. The evaluation in~\cref{chapter:eval} compares the results of my work to previous
 		versions of KESO using static results – like the number of automatically managed allocations – and runtime results
 		of a number of benchmarks. \Cref{chapter:rel} gives an overview of related work and explains the differences to this
 		thesis before~\cref{chapter:conclusion} concludes, gives an overview over the work done for this thesis and
