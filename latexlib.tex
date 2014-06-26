@@ -150,6 +150,8 @@
 
 % load glossaries, needs to be after hyperref
 \usepackage[acronym,nomain,toc,savewrites,section,numberedsection=autolabel]{glossaries}
+% I don't want hyperlinks for now, since I'm not going to print a glossary
+\glsdisablehyper
 % enable glossaries
 \input{glossary}
 \makeglossaries{}
