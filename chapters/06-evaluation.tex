@@ -215,7 +215,10 @@
 			\input{measurements/2014-06-21-onthego-tricore/reltime.tex}
 
 			\caption[Relative runtime of \emph{on-the-go} CD\textsubscript{j} with escape analysis]{%
-				FooBarbAz}
+				Runtime of the \emph{on-the-go} variant of the CD\textsubscript{j} benchmark using escape analysis with stack
+				allocation (EA+stack) and escape analysis with task-local heaps (EA+TLH) relative to a run without escape
+				analysis-based optimizations. Times are measured in the application before and after each collision detector
+				run. The difference computed and shown.}
 			\label{fig:eval:rt:time:ea}
 		\end{figure}
 
@@ -224,6 +227,9 @@
 			\input{measurements/2014-06-21-onthego-tricore/reltime-eea.tex}
 
 			\caption[Relative runtime of \emph{on-the-go} CD\textsubscript{j} with scope extension]{%
-				FooBarbAz}
+				Runtime of the \emph{on-the-go} variant of the CD\textsubscript{j} benchmark using scope extension with stack
+				allocation (SE+stack) and scope extension with task-local heaps (SE+TLH) relative to a run without escape
+				analysis-based optimizations. For comparison, times for a run with escape analysis and stack allocation but
+				without scope extension are given as EA+stack. Time measurements as in~\cref{fig:eval:rt:time:ea}.}
 			\label{fig:eval:rt:time:se}
 		\end{figure}
