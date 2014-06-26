@@ -2,16 +2,67 @@
 
 \chapter{Conclusion}
 	\label{chapter:conclusion}
-	All my work is glorious and awesome.
+	This thesis strived to improve alias and escape analysis in the KESO Java virtual machine for deeply embedded systems.
+	The escape analysis implementation in KESO's compiler \emph{JINO} – initially based on the work of Choi et al.\ in
+	2003~\cite{choi:03:toplas} – was improved to be flow-sensitive and run faster. A conceptual flaw that produced
+	incorrect analysis results was discovered together with a possible workaround in~\cref{subsec:ea:improve:bug}. Using
+	the information computed by escape analysis, a number of optimizations such as removal of unneeded copy operations for
+	method calls into different protection domains, synchronization optimizations and cycle-aware reference counting were
+	discussed or implemented.
 
-	\section{Contribution}
-		\label{sec:conclusion:contribution}
-		Here's why: \todomark{TODO}{Write contribution}\@. Basically this is just what my abstract said, but you do not care because you only read either
-		the abstract or the conclusion. And if I had not told you so, you would not have noticed.
+	The core part of this thesis concentrates on the application of escape analysis results for automatic memory
+	management. Objects whose lifetime is bounded by the runtime of the method they are allocated in are optimized using
+	one of two mechanisms. Besides stack allocation, this thesis introduced small task-local heaps with very simple
+	automatic memory management as a special case of region-based memory management similar to the \emph{ScopedMemory}
+	class in the real-time specification for Java. Furthermore, allocation in a caller's stack frame or task-local heap
+	region was explored in~\cref{chapter:eea}.
 
-		Also, here are a few ideas that I would have implemented if there was no time limit on my thesis.
+	Measurements show that in a benchmark suite for embedded Java systems, up to 43.7~\% of allocations are modified to
+	automatically manage the allocated objects without garbage collection. At runtime, heap memory usage is more than
+	halved in some configurations, a huge improvement from previous versions of this analysis. Additionally, execution is
+	sped up by up to 18.7~\% compared to the same configuration without optimizations based on escape analysis.
 
-	\section{Future Work}
+	The automatic management of a considerable share of objects reduces garbage collector load. Since the lifetimes of
+	optimized allocations are organized in a stack manner, external fragmentation can be (and is in KESO's implementation)
+	completely avoided. In the context of recent work in KESO concerned with fragmentation-tolerant garbage
+	collection~\cite{strotz:14} reducing the amount of memory that is potentially affected by fragmentation is a welcome
+	side effect. Other work concerned with transient errors and software-based mechanisms to detect and correct them
+	–~especially in the garbage collector~\cite{taffner:14}~– also benefit from the optimizations in this thesis.
+
+	The alias analysis results in the form of \acrlongpl{cg} have also been used in attempts to improve Java's bad support
+	for constant array data in KESO\@. Using the alias graph, constant objects have been identified and placed in read-only
+	memory on target architectures that support it~\cite{kuhnle:14}.
+
+	\section*{Future Work}
 		\label{sec:conclusion:future-work}
-		Use the label pointing to this position extensively in the text. Dump the complete list of stuff we imagined earlier
-		here.
+		Despite the good results outlined in~\cref{chapter:eval}, a number of further ideas could still improve results or
+		usability of the optimizations. The efficiency of scope extension is currently limited by virtual method calls,
+		which are not modified. Heuristics that use scope extension in its current form when improvements can be expected
+		and the additional overhead is low have the potential to further increase the share of objects managed without
+		garbage collection. Optimization backends that allow allocation in the memory region corresponding to a calling
+		method would lift the requirement of adjusting all call sites and solve the current problem with virtual method
+		invocations outlined in~\cref{sub:eea:analysis:virtual}.
+
+		As outlined in~\cref{sec:eea:probs}, scope extension will move allocations from mutually exclusive control flow
+		paths to locations that are not mutually exclusive. Since this increases memory usage and potentially slows down
+		applications, further analysis to identify these situations and avoid them could be useful. Interference analysis,
+		possibly based on Sreedhar's \gls{ssa} based coalescing using $\phi$ congruence classes~\cite{sreedhar:99:sas} could
+		identify non-interfering objects – empirical data already revealed this possibility due to a bug in KESO's \gls{ssa}
+		deconstruction triggered by non-interfering parameters created by scope extension. A direct method to allocate
+		objects in a caller's memory region would be an alternative approach to solving this problem.
+
+		Objects allocated at one of the optimized sites do not support Java's \emph{finalize} methods at the moment. Since
+		finalizers could add new references to an object, supporting them would require special analysis support. Additional
+		data structures to locate all objects on the stack or in task-local heaps would be required as well as new runtime
+		support code that processes objects and calls the \emph{finalize} methods.
+
+		Furthermore, alias analysis could use data flow information associated with references to increase the precision of
+		the results without affecting legality. For example, references that are known to be \emph{null} at a given point in
+		alias analysis cannot be dereferenced. Any fields read from objects apparently pointed to be these references could
+		be ignored – if the reference were actually dereferenced, the program would abort with an exception.
+
+		Finally, the minimum size requirements for stack allocation or task-local heaps could be automatically computed in
+		most cases (e.g., in the absence of unbounded recursion or loops). Stack overflows could thus be avoided at compile
+		time and programmers would not have to manually determine and configure task-local heap sizes. This idea could be
+		implemented in parallel with a \gls{wcet} analysis, because the principles used for both analyses would likely be
+		similar in nature.
