@@ -2,7 +2,7 @@ COLLECT=../collect-cdx-times.pl
 RELATIVE=../relative-cdx-values.pl
 AVERAGE=../average-cdx-values.pl
 
-SUFFIXES=baseline ea_stack ea_tlh_nooverlap ea_tlh eea_stack eea_tlh_nooverlap eea_tlh
+SUFFIXES=baseline ea_beforethesis ea_stack ea_tlh_nooverlap ea_tlh eea_stack eea_tlh_nooverlap eea_tlh
 
 ALLFILES=$(foreach suffix,$(SUFFIXES),$(wildcard $(suffix)[0-9].txt))
 

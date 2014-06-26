@@ -9,6 +9,7 @@ set title 'Memory'
 set ylabel 'percentage of reference'
 set output 'memory.svg'
 plot \
+    './relmemory-ea_beforethesis.txt'   using 0:1 title 'old EA stack'      with linespoints, \
     './relmemory-ea_stack.txt'          using 0:1 title 'EA stack'          with linespoints, \
     './relmemory-ea_tlh_nooverlap.txt'  using 0:1 title 'EA TLH NOL'        with linespoints, \
     './relmemory-ea_tlh.txt'            using 0:1 title 'EA TLH'            with linespoints, \
@@ -27,6 +28,7 @@ set title 'Memory'
 set ylabel 'Bytes'
 set output 'absmemory.svg'
 plot \
+    './avg-memory-ea_beforethesis.txt'   using 0:1 title 'old EA stack'      with linespoints, \
     './avg-memory-ea_stack.txt'          using 0:1 title 'EA stack'          with linespoints, \
     './avg-memory-ea_tlh_nooverlap.txt'  using 0:1 title 'EA TLH NOL'        with linespoints, \
     './avg-memory-ea_tlh.txt'            using 0:1 title 'EA TLH'            with linespoints, \
