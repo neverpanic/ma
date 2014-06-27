@@ -2,7 +2,60 @@
 
 \chapter{Related Work}
 	\label{chapter:rel}
-	Read a gazillion of papers that seem remotely related to what I've been doing. Tell everybody my stuff is much better,
-	because it's automatic. Do not forget to compare to region-based allocation and automatic region inference, because
-	that's very similar to what I've done (the difference being region-based approaches usually do not use stack
-	allocation).
+	Since the algorithms used in KESO's alias and escape analysis are based on the work of Choi et al.\ published in
+	2003~\cite{choi:03:toplas}, behavior, results, and features of the analysis are similar. However, different from their
+	work, KESO's compiler avoids resizing a method's stack frame at runtime and offers task-local heaps as an alternative
+	optimization backend to stack allocation. For this thesis, a conceptional flaw discussed
+	in~\cref{subsec:ea:improve:bug} present in Choi's original work was fixed. Several other performance improvements were
+	implemented in~\cref{subsec:ea:improve:opt}. Further applications for escape analysis' results, such as removal of
+	unneeded copies in \glspl{rpc} across protection realm boundaries were added to KESO. \Cref{chapter:eea} extended the
+	algorithms published in~\cite{choi:03:toplas} with allocation of objects in callers' stack frames.
+
+	\Cref{subsub:ea:improve:opt:compression} presents an alias analysis modification that reduces compile times for large
+	specimen considerably by merging sibling nodes. This compression technique is inspired by ideas from Steensgaard's
+	almost linear time points-to analysis~\cite{steensgaard:96:popl}. Different from Steensgaards work, KESO's analysis
+	does not necessarily compress all sibling nodes pointed to by a common ancestor, but only merges nodes with the same
+	escape state to avoid deteriorating the quality of escape analysis results. Object nodes that represent an allocation
+	site are not compressed either to preserve the one-to-one mapping between allocation instructions in the intermediate
+	code and their corresponding object nodes in the \acrlongpl{cg}.
+
+	Using escape analysis for automatic memory management solves the same problem as region inference. First published by
+	Tofte and Talpin in 1994~\cite{tofte:94:popl}, region inference has has seen widespread adaption in later work by
+	Henglein~\cite{henglein:01:ppdp}, Grossman~\cite{grossman:02:pldi}, Hallenberg~\cite{hallenberg:02:sigplan},
+	Chin~\cite{chin:04:pldi}, and Salagnac~\cite{salagnac:05:aiool, salagnac:07:rtcsa} et al. While the initial
+	publication only applied to a call-by-value $\lambda$-calculus, later publications have successfully used similar
+	techniques for Standard~ML~\cite{henglein:01:ppdp, hallenberg:02:sigplan}, safe dialects of C~\cite{grossman:02:pldi}
+	and Java~\cite{chin:04:pldi, salagnac:05:aiool, salagnac:07:rtcsa}.
+
+	Different from~\cite{grossman:02:pldi, salagnac:07:rtcsa}, KESO's escape analysis is fully automatic and does not
+	require source code modifications or developer interaction. Salagnac's work attempts to overcome the problem of region
+	size explosion (i.e., region inference placing a lot of objects in the same region that will then not be reclaimed for
+	an extensive period of time) by developer interaction and review. While other region based approaches are also
+	frequently affected by this problem, KESO's escape analysis-based optimizations do not suffer from it because they do
+	not try to avoid garbage collection completely, but rather complement it. If the exact lifetime of an object can not
+	be determined, the object is allocated from a garbage-collected heap instead of risking region explosion. In
+	fact,~\cite{salagnac:07:rtcsa} gives an example causing region explosion in their approach which would not be
+	converted into stack allocations by KESO due to the overlapping liveness region analysis presented
+	in~\cref{sub:ea:basics:global}.
+
+	Similar to~\cite{hallenberg:02:sigplan}, the system implemented in this thesis co-exists with garbage collection.
+	Hallenberg's approach was implemented for Standard~ML, whereas KESO exclusively uses Java. Both publications by
+	Salagnac et al.~\cite{salagnac:05:aiool, salagnac:07:rtcsa} do not use garbage collectors, stating that garbage
+	collection is generally unsuitable for real-time Java systems, a view the KESO project does not share.
+
+	Chin's \cite{chin:04:pldi} only supports a subset of Java called \emph{Core-Java} for their analysis, while KESO does
+	not impose limitations of the source language features\footnote{even though it does currently not support catching
+	exceptions, but this is not a limitation caused by escape analysis, and escape analysis does in fact handle exceptions
+	correctly}. Experimental results provided by Chin et al.\ are minimal: The largest example has only 170 lines of
+	source code.
+
+	All of~\cite{chin:04:pldi, salagnac:05:aiool, salagnac:07:rtcsa} are written with a context of Java usage in real-time
+	systems, which brings them closer to this thesis than other work on region inference. In~\cite{salagnac:05:aiool} the
+	goal is avoiding garbage collection entirely, even though the only measurements at runtime still use a garbage
+	collector together with region inference. In this benchmark, the actual region-allocated memory is only about 5~\%.
+	The approach also only analyzes a subset of the code used by an application, whereas KESO's compiler always analyzes
+	the complete application and all library methods used by it. Salagnac's~\cite{salagnac:07:rtcsa} combines
+	developer-supported and automatic methods and requires annotations to avoid region size explosion. Furthermore, it
+	makes assumptions that have to be verified at runtime~\cite[Sec.~3.1]{salagnac:07:rtcsa}. It is also flow-insensitive
+	(even though it operates on code in \gls{ssa} form, which makes this less of an issue) as opposed to KESO's fully
+	flow-sensitive approach presented in~\cref{subsec:ea:improve:fs}.
