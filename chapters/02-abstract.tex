@@ -6,7 +6,26 @@
 
 \begin{english}[variant = american]
 	\begin{abstract}
-		\todonote{Abstract schreiben}
+		Escape analysis can be used for automatic memory management in Java. Based on the work of Choi et al.\ in
+		2003~\cite{choi:03:toplas}, this thesis improves the existing escape analysis in KESO, a Java virtual machine for
+		deeply embedded systems. Enhancements implemented for this document include flow-sensitive analysis, modifications
+		that reduce compile time and a fix for a conceptual flaw in the work of Choi et al\@. Further analysis explored the
+		possibility of allocating objects in a callers' stack frames or memory regions.
+
+		Based on the computed analysis results, two different optimization backends are presented and compared: The
+		pre-existing stack allocation and a new method using task-local heaps automatically managed in a stack-like fashion
+		with precise overflow checks. Both methods have predictable allocation and deallocation behavior and can guarantee
+		tight upper bounds on their runtime since they do not suffer from external fragmentation. This increases
+		predictability, which is beneficial in an embedded real-time Java environment.
+
+		Besides memory management, the thesis discusses other usage possibilities of the escape analysis results, such as
+		optimizations in remote procedure calls, synchronization optimizations, and a new theoretical approach to
+		cycle-aware reference counting.
+
+		The compiler-assisted memory management pays positively: In a real-time Java benchmark, object lifetime is
+		automatically inferred at up to 43.7~\% of all allocation sites. The optimizations reduce heap memory usage, in some
+		cases to less than half of what it was without automatic memory management using escape analysis. Additionally, the
+		benchmark's time requirements are cut short by up to 18.7~\%.
 	\end{abstract}
 \end{english}
 
