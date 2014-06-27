@@ -54,8 +54,10 @@
 	goal is avoiding garbage collection entirely, even though the only measurements at runtime still use a garbage
 	collector together with region inference. In this benchmark, the actual region-allocated memory is only about 5~\%.
 	The approach also only analyzes a subset of the code used by an application, whereas KESO's compiler always analyzes
-	the complete application and all library methods used by it. Salagnac's~\cite{salagnac:07:rtcsa} combines
-	developer-supported and automatic methods and requires annotations to avoid region size explosion. Furthermore, it
-	makes assumptions that have to be verified at runtime~\cite[Sec.~3.1]{salagnac:07:rtcsa}. It is also flow-insensitive
-	(even though it operates on code in \gls{ssa} form, which makes this less of an issue) as opposed to KESO's fully
-	flow-sensitive approach presented in~\cref{subsec:ea:improve:fs}.
+	the complete application and all library methods used by it. Their algorithm is based on work by Gay and
+	Steensgaard~\cite{gay:00:cc}, while this thesis uses Choi et al.~\cite{choi:03:toplas} as foundation.
+	Salagnac's~\cite{salagnac:07:rtcsa} combines developer-supported and automatic methods and requires annotations to
+	avoid region size explosion. Furthermore, it makes assumptions that have to be verified at
+	runtime~\cite[Sec.~3.1]{salagnac:07:rtcsa}. It is also flow-insensitive (even though it operates on code in \gls{ssa}
+	form, which makes this less of an issue) as opposed to KESO's fully flow-sensitive approach presented
+	in~\cref{subsec:ea:improve:fs}.
