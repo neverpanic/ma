@@ -61,3 +61,13 @@
 	runtime~\cite[Sec.~3.1]{salagnac:07:rtcsa}. It is also flow-insensitive (even though it operates on code in \gls{ssa}
 	form, which makes this less of an issue) as opposed to KESO's fully flow-sensitive approach presented
 	in~\cref{subsec:ea:improve:fs}.
+
+	Molnar et al.~\cite{molnar:09:pppj} propose stack allocation in their CACAO Java virtual machine using escape analysis
+	and use a Steensgaard-based method for escape analysis. Different from KESO's design, their virtual machine uses
+	just-in-time compilation, and escape analysis is done at runtime. Their virtual machine also supports loading code at
+	runtime, which KESO deliberately avoids to improve its optimization output. Molnar et al.\ handle local objects
+	allocated in loops similar to KESO's overlapping liveness region approach and do not resize stack frames at runtime.
+	They do not support stack allocation of arrays and do not have a generic method to encode the escape information of
+	objects passed to native methods. Finalizers are handled by avoiding stack allocation – KESO currently ignores them,
+	but this could easily be changed. Overall, their approach seems to perform better for some small examples, and on par
+	for larger benchmarks, although a quantitative comparison has not been performed.
