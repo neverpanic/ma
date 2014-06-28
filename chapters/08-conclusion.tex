@@ -5,8 +5,8 @@
 	This thesis strove to improve alias and escape analysis in the KESO Java virtual machine for deeply embedded systems.
 	The escape analysis implementation in KESO's compiler \emph{JINO} – initially based on the work of Choi et al.\ in
 	2003~\cite{choi:03:toplas} – was improved to be flow-sensitive and run faster. A conceptual flaw that produced
-	incorrect analysis results was discovered together with a possible workaround in~\cref{subsec:ea:improve:bug}. Using
-	the information computed by escape analysis, a number of optimizations such as removal of unneeded copy operations for
+	incorrect analysis results was discovered together with a possible solution in~\cref{subsec:ea:improve:bug}. Using the
+	information computed by escape analysis, a number of optimizations such as removal of unneeded copy operations for
 	method calls into different protection domains, synchronization optimizations and cycle-aware reference counting were
 	discussed or implemented.
 
@@ -14,10 +14,10 @@
 	management. Objects whose lifetime is bounded by the runtime of the method they are allocated in are optimized using
 	one of two mechanisms. Besides stack allocation, this thesis introduced small task-local heaps with very simple
 	automatic memory management as a special case of region-based memory management similar to the \emph{ScopedMemory}
-	class in the real-time specification for Java. Furthermore, allocation in a caller's stack frame or task-local heap
+	class in the Real-Time Specification for Java. Furthermore, allocation in a caller's stack frame or task-local heap
 	region was explored in~\cref{chapter:eea}.
 
-	Measurements show that in a benchmark suite for embedded Java systems, up to 43.7~\% of allocations are modified to
+	Measurements show that in a benchmark suite for real-time Java systems, up to 43.7~\% of allocations are modified to
 	automatically manage the allocated objects without garbage collection. At runtime, heap memory usage is more than
 	halved in some configurations, a huge improvement from previous versions of this analysis. Additionally, execution is
 	sped up by up to 18.7~\% compared to the same configuration without optimizations based on escape analysis.
@@ -25,7 +25,7 @@
 	The automatic management of a considerable share of objects reduces garbage collector load. Since the lifetimes of
 	optimized allocations are organized in a stack manner, external fragmentation can be (and is in KESO's implementation)
 	completely avoided. In the context of recent work in KESO concerned with fragmentation-tolerant garbage
-	collection~\cite{strotz:14} reducing the amount of memory that is potentially affected by fragmentation is a welcome
+	collection~\cite{strotz:14}, reducing the amount of memory that is potentially affected by fragmentation is a welcome
 	side effect. Other work concerned with transient errors and software-based mechanisms to detect and correct them
 	–~especially in the garbage collector~\cite{taffner:14}~– also benefit from the optimizations in this thesis.
 
@@ -36,7 +36,7 @@
 	\section*{Future Work}
 		\label{sec:conclusion:future-work}
 		Despite the good results outlined in~\cref{chapter:eval}, a number of further ideas could still improve results or
-		usability of the optimizations. The efficiency of scope extension is currently limited by virtual method calls,
+		usability of the optimizations. The effectiveness of scope extension is currently limited by virtual method calls,
 		which are not modified. Heuristics that use scope extension in its current form when improvements can be expected
 		and the additional overhead is low have the potential to further increase the share of objects managed without
 		garbage collection. Optimization backends that allow allocation in the memory region corresponding to a calling
