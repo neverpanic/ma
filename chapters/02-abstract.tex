@@ -22,10 +22,10 @@
 		optimizations in remote procedure calls, synchronization optimizations, and a new theoretical approach to
 		cycle-aware reference counting.
 
-		The compiler-assisted memory management pays positively: In a real-time Java benchmark, object lifetime is
-		automatically inferred at up to 43.7~\% of all allocation sites. The optimizations reduce heap memory usage, in some
-		cases to less than half of what it was without automatic memory management using escape analysis. Additionally, the
-		benchmark's time requirements are cut short by up to 18.7~\%.
+		Compiler-assisted memory management pays positively: In a real-time Java benchmark, object lifetime is automatically
+		inferred at up to 43.7~\% of all allocation sites. The optimizations reduce heap memory usage, in some cases to less
+		than half of what it was without automatic memory management using escape analysis. Additionally, the benchmark's
+		time requirements are cut short by up to 18.7~\%.
 	\end{abstract}
 \end{english}
 
@@ -35,7 +35,29 @@
 
 \begin{german}
 	\begin{abstract}
-		\todonote{Zusammenfassung schreiben}
+		Fluchtanalyse kann in Java zur automatischen Speicherverwaltung genutzt werden. Basierend auf einer Arbeit von Choi
+		et al.\ aus dem Jahr 2003~\cite{choi:03:toplas} verbessert diese Masterarbeit die existierende Fluchtanalyse in
+		KESO, einer virtuellen Maschine für Java im Anwendungsfeld eingebetteter Systeme. Die Erweiterungen, die für dieses
+		Dokument implementiert wurden, beinhalten Flusssensitivität, Modifikationen zur Reduzierung der Übersetzungszeit und
+		die Korrektur eines inhaltlichen Fehlers in der Arbeit von Choi et al\@. Weitere Analysen untersuchten die
+		Möglichkeit der Objektallokation in Stapelrahmen bzw.\ Speicherbereichen von Aufrufern.
+
+		Basierend auf den berechneten Analyseergebnissen werden zwei Optimierungsmöglichkeiten vorgestellt und verglichen:
+		Die bereits existierende Stapelallokation und eine neue Methode, die stapelähnlich verwaltete
+		aktivitätsträger-lokale Halden mit präzisen Überlaufprüfungen benutzt. Beide Methoden besitzen vorhersagbares
+		Allokations- und Deallokationsverhalten und können enge obere Schranken ihrer Laufzeit garantieren, weil sie nicht
+		von externer Fragmentierung betroffen sind. Dies erhöht die Vorhersagbarkeit, was in eingebettetem Echtzeit-Java von
+		Vorteil ist.
+
+		Neben Speicherverwaltung beleuchtet diese Arbeit auch andere Nutzungsmöglichkeiten von Ergebnissen der
+		Fluchtanalyse, wie Optimierungen in Fernaufrufen, Synchronisationsoptimierungen und einen neuen theoretischen Ansatz
+		zur zyklengewahren Referenzzählung.
+
+		Übersetzerunterstützte automatische Speicherverwaltung lohnt sich: In einem Leistungsbewertungsprogramm für
+		Echtzeit-Java konnten die Lebensdauern der erzeugten Objekte an bis zu 43.7~\% aller Allokationsstellen automatisch
+		bestimmt werden. Die Optimierungen reduzierten die Auslastung des Haldenspeichers im Vergleich zu Messungen ohne
+		Speicherverwaltungstechniken, die auf Fluchtanalyse basieren, in einigen Fällen auf weniger als die Hälfte.
+		Zusätzlich verbesserten sich die Ausführungszeiten des Leistungstests um bis zu~18.7~\%.
 	\end{abstract}
 \end{german}
 
