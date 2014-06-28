@@ -13,7 +13,7 @@ class Simulation implements Runnable {
 		Factory f = new Factory();
 		while (true) {
 			Builder b = f.getBuilder();
-			for (Aircraft a : getAircrafts()) {
+			for (Aircraft a : getAircraft()) {
 				b.addPosition(a, getPositionForAircraft(a));
 			}
 			SimFrame frame = b.makeFrame(); // last reference of b$\label{line:eea:idea:builder:lastb}$

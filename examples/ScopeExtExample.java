@@ -7,7 +7,7 @@ public class ScopeExtExample implements Runnable {
 		sb.append("Lock your Soyuz hatch and put your helmet on\n");
 		sb.append("Ground control to Major Tom\n");
 		sb.append("Commencing countdown, engines on\n");
-		sb.append("Detach from Station, and may god's love be with you\n");
+		sb.append("Detach from Station, and may God's love be with you\n");
 		// $\ldots$
 
 		return sb;

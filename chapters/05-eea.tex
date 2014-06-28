@@ -3,13 +3,13 @@
 \chapter{Extended Escape Analysis}
 	\label{chapter:eea}
 	A standard pattern found in C programs is passing a buffer and its size to a function which will write a computed
-	result into the given buffer. Since the calling function controls the location of the buffer, it can be allocated from
-	stack memory. In Java, a method would instead allocate a new object from heap and return a reference to it to achieve
-	the same. Using information from alias and escape analysis, objects that escape their method of allocation into the
-	caller but no further can be automatically identified. Since the lifetime of these objects can be statically
-	determined, the need for garbage collection can be avoided and the memory can be automatically managed using
-	compiler-generated code (for example, but not limited to, using stack allocation). This further reduces the load of
-	the garbage collection mechanism and can improve worst- and average-case execution times of applications. This
+	result into the given buffer. Since the location of the buffer is controlled by the calling function, it can be
+	allocated in stack memory. In Java, a method would instead allocate a new object on the heap and return a reference to
+	it to achieve the same. Using information from alias and escape analysis, objects that escape their method of
+	allocation into the caller but no further can be automatically identified. Since the lifetime of these objects can be
+	statically determined, the need for garbage collection can be avoided and the memory can be automatically managed
+	using compiler-generated code (for example, but not limited to, using stack allocation). This further reduces the load
+	of the garbage collection mechanism and can improve worst- and average-case execution times of applications. This
 	optimization is called \emph{scope extension} in the following.
 
 	Note that while only stack allocation has been discussed as optimization to manage objects with statically computed
@@ -19,12 +19,12 @@
 	Nonetheless, stack allocation will serve as the default backend in the code and the following description of the
 	algorithms. Steps in the optimization that are induced by the properties of stack allocations are marked as such.
 
-	In the rest of this chapter, \cref{sec:eea:idea}~outlines the general idea of the optimization implemented for this
-	master's thesis and gives and example showing where, why, and how it can be applied. The
+	In the remainder of this chapter, \cref{sec:eea:idea}~outlines the general idea of the optimization implemented for
+	this master's thesis and gives and example showing where, why, and how it can be applied. The
 	following~\cref{sec:eea:analysis} discusses in detail which preconditions must be fulfilled, which constellations
 	hinder or prevent optimization, and how these shortcomings could be addressed. Two different transformations using the
 	analysis results and their advantages and drawbacks are presented in~\cref{sec:eea:opt}, before~\cref{sec:eea:probs}
-	concludes this chapter with a consideration of possible problems caused by excessive usage of scope extension.
+	concludes this chapter with a consideration of possible problems caused by excessive use of scope extension.
 
 	\section{Algorithmic Idea}
 		\label{sec:eea:idea}
@@ -39,12 +39,8 @@
 		\emph{Factory.getBuilder} escapes its allocating method into \emph{Simulation.run}, but is no longer referenced
 		after line~\ref{line:eea:idea:builder:lastb}. The runtime of \emph{Simulation.run} is thus an upper bound for the
 		lifetime of the object. Consequently, KESO does not have to rely on garbage collection to reclaim the memory used by
-		the object, but can automatically manage the object's memory using one of the techniques from~\cref{sec:eea:opt}.
-
-		% If the application can be interrupted between stack allocation in the caller and constructor call in the callee
-		% (e.g., by stop-the-world or on-demand garbage collection or a blocking method call) the referenced memory area
-		% must be in a defined state. Passing a reference to uninitialized memory (like in C) is not possible unless special
-		% precautions such as pointer tagging are used.
+		the object, but can instead automatically manage the object's memory using one of the techniques
+		from~\cref{sec:eea:opt}.
 
 		All examples discussed so far deal with objects escaping their method of creation via a return operation. Note that
 		being returned is not the only way an object can escape: storing references in a field of an object given as
@@ -55,7 +51,7 @@
 		\label{sec:eea:analysis}
 		Any object in the \emph{method} escape state partition of a method's \gls{cg} is a candidate for optimization. The
 		escape state of the object's representation in the method's callers can be taken into account to decide whether the
-		object should be allocated in the caller. Note that since there might be multiple callers and the optimization could
+		object should be allocated by the caller. Note that since there might be multiple callers and the optimization could
 		be applied multiple times (moving allocations up multiple levels in the call hierarchy) considering the escape state
 		of the object in the callers' \glspl{cg} is not always a trivial task. For example, the object might escape further
 		in some of the callers but not in others. When using stack allocation, even objects that are \emph{local} in
@@ -72,7 +68,7 @@
 		Because of the complexity involved in doing so, KESO's implementation does not take the escape state of object
 		nodes' equivalents in the callers' \glspl{cg} into account. For each run of the optimization pass, allocations are
 		propagated at most a single level up against the direction of the call hierarchy. Therefore, running the pass
-		multiple times will increase the maximum scope extension level. Note that is is not necessarily beneficial to run
+		multiple times will increase the maximum scope extension level. Note that it is not necessarily beneficial to run
 		the pass often, since it may lead to undesirable results. See~\cref{sec:eea:probs} for a discussion of the
 		limitations and problems of scope extension.
 
@@ -103,10 +99,10 @@
 			\Cref{fig:eea:analysis:virtual} contains a graphical representation of this problem. Interdependencies between
 			methods cause them to form up into groups sharing the same signature. Scope extension, however, depends only on
 			the code of the methods in these groups, which is in general unrelated. A single method in such a group could
-			cause the modification of its invocations' argument lists, which in turn requires that the same changes to all
-			other candidates for the modified method calls. Since the modifications are in general unnecessary in all other
-			methods than the one causing them, this increases the runtime overhead and possibly allocates memory that is
-			unused in most candidates of a virtual invocation.
+			cause the modification of its invocations' argument lists, which in turn requires the same changes to all other
+			candidates for the modified method calls. Since the modifications are in general unnecessary in all other methods
+			than the one causing them, this increases the runtime overhead and possibly allocates memory that is unused in
+			most candidates of a virtual invocation.
 
 			\begin{figure}
 				\centering%
@@ -133,15 +129,15 @@
 			a calling method in these thread-local heaps during a method's prologue before creating a new method frame.
 			Objects allocated in this region would remain valid until the calling method terminates.
 
-			A different approach to solve the same problem could be not changing the allocations at all (i.e., allocating in
-			garbage-collected heap memory) and modifying all callers to explicitly reclaim the objects that are no longer
+			A different approach to solve the same problem could be not to change the allocations at all (i.e., allocating in
+			garbage-collected heap memory) and to modify all callers to explicitly reclaim the objects that are no longer
 			used. However, in the presence of a garbage collector this does not necessarily reduce the memory management
-			overhead. Marking a section as free does neither reduce the time required for the mark phase (the unreferenced
-			section will not be marked, whether it was explicitly freed or not), nor the sweep phase (the work done in the
-			sweep step is the same, whether it is run by the garbage collector, or the explicit statement). As a consequence,
-			the only possible improvement achieved by explicit deallocations could be a reduction in the number of garbage
-			collector runs. By keeping a list of memory areas that can be re-used immediately, the runtime system could avoid
-			the scan phase entirely if enough memory can be reclaimed using the known unused areas.
+			overhead. Marking a section as free reduces neither the time required for the mark phase (the unreferenced section
+			will not be marked, whether it was explicitly freed or not) nor the sweep phase (the work done in the sweep step
+			is the same, whether it is run by the garbage collector or the explicit statement). As a consequence, the only
+			possible improvement achieved by explicit deallocations could be a reduction in the number of garbage collector
+			runs. By keeping a list of memory areas that can be re-used immediately, the runtime system could avoid the scan
+			phase entirely if enough memory can be reclaimed using the known unused areas.
 
 			Because KESO's current escape analysis summarizes a method's effect independent of any calling contexts, but both
 			approaches outlined in the last paragraphs depend on the caller, further analyses would have to be implemented to
@@ -152,7 +148,7 @@
 			can check whether the programmer did write the expected instruction. If the object in question is not explicitly
 			returned into the memory pool, leakage occurs and the compiler can print a warning. For this application, running
 			the scope extension pass multiple times can be beneficial, because due to the lack of modifications, the code size
-			does not increase, but the number of objects whose lifetime can be inferred by the compiler increases.
+			does not increase, but the number of objects whose lifetime can be inferred by the compiler grows.
 
 	\section{Optimization}
 		\label{sec:eea:opt}
@@ -182,7 +178,11 @@
 			The first of two instructions allocates a new chunk of memory, initializes any internal data expected by the
 			virtual machine (such as runtime type information) and sets the rest of the object's memory to zero to comply with
 			Java's semantics. In Java bytecode, this operation is known as \emph{new}. Note that this differs from the
-			interpretation of the same keyword at the Java language level, which includes the call to the constructor.
+			interpretation of the same keyword at the Java language level, which includes the call to the constructor. If the
+			application can be interrupted between stack allocation in the caller and constructor call in the callee (e.g., by
+			stop-the-world or on-demand garbage collection or a blocking method call) the referenced memory area must be in
+			a defined state. Passing a reference to uninitialized memory (like in C) is not possible unless special
+			precautions such as pointer tagging are used.
 
 			The second instruction invokes the object's constructor. The first argument of this call is always a reference to
 			the allocated object. Further arguments are passed, if the constructor has any.
@@ -213,7 +213,7 @@
 		\subsection{Local Task Heaps}
 			\label{sub:eea:opt:ldh}
 			Turning allocations into stack allocations for automatic memory management is not necessarily the best solution,
-			depending on the circumstances. Especially in safety-critical embedded systems allocating objects and arrays on
+			depending on the circumstances. Especially in safety-critical embedded systems, allocating objects and arrays on
 			the stack could lead to increased worst-case stack usage estimations. Since the stack space needs to be reserved
 			for each task even if it is not going to be used simultaneously, the overall memory requirement can increase
 			compared to a system without escape analysis. This situation occurs when the sum of upper bounds is larger than
@@ -232,7 +232,7 @@
 			constraints are small specialized heap regions local to each task. Given these local heaps, the logical regions
 			are implemented similar to a stack in KESO: Each task-local heap has a fill marker and a maximum fill level. At
 			method entry, the fill marker is saved and necessary objects are allocated by moving the fill marker. At method
-			exit, the fill marker is reset to its previous value. Saving the fill marker in the stack can be avoided if the
+			exit, the fill marker is reset to its previous value. Saving the fill marker on the stack can be avoided if the
 			amount of memory that will be allocated in a function and all alignment offcuts are known at compile time, because
 			this knowledge can be used to calculate the value at method entry. KESO's implementation does not currently
 			support this optimization. The approach does not require any synchronization for allocations, which constitutes
@@ -260,7 +260,11 @@
 			is replaced with a simple address-of operation that can be resolved to a memory address by the compiler and
 			linker. If multiple tasks use an allocation, a dynamic lookup is required and preserved. If an allocation is not
 			reachable from any task constructor or entry point, it must not use local heaps. KESO's compiler will detect this
-			situation and generate an error message to prevent runtime errors.
+			situation and generate an error message to prevent runtime errors. \Glspl{isr} do not use task-local heaps in the
+			current implementation. They could use their own task-local heaps or use the task-local heap of the current active
+			task they interrupt. The latter solution would, however, increase the worst-case memory usage of all tasks that
+			can be interrupted by an \gls{isr}. Portal handler methods use the task-local heap of their caller, which is in
+			a suspended state until the portal call finishes.
 
 	\section{Potential Problems}
 		\label{sec:eea:probs}
@@ -286,7 +290,7 @@
 		would have to support uninitialized chunks of memory as method arguments.
 
 		Summarizing so far, scope extension can increase memory usage due to the allocation of unused objects and it can
-		cause subpar performance when a large number of allocations is optimized because of the increased overhead of the
+		cause subpar performance when a large number of allocations are optimized because of the increased overhead of the
 		modified method invocation.
 
 		The necessary modification of a method's call sites induces another set of potential problems. First and foremost,
