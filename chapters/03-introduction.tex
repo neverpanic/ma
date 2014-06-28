@@ -3,7 +3,7 @@
 \chapter{Introduction}
 	\label{chapter:intro}
 	Embedded devices are on the rise. While internet-connected refrigerators, which have been journalists' favorite
-	prediction for the future, are still a long way off, other turing complete devices have found their way into daily
+	prediction for the future, are still a long way off, other Turing complete devices have found their way into daily
 	life. Taking a look around an ordinary kitchen reveals devices like a fully automatic coffee machine, a digital
 	kitchen scale, a dish washer, or even a WiFi-enabled bar code scanner to update shopping lists. All of those contain
 	microcontrollers, each serving a special purpose. And it seems these are just the first vistas of an emerging trend:
@@ -25,10 +25,10 @@
 	not only theoretical~\cite{phipps:99:spe}.
 
 	These advantages used to come at the price of reduced performance and increased memory usage due to the need for
-	runtime environment and garbage collection. New virtual machines and compilers try to overcome the performance
-	penality using new techniques. \emph{Ahead-of-time} compilation, i.e.\ translation to native code before deployment,
-	has been gaining popularity lately: Google revealed switching its Android platform to a new runtime environment, which
-	is expected to \enquote{speed up apps by around 100~\%}~\cite{anthony:13:android-art} using ahead-of-time
+	runtime environment and garbage collection. New virtual machines and compilers try to overcome the performance penalty
+	using new techniques. \emph{Ahead-of-time} compilation, i.e., translation to native code before deployment, has been
+	gaining popularity lately: Google revealed switching its Android platform to a new runtime environment, which is
+	expected to \enquote{speed up apps by around 100~\%}~\cite{anthony:13:android-art} using ahead-of-time
 	compilation~\cite{lindner:14:android-art}. Microsoft declared a similar intention for its .NET
 	platform~\cite{lardinois:14:dotnet-aot}. Oracle and others have developed Java virtual machines targeted at embedded
 	systems~\cite{merritt:13:java-for-IoT, maxfield:12:IS2T-JVM}.
@@ -77,7 +77,7 @@
 	\section{Motivation}
 		\label{sec:intro:motivation}
 
-		\emph{Manual memory management} using library functions has been the de-facto standard method of dealing with
+		\emph{Manual memory management} using library functions has been the \emph{de facto} standard method of dealing with
 		dynamic memory needs in C and \C++{}. It provides fine-grained control over applications' memory allocation
 		behavior, but comes with a downside: Programming mistakes can lead to leaks and dangling pointers, which in turn can
 		lead to security vulnerabilities or crashes. As a consequence, developers need to be careful while writing code that

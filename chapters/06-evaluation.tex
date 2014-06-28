@@ -162,9 +162,9 @@
 		use of automatic memory management reduces the benchmark's runtime. While a reduction in execution time is not
 		imperative because reducing heap memory usage (and with it garbage collector load) is a worthwhile end itself,
 		a large runtime overhead of other automatic memory management method might still make garbage collection the method
-		of choice in all but corner cases. Measurements at runtime will also help gauge whether the optimized instructions
-		are located in much frequented code paths or outside the standard control flow (e.g., in error handling code).
-		Hence, runtime data should reveal whether the optimizations improve application behavior and are useful.
+		of choice in all but corner cases. Measurements at runtime will also help determine whether the optimized
+		instructions are located in much frequented code paths or outside the standard control flow (e.g., in error handling
+		code). Hence, runtime data should reveal whether the optimizations improve application behavior and are useful.
 
 		All measurements in this section were conducted on the TriCore system setup as described in~\cref{tbl:eval:setup}.
 		The data always shows the average of five runs. The standard deviation of the measurement values was always lower
@@ -226,9 +226,9 @@
 		For runtime measurements, the CD\textsubscript{j} benchmark internally reads values from a high resolution timer
 		before and after a collision detector run. The difference (i.e., the duration) is stored in a global array and
 		printed after the simulation completes. Again, escape analysis shows significant
-		improvements:~\Cref{fig:eval:rt:time:ea} contains the runtimes of three configurations relative to the baseline
-		without optimizations based on escape analysis. Before this thesis (measured using KESO r3092 and a current version
-		of CiAO), the median runtime was 90.5~\% of the reference with a standard deviation of 0.79 percentage
+		improvements:~\Cref{fig:eval:rt:time:ea} contains the execution times of three configurations relative to the
+		baseline without optimizations based on escape analysis. Before this thesis (measured using KESO r3092 and a current
+		version of CiAO), the median runtime was 90.5~\% of the reference with a standard deviation of 0.79 percentage
 		points\footnote{Note that the baseline was again generated with KESO r4072.}. Due to the changes implemented, the
 		same configuration with escape analysis and stack allocation now performs significantly better with a median of
 		81.1~\%. As the graph shows, some of the iterations have previously executed slower causing spikes in the graph. The
