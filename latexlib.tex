@@ -106,6 +106,8 @@
 
 % better C++ and C# symbols
 \usepackage{relsize}
+% avoid ``Font size 5.555556pt is too small''
+\renewcommand{\RSsmallest}{5pt}
 % adjusted from texinfo.tex
 \def\ifmonospace{\ifdim\fontdimen3\font=0pt}
 % C++ symbol
@@ -132,30 +134,6 @@
 % break long URLs
 \usepackage[hyphens]{url}
 
-% load this close to the end
-\usepackage{hyperref}
-\hypersetup{%
-	pdfpagemode=UseNone,%
-	pdfpagelayout=TwoPageRight,%
-	colorlinks=true,%
-	linkcolor=black,%
-	citecolor=black,
-	urlcolor=black,%
-	pdfauthor={\thesisauthor},%
-	pdftitle={\thesistitle},
-	pdfsubject={\thesistitle},
-	pdfkeywords={\thesiskeywords},
-	pdfstartpage=1%
-}
-
-% load glossaries, needs to be after hyperref
-\usepackage[acronym,nomain,toc,savewrites,section,numberedsection=autolabel]{glossaries}
-% I don't want hyperlinks for now, since I'm not going to print a glossary
-\glsdisablehyper
-% enable glossaries
-\input{glossary}
-\makeglossaries{}
-
 % headings
 \usepackage{titlesec}
 \titleformat{\chapter}[hang]{\Huge\rmfamily}{%
@@ -175,14 +153,6 @@
 %	\parbox{0.8cm}{\centering\textcolor{white!75!black}{|}}}{0pt}{\rmfamily}
 \setkomafont{sectioning}{\rmfamily\bfseries}
 \setkomafont{descriptionlabel}{\rmfamily\bfseries}
-
-% increase emergency stretch to prevent overfull hboxes
-\setlength{\emergencystretch}{1em}
-\setlength{\parskip}{0.2em}
-
-% maximum ToC depth
-\setcounter{secnumdepth}{3}
-\setcounter{tocdepth}{3}
 
 % Some useful todonotes-macros
 \usepackage[colorinlistoftodos]{todonotes}
@@ -223,9 +193,6 @@
 
 \usepackage{setspace}
 \onehalfspacing
-
-% nice references with automatic naming
-\usepackage[nameinlink,capitalize,noabbrev]{cleveref}
 
 % Provide nice boxes for my source code listings. Cats love boxes.
 % Note: This needs tcolorbox 3.0, which isn't in texlive 2013
@@ -268,6 +235,30 @@
 		title={#4}
 	}
 }
+
+% needs to be before cleveref, or problems occur
+\usepackage{amsmath}
+
+% load this close to the end
+\usepackage{hyperref}
+\hypersetup{%
+	pdfpagemode=UseNone,%
+	pdfpagelayout=TwoPageRight,%
+	colorlinks=true,%
+	linkcolor=black,%
+	citecolor=black,
+	urlcolor=black,%
+	pdfauthor={\thesisauthor},%
+	pdftitle={\thesistitle},
+	pdfsubject={\thesistitle},
+	pdfkeywords={\thesiskeywords},
+	pdfstartpage=1%
+}
+
+% nice references with automatic naming
+\usepackage[nameinlink,capitalize,noabbrev]{cleveref}
+
+% create those after loading cleveref, since the [Cc]refname options need it
 \newtcblisting[auto counter,number within=chapter,crefname={Listing}{Listings},Crefname={Listing}{Listings}]{thesiscode}[5][]{%
 	thesiscodetitled={#1}{#2}{#3}{#4},
 	comment={\scriptsize{}#5}}
@@ -275,3 +266,20 @@
 	thesiscodetitled={#1}{#2}{#3}{#4},
 	comment={\scriptsize{}#5},
 	listing file={#6}}
+
+% load glossaries, needs to be after hyperref
+\usepackage[acronym,nomain,toc,savewrites,section,numberedsection=autolabel]{glossaries}
+% I don't want hyperlinks for now, since I'm not going to print a glossary
+\glsdisablehyper
+% enable glossaries
+\input{glossary}
+\makeglossaries{}
+
+% increase emergency stretch to prevent overfull hboxes
+\setlength{\emergencystretch}{1em}
+\setlength{\parskip}{0.2em}
+\setlength{\headheight}{1.1\baselineskip}
+
+% maximum ToC depth
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
