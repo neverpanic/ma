@@ -171,8 +171,8 @@
 			\inputthesiscode{gas}{lst:eea:opt:scopeext:alloc}{Java bytecode of a complete object allocation}{%
 				Java bytecode of a complete object allocation. The \emph{new} instruction allocates new memory. The following
 				\emph{dup} operation is required because of the JVM's stack machine semantics. Before \emph{astore\_0} stores
-				a reference to the allocated object in the variable number 0, \emph{invokespecial} calls the object's
-				constructor and passes a reference to the memory area as first parameter.
+				a reference to the allocated object in the variable 0, \emph{invokespecial} calls the object's constructor and
+				passes a reference to the memory area as first parameter.
 			}{examples/Allocation.jbc}
 
 			The first of two instructions allocates a new chunk of memory, initializes any internal data expected by the
@@ -220,8 +220,8 @@
 			the upper bound of the sum. Furthermore, to keep stack usage limited and simplify finding an upper bound of stack
 			usage, KESO does not turn allocations whose liveness regions overlap into stack allocations. Overlapping objects
 			occur because they are allocated inside a loop and alive after the loop. This requires memory proportional to the
-			number of loop runs, where an upper bound might be unknown. To avoid stack overflows, KESO will always serve these
-			allocations from heap memory.
+			number of loop runs, where an upper bound might be unknown. To avoid stack overflows, KESO will always use heap
+			memory for these allocations.
 
 			In order to address these shortcomings, an alternative to stack memory is necessary. A special region can be used
 			for all objects that can be automatically managed by the compiler. To provide a runtime advantage over the normal
@@ -280,7 +280,7 @@
 
 		First, since the control flows in the \emph{switch} statement of the optimized method are mutually exclusive, at
 		most a single object is allocated and returned in the example. After scope extension, however, all objects are
-		allocated in the caller methods and references are passed for each one, even though only one of the arguments is
+		allocated by the caller methods and references are passed for each one, even though only one of the arguments is
 		actually used. In this case, the memory usage is thus actually increased by the optimization. This problem could be
 		avoided by consolidating memory areas (and the corresponding method parameters) that are used in mutually exclusive
 		control flows. Interference analysis is needed to determine this information. Good results can probably be achieved
