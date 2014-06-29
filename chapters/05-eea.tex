@@ -110,7 +110,7 @@
 
 				\caption[Call graph showing the complexity of scope extension for virtual method calls]{%
 					Call graph showing the complexity of scope extension for virtual method calls. Green
-					{\color{cggreen}\blacksquare} vertices mark methods that contain allocations eligible for scope extensions,
+					{\color{cggreen}\blacksquare} vertices mark methods that contain allocations eligible for scope extension,
 					blue {\color{cgblue}\blacksquare} vertices represent other methods. Solid lines are method invocations. Assume
 					that both \emph{a} and \emph{b} contain a single virtual method invocation each, i.e., the possible callees
 					are \emph{1}–\emph{3} for \emph{a} and \emph{3}–\emph{5} for \emph{b}. Dashed lines point from methods
@@ -121,7 +121,7 @@
 			\end{figure}
 
 			Because of the overhead and the complexity inherent to applying this optimization correctly in the presence of
-			virtual method calls, KESO does not currently perform scope extension across virtual method calls. Note that some
+			virtual method calls, KESO does not currently perform scope extension across virtual invocations. Note that some
 			of the challenges are caused by properties of the applied optimization. Intermediate code transformations that do
 			not require changing a method's signature can simplify the problem. For example, instead of using stack memory,
 			a separate thread-local heap section with a simple bump pointer memory management strategy could be used
@@ -268,7 +268,7 @@
 
 	\section{Potential Problems and Limitations}
 		\label{sec:eea:probs}
-		Applying scope extensions to all candidates does not yield a better program in all cases. A number of situations
+		Applying scope extension to all candidates does not yield a better program in all cases. A number of situations
 		could actually decrease the performance. Heuristics are necessary to avoid these transformations.
 
 		For example, suboptimal results are generated for methods that allocate a large number of objects that are eligible
