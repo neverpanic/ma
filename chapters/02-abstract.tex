@@ -15,10 +15,10 @@
 		Based on the computed analysis results, two different optimization backends are presented and compared: The
 		preexisting stack allocation and a new method using task-local heaps automatically managed in a stack-like fashion
 		with precise overflow checks. Both methods have predictable allocation and deallocation behavior and can guarantee
-		tight upper bounds on their runtime since they do not suffer from external fragmentation. This increases
+		tight upper bounds of their runtime since they do not suffer from external fragmentation. This increases
 		predictability, which is beneficial in an embedded real-time Java environment.
 
-		Besides memory management, the thesis discusses other usage possibilities of the escape analysis results, such as
+		Besides memory management, the thesis discusses other usage possibilities of escape analysis results, such as
 		optimizations in remote procedure calls, synchronization optimizations, and a new theoretical approach to
 		cycle-aware reference counting.
 

@@ -21,12 +21,12 @@
 			\label{sub:ea:basics:local}
 			In intraprocedural analysis, each method in the call graph of an application is traversed and a \gls{cg}
 			representation is computed. It is a key contribution of Choi et al.\ that this representation is independent of
-			the calling context. Since the origin of objects might not be known for some objects (e.g., if they have been
-			passed as argument), a special type of placeholder called \emph{phantom node} is used to represent these objects.
-			For pointer analysis as discussed in~\cref{sec:intro:prev}, summarizing a method's effect independently of
-			aliasing relationships in the calling context is impossible~\cite[p.~886]{choi:03:toplas}. For each allocation,
-			assignment, field or array access, return statement, method invocation, and exception throw, the \gls{cg} is
-			modified appropriately, ensuring possible alias relations are represented accurately.
+			the calling context. Since their allocation site might be unknown for some objects (e.g., if they have been passed
+			as argument), a special type of placeholder called \emph{phantom node} is used to represent these objects. For
+			pointer analysis as discussed in~\cref{sec:intro:prev}, summarizing a method's effect independently of aliasing
+			relationships in the calling context is impossible~\cite[p.~886]{choi:03:toplas}. For each allocation, assignment,
+			field or array access, return statement, method invocation, and exception throw, the \gls{cg} is modified
+			appropriately, ensuring possible alias relations are represented accurately.
 
 			Nodes in the \gls{cg} have different types: \emph{Object nodes} are added for each encountered allocation site.
 			Note that a single object node in the graph might represent multiple objects at runtime because an allocation
@@ -47,11 +47,11 @@
 			being returned or assigned to an object passed as parameter are tagged method-escaping. Objects with an escape
 			state of \emph{method} are only reachable from the thread that allocated them. The highest escape state is
 			\emph{global} and is given to objects and references that are assigned to static class members (which exist once
-			in each domain to ensure the isolation of the protection realms) or thrown as exceptions. While processing
+			in each KESO domain to ensure the isolation of the protection realms) or thrown as exceptions. While processing
 			a method's instructions and building the \gls{cg}, operations that cause the escape state of one of their operands
 			to change trigger the appropriate change in the escape states recorded in the connection graph. Allocations whose
 			object node representation in the \gls{cg} is tagged \emph{local} are considered for stack allocation. Note that
-			not all of these objects are converted into stack allocations. Allocations inside loops that return objects whose
+			not all of these objects are converted into stack allocations. Allocations inside loops that create objects whose
 			liveness periods overlap are not allocated on the stack, because that would require resizing the stack frame
 			during the runtime of a method, which KESO avoids deliberately.
 
@@ -140,7 +140,7 @@
 			KESO's alias analysis was modified to be flow-sensitive for this thesis (see~\cref{subsec:ea:improve:fs}), the
 			discussion of the current example will use the flow-sensitive approach. The difference between the approaches is
 			best explained using the simple example given in~\cref{lst:ea:basics:local:fs}. Flow-sensitive analysis follows
-			the control flow and computes the possible pointees of each variable after each statements. In the given example,
+			the control flow and computes the possible pointees of each variable after each statement. In the given example,
 			the statement \texttt{a = b} removes the previous pointees of \emph{a} (i.e., the \emph{H} object) from the list
 			of possible pointees of \emph{a}. Flow-insensitive analysis on the other hand ignores the control flow. This means
 			that statements are treated as if they could be executed in random order. Flow-sensitive analysis thus generates
@@ -234,8 +234,8 @@
 						\While{$\workList \ne \emptyset$}{%
 							$\left(\mParam, \iArg\right) = \pop{\workList}$\;
 							\BlankLine
-							\tcp{Mark \mParam globally escaping if \iArg is.}
-							$\updateEscapeState{\mParam, \iArg}$\;
+							\tcp{Mark \iArg globally escaping if \mParam is.}
+							$\updateEscapeState{\iArg, \mParam}$\;
 							\BlankLine
 							\tcp{Find pairs of descendant object nodes}
 							$\xPointees = \pointees{\mParam}$\;
@@ -356,7 +356,7 @@
 			KESO does not convert all allocations that fulfill this criterion into stack allocations. Instead, variable
 			liveness information is used to compute whether multiple objects allocated at the same allocation site are needed
 			at the same time. Objects with overlapping liveness regions are not allocated on the stack because the amount of
-			memory used by these allocations might be unbounded, e.g.\ if the allocation is inside a loop.
+			memory used by these allocations might be unbounded, e.g., if the allocation is inside a loop.
 			See~\cite[Sec.~3.3]{lang:12} for detailed rationale and a description of the implementation.
 
 	\section{Improvements}
@@ -616,7 +616,7 @@
 
 				KESO's interprocedural analysis only re-runs the \nohyphens{\emph{updateNodes}} and \emph{updateEdges} steps if
 				a callee's \gls{cg} changed since the last iteration, avoiding unnecessary overhead. Unfortunately, the savings
-				from this optimizations are marginal.
+				from this optimization are marginal.
 
 			\subsubsection{Connection Graph Compression}
 				\label{subsub:ea:improve:opt:compression}
@@ -633,10 +633,10 @@
 				graph compression algorithm processes each reference node recursively but avoids loops using a color bit. For
 				each reference node, lists of pointees segregated by escape state are collected. The separation into different
 				escape states ensures that object nodes are only unified with nodes that have the same escape state. This avoids
-				deterioration of the computed results up to this point. Each list that contains at least two object nodes and at
-				least one phantom node is compressed by removing the phantom nodes. Note that any two non-phantom object nodes
-				(i.e., any two nodes with a known allocation site) are not consolidated to preserve the one-to-one mapping
-				between intermediate code allocation instruction and its \gls{cg} representation.
+				deterioration of the computed results up to this point. Each list that contains at least two object nodes, at
+				least one of which must be a phantom node, is compressed by removing all phantom nodes. Note that any two
+				non-phantom object nodes (i.e., any two nodes with a known allocation site) are not consolidated to preserve the
+				one-to-one mapping between intermediate code allocation instruction and its \gls{cg} representation.
 
 				Incoming edges pointing to the phantom nodes to be removed are redirected to the retained object nodes. Field
 				reference nodes reachable from the phantom nodes are re-created below the object nodes in the compression set.
@@ -660,10 +660,10 @@
 			\label{sub:ea:apps:spca}
 			To support communication between protection realms (\emph{domains}), KESO offers an \gls{rpc} implementation
 			called \emph{portals} (see also~\cref{fig:intro:overview}). To ensure complete isolation of objects passed through
-			portals, the KESO runtime environment creates deep copies of the objects in the target domain's heap. This ensures
-			that modifications of the object in the target domain do not affect the object in the source domain. Especially
-			for large trees of objects, this is very expensive. Results from escape and alias analysis can be used to
-			determine whether the copy can be omitted. This optimization pass is called \emph{superfluous portal copy
+			portals, the KESO runtime environment creates deep copies of these objects in the target domain's heap. This
+			ensures that modifications of the object in the target domain do not affect the object in the source domain.
+			Especially for large trees of objects, this is very expensive. Results from escape and alias analysis can be used
+			to determine whether the copy can be omitted. This optimization pass is called \emph{superfluous portal copy
 			removal}.
 
 			Objects must be copied if they, or any object reachable from one of their fields, \begin{inparaenum}[(a)]
@@ -715,7 +715,7 @@
 			ensures multi-word data writes are not interrupted by disabling interrupts for the duration of the write
 			operation. If the written objects are task-local, this safety precaution is not necessary, because the modified
 			object cannot be read in an inconsistent state by other tasks. Once execution of the interrupted task resumes, the
-			write operation will resume and bring the multi-word data field into a consistent state.
+			write operation will continue and bring the multi-word data field into a consistent state.
 
 		\subsection{Cycle-Aware Reference Counting}
 			\label{sub:ea:apps:cyclerefcnt}

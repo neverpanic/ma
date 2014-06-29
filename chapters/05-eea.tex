@@ -72,7 +72,7 @@
 		the pass often, since it may lead to undesirable results. See~\cref{sec:eea:probs} for a discussion of the
 		limitations and problems of scope extension.
 
-		\subsection{Non-virtual Calls}
+		\subsection{Non-Virtual Calls}
 			\label{sub:eea:analysis:nonvirtual}
 			Non-virtual call sites, i.e., those where the invoked method is unique and known at compile time, constitute the
 			simple cases of the analysis. Fortunately, the KESO compiler tries to increase the number of non-ambiguous
@@ -210,7 +210,7 @@
 			This ensures that alias and escape information for the objects allocated at these new allocation sites is up to
 			date when it is needed in a subsequent pass optimizing allocations of \emph{local} objects.
 
-		\subsection{Local Task Heaps}
+		\subsection{Task-Local Heaps}
 			\label{sub:eea:opt:ldh}
 			Turning allocations into stack allocations for automatic memory management is not necessarily the best solution,
 			depending on the circumstances. Especially in safety-critical embedded systems, allocating objects and arrays on
@@ -266,7 +266,7 @@
 			can be interrupted by an \gls{isr}. Portal handler methods use the task-local heap of their caller, which is in
 			a suspended state until the portal call finishes.
 
-	\section{Potential Problems}
+	\section{Potential Problems and Limitations}
 		\label{sec:eea:probs}
 		Applying scope extensions to all candidates does not yield a better program in all cases. A number of situations
 		could actually decrease the performance. Heuristics are necessary to avoid these transformations.
