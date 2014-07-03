@@ -1,0 +1,1 @@
+-nobuild -X:dbg_src:ssa:const_arg_prop:ssa_alias_prop:gc_stats
