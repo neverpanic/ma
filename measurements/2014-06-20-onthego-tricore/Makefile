@@ -43,6 +43,7 @@ memory.svg absmemory.svg: $(SUFFIXES:%=relmemory-%.txt) $(SUFFIXES:%=avg-memory-
 
 clean:
 	rm -f depend.mk
-	rm -f $(ALLFILES:%.txt=reltime-%.txt) $(ALLFILES:%.txt=relmemory-%.txt)
+	rm -f $(ALLFILES:%.txt=time-%.txt) $(ALLFILES:%.txt=memory-%.txt)
 	rm -f $(SUFFIXES:%=avg-time-%.txt) $(SUFFIXES:%=avg-memory-%.txt)
+	rm -f $(SUFFIXES:%=reltime-%.txt) $(SUFFIXES:%=relmemory-%.txt)
 	rm -f time.svg memory.svg abstime.svg absmemory.svg
