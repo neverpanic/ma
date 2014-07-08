@@ -1,0 +1,108 @@
+% vim:noet:sts=2:ts=2:sw=2:spelllang=en_us
+\documentclass[usenames,dvipsnames,smaller]{beamer}
+
+% beamer class setup (i4 style)
+\usecolortheme{rose}
+\usetheme{i4}
+
+% remove navigation symbols
+\beamertemplatenavigationsymbolsempty
+
+% set and load fonts
+\usepackage{fontspec}
+\setmainfont[
+  Ligatures      = TeX,
+  ExternalLocation,
+  Path           = {../fonts/},
+  Extension      = {.otf},
+  UprightFont    = {*Regular},
+  BoldFont       = {*Bold},
+  ItalicFont     = {*Italic},
+  BoldItalicFont = {*BoldItalic}]{Charter}
+\setsansfont[
+  Ligatures      = TeX,
+  Scale          = MatchLowercase,
+  ExternalLocation,
+  Path           = {../fonts/},
+  Extension      = {.ttf},
+  UprightFont    = {*},
+  BoldFont       = {*-Bold},
+  ItalicFont     = {*-Oblique},
+  BoldItalicFont = {*-BoldOblique}]{Helvetica}
+\setmonofont[
+  Ligatures = TeX,
+  Scale     = MatchLowercase]{Latin Modern Mono}
+
+\usepackage{polyglossia}
+\setmainlanguage[latesthyphen=true]{german}
+
+% enable the use of \enquote{} with typographically correct markers
+\usepackage[autostyle]{csquotes}
+
+% load the beamertools package
+\usepackage{beamertools}
+
+% load some packages needed for the tikz stuff I'm doing
+\usetikzlibrary{positioning}
+\usetikzlibrary{arrows}
+\usetikzlibrary{shapes}
+\usetikzlibrary{calc}
+
+% backup slides shouldn't be numbered. Credits to
+% http://tex.stackexchange.com/questions/2541/beamer-frame-numbering-in-appendix
+% http://www.stanford.edu/~dgleich/notebook/2009/05/appendix_slides_in_beamer_cont_1.html
+\newcommand{\backupbegin}{%
+	\newcounter{framenumberappendix}
+	\setcounter{framenumberappendix}{\value{framenumber}}
+}
+\newcommand{\backupend}{%
+	\addtocounter{framenumberappendix}{-\value{framenumber}}
+	\addtocounter{framenumber}{\value{framenumberappendix}}
+}
+
+\title[KESO-EEA]{Compiler-Assisted Memory Management Using Escape Analysis in the KESO JVM}
+\subtitle{Vortrag zur Masterarbeit}
+\institute{%
+	Lehrstuhl für Verteilte Systeme und Betriebssysteme\\
+	Friedrich-Alexander-Universität Erlangen-Nürnberg}
+\author[cl]{Clemens Lang}
+\date[2014-07-11]{July 11, 2014}
+
+\btset{every block/.style={rounded=false, shadow, text width=.98\textwidth, center}}
+
+\begin{document}
+	\begin{frame}[plain]
+		\titlepage
+	\end{frame}
+
+	\section{Introduction}
+		\begin{frame}{Motivation}
+			\textbf{Why?}
+			\bi
+				\ii Battery technology stagnates
+				\ii CPUs and devices offer more and better power savings mechanisms
+			\ei
+			\begin{btBlock}<2->{Question}
+				\centering
+				\textbf{How can operating systems be designed\\to efficiently use those
+				mechanisms?}
+			\end{btBlock}
+		\end{frame}
+
+
+	\section{Conclusion}
+		\begin{frame}{Ende}
+			\begin{center}
+				\structure{\LARGE Fragen?}\\[.2em]
+				Danke für die Aufmerksamkeit
+			\end{center}
+		\end{frame}
+
+		\backupbegin
+			\begin{frame}{Referenzen}
+				\bibliographystyle{alpha}
+				\bibliography{../bibtex/bib}
+				\bibliography{../bibtex/all/all}
+			\end{frame}
+		\backupend
+\end{document}
