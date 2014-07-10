@@ -1,0 +1,39 @@
+\documentclass[tikz,convert,crop,boder=100px]{standalone}
+% vim:noet:sts=2:ts=2:sw=2:smarttab:tw=120
+\usepackage{pgfplots}
+\usetikzlibrary{arrows,shapes,positioning,calc}
+
+\begin{document}
+	\begin{tikzpicture}%[auto, font=\footnotesize]
+		\begin{axis}[
+			width=\textwidth,
+			height=7.8cm,
+			ylabel={runtime in \%},
+			xlabel=collision detector iteration,
+			xmin=-2,
+			xmax=52,
+			legend style={draw={none}, at={(0.5, 1.02)}, anchor={south}, legend columns=-1},
+			legend cell align=left,
+			tick label style={font=\scriptsize},
+		]
+			% reference line
+			\addplot+[domain=0:50,sharp plot,thick, no markers] {1};
+			\addlegendentry{\;plain}
+			% on the go
+			%\addplot+[sharp plot] table[x expr={\coordindex + 1}, y index=0, header=false]{../measurements/2014-06-21-onthego-tricore/reltime-ea_beforethesis.txt};
+			%\addlegendentry{\;EA+stack BT}
+			\addplot+[sharp plot] table[x expr={\coordindex + 1}, y index=0, header=false]{../measurements/2014-06-21-onthego-tricore/reltime-ea_stack.txt};
+			\addlegendentry{\;EA+stack}
+			\addplot+[sharp plot] table[x expr={\coordindex + 1}, y index=0, header=false]{../measurements/2014-06-21-onthego-tricore/reltime-ea_tlh.txt};
+			\addlegendentry{\;EA+TLH}
+			\only<2->{%
+				\addplot+[sharp plot] table[x expr={\coordindex + 1}, y index=0, header=false]{../measurements/2014-06-21-onthego-tricore/reltime-eea_stack.txt};
+				\addlegendentry{\;SE+stack}
+			}
+			\only<3->{%
+				\addplot+[sharp plot] table[x expr={\coordindex + 1}, y index=0, header=false]{../measurements/2014-06-21-onthego-tricore/reltime-eea_tlh.txt};
+				\addlegendentry{\;SE+TLH}
+			}
+		\end{axis}
+	\end{tikzpicture}
+\end{document}

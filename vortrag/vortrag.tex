@@ -43,6 +43,11 @@
 \usepackage{minted}
 \usemintedstyle{friendly}
 
+% graphs
+\usepackage{standalone}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.8}
+
 % load the beamertools package
 \usepackage{beamertools}
 
@@ -253,7 +258,7 @@
 						\centering
 						\input{images/Choose-cg-get.tex}
 						\vspace*{.2cm}
-						\hline
+						\hrule
 						\vspace*{.2cm}
 						\input{images/Choose-cg-choose.tex}
 					\end{column}
@@ -304,16 +309,125 @@
 								\ii Zwei Knoten werden zusammengeführt, wenn sie eingehende Kanten vom gleichen Knoten haben
 								\ii Präzisionsverlust vermeiden: Nur Kompression von \emph{phantom nodes} und innerhalb des gleichen Fluchtstatus
 							\ei
+						\ii<3-> Übersetzungszeit um eine Größenordnung besser :)
 					\ei
 				\end{frame}
 
 	\section{Erweiterungen der Fluchtanalyse}
 		\subsection{Scope-Erweiterung}
+			\begin{frame}{Scope-Erweiterung}
+				\textbf{Wie können mehr Objekte automatisch verwaltet werden?}
+				\bi
+					\ii Aktueller Stand: Automatische Verwaltung methodenlokaler Objekte
+					\ii Idee: Erweiterung auf Objekte, die eine Ebene flüchten
+				\ei
+				\begin{btBlock}<2->{Beispiel: \only<2>{Vorher}\only<3>{Nachher}}
+					\begin{overprint}%
+						\onslide<2>
+						\inputminted[fontsize=\footnotesize,tabsize=2]{java}{ScopeExtExample.java}
+						\onslide<3>
+						\inputminted[fontsize=\footnotesize,tabsize=2]{java}{ScopeExtExampleFinished.java}
+					\end{overprint}
+				\end{btBlock}
+			\end{frame}
+
+			\begin{frame}{Scope-Erweiterung (II)}
+				\textbf{Scope-Erweiterung kurz zusammengefasst}
+				\bi
+					\ii Kopieren der Allokation in alle Aufrufer
+					\ii Übergeben einer Referenz beim Aufruf der Quell-Methode
+					\ii Ersetzen der Allokation durch Lesen eines Parameters
+					\ii Konstruktoraufruf unmodifiziert
+				\ei
+				\uncover<2->{%
+					\textbf{Probleme und Beschränkungen von Scope-Erweiterung}
+					\bi
+						\ii Anpassung von Methodensignaturen in virtuellen Aufrufen problematisch
+						\ii Allokation von Objekten aus wechselseitig exklusiven Kontrollflüssen
+						\ii Wachsende Codegröße bei vielen Aufrufern
+						\ii Zusatzaufwand durch Parameterübergabe
+					\ei
+				}
+				\uncover<3->{%
+					\textbf{\structure{$\Rightarrow$ Ergebnisse durch Scope-Erweiterung nicht generell besser}}
+				}
+			\end{frame}
+
 		\subsection{Tasklokale Heaps}
+			\begin{frame}{Tasklokale Heaps}
+				\bi
+					\ii Stack-Allokation nicht notwendigerweise die beste Optimierung
+						\bi
+							\ii KESO besitzt aktuell keine Stack-Überlauf-Prüfungen
+							\ii Stack-Allokation kann zu schlechteren \emph{worst-case}-Abschätzungen führen
+							\ii Stack-Rahmen kann nicht zur Laufzeit vergrößert werden ($\Rightarrow$ kein \texttt{alloca(3)})
+						\ei
+					\ii<2-> Alternative: Separate Region für jeden Task
+						\bi
+							\ii Explizites Sichern und Wiederherstellen des Kontexts
+							\ii Präsize Überlaufprüfungen
+							\ii Einfachere Vorhersag- und Messbarbarkeit
+							\ii Rahmengröße dynamisch anpassbar
+						\ei
+				\ei
+			\end{frame}
 
 	\section{Evaluation}
+		\begin{frame}{Evaluation}{Randbedingungen}
+			\bi
+				\ii CD\textsubscript{x} Benchmark für Echtzeit-Java~\cite{kalibera:09:jtres}
+					\bi
+						\ii Statische Daten (Codegröße, Anzahl der optimierten Allokationen)
+						\ii Laufzeitmessungen (Zeit, Heap-Nutzung, Instrumentierung der Speicherverwaltung)
+					\ei
+			\ei
+		\end{frame}
+
+		\begin{frame}{Evaluation}{Statische Ergebnisse: Anzahl der Allokationen}
+			\bi
+				\ii CD\textsubscript{j} \emph{on-the-go}-Variante\\
+					\centerline{\input{../measurements/2014-06-21-onthego-tricore/numallocs-presentation.tex}}
+				\ii CD\textsubscript{j} \emph{simulated multidomain}-Variante\\
+					\centerline{\input{../measurements/2014-06-25-simulated-trampoline/numallocs-presentation.tex}}
+			\ei
+		\end{frame}
+
+		\begin{frame}{Evaluation}{Statische Ergebnisse: Codegröße}
+			\bi
+				\ii CD\textsubscript{j} \emph{on-the-go}-Variante\\
+					\centerline{\input{../measurements/2014-06-21-onthego-tricore/codesize-presentation.tex}}
+				\ii CD\textsubscript{j} \emph{simulated multidomain}-Variante\\
+					\centerline{\input{../measurements/2014-06-25-simulated-trampoline/codesize-presentation.tex}}
+			\ei
+		\end{frame}
+
+		\begin{frame}{Evaluation}{Messungen zur Laufzeit: Heap-Nutzung}
+			\centering
+			\input{../measurements/2014-06-21-onthego-tricore/relmemory-presentation.tex}
+		\end{frame}
+
+		\begin{frame}{Evaluation}{Messungen zur Laufzeit: Ausführungszeit}
+			\centering
+			\input{../measurements/2014-06-21-onthego-tricore/reltime-presentation.tex}
+		\end{frame}
 
 	\section{Zusammenfassung \& Schluss}
+		\begin{frame}{Zusammenfassung}
+			\bi
+				\ii Fluchanalyse lohnt sich!
+					\bi
+						\ii CD\textsubscript{j}: Bis zu 43.7~\% der Objekte automatisch verwaltet
+						\ii CD\textsubscript{j}: Weniger als 50~\% Heap-Nutzung in gemessenen Abschnitten
+						\ii Reduzierung der Fragmentierung (CD\textsubscript{j}: von 21.2~\% auf 9.4~\%)
+					\ei
+				\ii Scope-Erweiterung nicht generell sinnvoll
+					\bi
+						\ii Diverse Probleme, z.\,B.\ mit virtuellen Methodenaufrufen
+						\ii Verbesserungen durch andere Optimierungen möglich
+					\ei
+			\ei
+		\end{frame}
+
 		\begin{frame}{Ende}
 			\begin{center}
 				\structure{\LARGE Fragen?}\\[.2em]
