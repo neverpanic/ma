@@ -1,0 +1,29 @@
+% vim:noet:sts=2:ts=2:sw=2:smarttab:tw=120
+\def\hd{4.8em}%
+\def\vd{6ex}%
+%
+\begin{tikzpicture}[font=\tiny\ttfamily]
+	\path<1-3>
+		  (      0,      0)
+		 +(   -\hd,      0) node[cglrn] (a)       {a}
+		 +(   -\hd,   -\vd) node[cgon]  (objH)    {H}
+	;
+	\path<2-3>
+		  (      0,      0)
+		 +(      0,      0) node[cglrn] (c)       {c}
+		 +(      0,   -\vd) node[cgon]  (objI)    {I}
+	;
+	\path<4->
+		  (      0,      0)
+		 +(    \hd,      0) node[cggrn]        (global)  {FS.global}
+		 +(   -\hd,      0) node[cglrn,global] (a)       {a}
+		 +(   -\hd,   -\vd) node[cgon,global]  (objH)    {H}
+		 +(      0,      0) node[cglrn,global] (c)       {c}
+		 +(      0,   -\vd) node[cgon]         (objI)    {I}
+	;
+
+	\draw[cgpe] (a) -- (objH);
+	\draw<2>[cgpe] (c) -- (objI);
+	\draw<3->[cgde] (c) -- (a);
+	\draw<4->[cgde] (global) -- (c);
+\end{tikzpicture}%

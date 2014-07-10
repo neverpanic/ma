@@ -1,0 +1,31 @@
+% vim:noet:sts=2:ts=2:sw=2:smarttab:tw=120
+\def\hd{4.8em}%
+\def\vd{6ex}%
+%
+\begin{tikzpicture}[font=\tiny\ttfamily]
+	\path<1>
+		  (      0,      0)
+		 +(   -\hd,      0) node[cgarn]        (param1)  {choose(a)}
+		 +(   -\hd,   -\vd) node[cgon]         (obj1)    {O}
+		 +(      0,   -\vd) node[cgarn]        (param2)  {choose(b)}
+		 +(      0,      0) node[cgon]         (obj2)    {O}
+		 +(    \hd,      0) node[cgarn,method] (ret)     {ret}
+		 +(    \hd,   -\vd) node[cgpon,method] (phantom) {?}
+	;
+	\path<2->
+		  (      0,      0)
+		 +(   -\hd,      0) node[cgarn]        (param1)  {choose(a)}
+		 +(   -\hd,   -\vd) node[cgon,method]  (obj1)    {O}
+		 +(      0,   -\vd) node[cgarn]        (param2)  {choose(b)}
+		 +(      0,      0) node[cgon,method]  (obj2)    {O}
+		 +(    \hd,      0) node[cgarn,method] (ret)     {ret}
+		 +(    \hd,   -\vd) node[cgpon,method] (phantom) {?}
+	;
+
+	\draw[cgpe] (param1) -- (obj1);
+	\draw[cgpe] (param2) -- (obj2);
+	\draw[cgpe] (ret) -- (phantom);
+	\draw<2->[cgpe] (ret) -- (obj1);
+	\draw<2->[cgpe] (ret) -- (obj2);
+
+\end{tikzpicture}%

@@ -39,6 +39,10 @@
 % enable the use of \enquote{} with typographically correct markers
 \usepackage[autostyle]{csquotes}
 
+% source code listings
+\usepackage{minted}
+\usemintedstyle{friendly}
+
 % load the beamertools package
 \usepackage{beamertools}
 
@@ -60,6 +64,101 @@
 	\addtocounter{framenumber}{\value{framenumberappendix}}
 }
 
+\definecolor{cgblue}{HTML}{1F78B4}
+\definecolor{cggreen}{HTML}{33A02C}
+\definecolor{cgred}{HTML}{E31A1C}
+\definecolor{cgorange}{HTML}{FDBF6F}
+\definecolor{cgwarn}{HTML}{FB9A99}
+
+\tikzstyle{method} = [
+	fill=cgorange
+]
+\tikzstyle{global} = [
+	fill=cgwarn
+]
+\tikzstyle{cgnode} = [
+	draw,
+	thick
+]
+\tikzstyle{cgon} = [
+	cgnode,
+	rectangle,
+	draw=cggreen,
+	inner xsep=.8em,
+	minimum height=3ex
+]
+\tikzstyle{cgcon} = [
+	cgon
+]
+\tikzstyle{cgpon} = [
+	cgon,
+	densely dashed
+]
+\tikzstyle{cgrn} = [
+	cgnode,
+	rectangle,
+	rounded corners,
+	inner xsep=.8em,
+	minimum height=3ex,
+	draw=cgblue
+]
+\tikzstyle{cglrn} = [
+	cgrn
+]
+\tikzstyle{cggrn} = [
+	cgrn,
+	global
+]
+\tikzstyle{cgarn} = [
+	cgrn,
+	dotted
+]
+\tikzstyle{cgfrn} = [
+	cgrn,
+	draw=cgred
+]
+\tikzstyle{cge} = [
+	draw,
+	>=latex,
+	->,
+	thick
+]
+\tikzstyle{cgde} = [
+	cge,
+	dashed
+]
+\tikzstyle{cgpe} = [
+	cge
+]
+\tikzstyle{cgfe} = [
+	cge
+]
+\tikzstyle{callgraphnode} = [
+	cgnode,
+	anchor=center,
+	circle,
+	draw=cgblue,
+	minimum size=1.5em
+]
+\tikzstyle{callgraphnodefinal} = [
+	callgraphnode,
+	draw=cggreen
+]
+\tikzstyle{calledge} = [
+	cgpe
+]
+
+\tikzstyle{influence} = [
+	calledge,
+	dashed
+]
+
+\tikzstyle{cycledescriptor}=[
+	draw=black,
+	rounded corners,
+	inner xsep=.8em,
+	inner ysep=.5em
+]
 \title[KESO-EEA]{Compiler-Assisted Memory Management Using Escape Analysis in the KESO JVM}
 \subtitle{Vortrag zur Masterarbeit}
 \institute{%
@@ -75,22 +174,146 @@
 		\titlepage
 	\end{frame}
 
-	\section{Introduction}
-		\begin{frame}{Motivation}
-			\textbf{Why?}
+	\section{Einleitung}
+		\begin{frame}{Was ist Fluchtanalyse?}
+			\textbf{Was ist Fluchtanalyse?}
 			\bi
-				\ii Battery technology stagnates
-				\ii CPUs and devices offer more and better power savings mechanisms
+				\ii Statische Analyse zur Nachverfolgung von Objekten und Referenzen
+				\ii Benötigt Alias-Information
+				\ii Objekte, deren Lebenszeit durch die der allokierenden Methode beschränkt sind, können automatisch verwaltet werden
 			\ei
-			\begin{btBlock}<2->{Question}
-				\centering
-				\textbf{How can operating systems be designed\\to efficiently use those
-				mechanisms?}
+			\begin{btBlock}<2->{Beispiel}
+				\inputminted[fontsize=\footnotesize,linenos,tabsize=2,xleftmargin=1.5em]{java}{Example.java}
 			\end{btBlock}
 		\end{frame}
 
+		\begin{frame}{Warum Fluchtanalyse?}
+			\textbf{Warum Fluchtanalyse?}
+			\bi
+				\ii Reduzierung der Auslastung des Heaps
+					\bi
+						\ii[$\Rightarrow$] Reduzierung der GC-Laufzeit, Größe der GC-Datenstrukturen
+						\ii[$\Rightarrow$] Verbesserung der Vorhersagbarkeit des Allokationsaufwands
+					\ei
+				\ii Vermeidung externer Fragmentierung
+				\ii Verbesserung der Laufzeit
+			\ei
+		\end{frame}
 
-	\section{Conclusion}
+		\begin{frame}{Fluchtanalyse in KESO}
+			\bi
+				\ii Basierend auf Choi \emph{et al.}, TOPLAS '03: \enquote{Stack allocation and synchronization optimizations for Java using escape analysis}~\cite{choi:03:toplas}
+				\ii Initiale Implementierung in meiner BA
+					\bi
+						\ii Gute Ergebnisse, aber lange Übersetzungszeiten und keine Laufzeitverbesserung
+						\ii Nur Optimierungen innerhalb einer Methode
+					\ei
+			\ei
+		\end{frame}
+
+		\begin{frame}<beamer>{Überblick}
+			\tableofcontents
+		\end{frame}
+
+	\AtBeginSection[]{%
+		\begin{frame}<beamer>{Überblick}
+			\tableofcontents[%
+				sectionstyle=show/shaded,
+				subsectionstyle=show/show/shaded,
+				subsubsectionstyle=show/show/show/shaded
+			]
+		\end{frame}
+	}
+
+	\section{Verbesserungen der existierenden Fluchtanalyse}
+		\subsection{Flusssensitivität}
+			\begin{frame}{Flusssensitivität}
+				\begin{columns}
+					\begin{column}{.5\textwidth}
+						\inputminted[fontsize=\footnotesize,linenos,tabsize=2,xleftmargin=1.5em]{java}{FlowSensitivity.java}
+					\end{column}
+					\begin{column}{.5\textwidth}
+						\input{images/FlowSensitivity-cg.tex}
+					\end{column}
+				\end{columns}
+			\end{frame}
+
+		\subsection{Der Doppel-\texttt{return}-Bug}
+			\begin{frame}{Der Doppel-\texttt{return}-Bug}
+				\bi
+					\ii Konzeptioneller Fehler in der Arbeit von Choi et al.
+					\ii Bedingt durch einen der Beiträge der Publikation:\\
+						Repräsentation des Effekts einer Methode unabhängig vom Aufrufkontext
+				\ei
+				\begin{columns}
+					\begin{column}{.6\textwidth}
+						\inputminted[fontsize=\footnotesize,linenos,tabsize=2,xleftmargin=1.5em]{java}{Choose.java}
+					\end{column}
+					\begin{column}{.4\textwidth}
+						\centering
+						\input{images/Choose-cg-get.tex}
+						\vspace*{.2cm}
+						\hline
+						\vspace*{.2cm}
+						\input{images/Choose-cg-choose.tex}
+					\end{column}
+				\end{columns}
+				\bi
+					\ii<2-> Behoben durch Identifikation von Referenz-Äquivalenz-Paaren zwischen Aufrufer und Aufgerufenem
+				\ei
+			\end{frame}
+
+		\subsection{Compilezeitverbesserungen}
+			\subsubsection{Ignorieren von Leseoperationen}
+				\begin{frame}{Kampf der Compilezeit}{Ignorieren von Leseoperationen}
+					\bi
+						\ii Lange Übersetzungszeiten nach Double-\texttt{return}-Fix: \textasciitilde 19 min. für 28 kSLOC
+							\bi
+								\ii[$\Rightarrow$] Schneller analysieren, Präzision beibehalten. \structure{Aber wie?}
+							\ei
+						\ii<2-> Pathologisches Beispiel: \texttt{equals} in Kombination mit Java Collections API
+							\bi
+								\ii Gegenseitige rekursive Aufrufe
+								\ii Fixpunkt-Iteration in Analyse, Propagation von Knoten in CG der Aufrufer\\
+								\structure{$\Rightarrow$} Explosion der Verbindungsgraphen der Methoden die \texttt{equals} nutzen
+							\ei
+						\ii<3-> Idee: \texttt{equals} liest -- nur durch Schreiboperationen können neue Alias-Beziehungen (und damit flüchtende Objekte) entstehen
+							\bi
+								\ii Folgerung: In einem CG sind nur die Kanten relevant, die
+									\bi
+										\ii durch eine Schreiboperation entstehen
+										\ii auf einem zyklenfreien Pfad von einem Einsprungpunkt zu einer solchen Kante liegen
+									\ei
+							\ei
+						\ii<4-> Manche Implementierungen von \texttt{equals} enthalten Schreiboperationen! :(
+						\ii<4-> Trotzdem deutliche Verbesserungen in Heap-Nutzung und Laufzeit in unseren Benchmarks :)
+					\ei
+				\end{frame}
+
+			\subsubsection{Connection Graph-Kompression}
+				\begin{frame}{Kampf der Compilezeit (II)}{Graph-Komprimierung}
+					\bi
+						\ii Beobachtungen
+							\bi
+								\ii Verbindungsgraphen bestehen hauptsächlich aus \emph{phantom nodes}
+								\ii Geschwisterknoten repräsentieren häufig das selbe Objekt
+							\ei
+						\ii Idee: Knoten zusammenfassen, um Graphen zu vereinfachen
+						\ii<2-> Adaption von Steensgaards \enquote{Points-to analysis in almost linear time}~\cite{steensgaard:96:popl}
+							\bi
+								\ii Zwei Knoten werden zusammengeführt, wenn sie eingehende Kanten vom gleichen Knoten haben
+								\ii Präzisionsverlust vermeiden: Nur Kompression von \emph{phantom nodes} und innerhalb des gleichen Fluchtstatus
+							\ei
+					\ei
+				\end{frame}
+
+	\section{Erweiterungen der Fluchtanalyse}
+		\subsection{Scope-Erweiterung}
+		\subsection{Tasklokale Heaps}
+
+	\section{Evaluation}
+
+	\section{Zusammenfassung \& Schluss}
 		\begin{frame}{Ende}
 			\begin{center}
 				\structure{\LARGE Fragen?}\\[.2em]
@@ -101,8 +324,7 @@
 		\backupbegin
 			\begin{frame}{Referenzen}
 				\bibliographystyle{alpha}
-				\bibliography{../bibtex/bib}
-				\bibliography{../bibtex/all/all}
+				\bibliography{../bibtex/bib,../bibtex/all/all}
 			\end{frame}
 		\backupend
 \end{document}
