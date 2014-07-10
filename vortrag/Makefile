@@ -43,5 +43,7 @@ distclean:: clean
 		$(FILENAME).loa \
 		$(FILENAME).lol \
 		$(FILENAME).mls \
+		$(FILENAME).nav \
 		$(FILENAME).pyg \
+		$(FILENAME).snm \
 		$(FILENAME).tdo
