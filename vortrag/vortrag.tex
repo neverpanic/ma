@@ -170,7 +170,7 @@
 	Lehrstuhl für Verteilte Systeme und Betriebssysteme\\
 	Friedrich-Alexander-Universität Erlangen-Nürnberg}
 \author[cl]{Clemens Lang}
-\date[2014-07-11]{July 11, 2014}
+\date[2014-07-11]{11. Juli 2014}
 
 \btset{every block/.style={rounded=false, shadow, text width=.98\textwidth, center}}
 
@@ -185,7 +185,7 @@
 			\bi
 				\ii Statische Analyse zur Nachverfolgung von Objekten und Referenzen
 				\ii Benötigt Alias-Information
-				\ii Objekte, deren Lebenszeit durch die der allokierenden Methode beschränkt sind, können automatisch verwaltet werden
+				\ii Objekte, deren Lebenszeit durch die der allokierenden Methode beschränkt sind, können durch den Compiler verwaltet werden
 			\ei
 			\begin{btBlock}<2->{Beispiel}
 				\inputminted[fontsize=\footnotesize,linenos,tabsize=2,xleftmargin=1.5em]{java}{Example.java}
@@ -200,7 +200,7 @@
 						\ii[$\Rightarrow$] Reduzierung der GC-Laufzeit, Größe der GC-Datenstrukturen
 						\ii[$\Rightarrow$] Verbesserung der Vorhersagbarkeit des Allokationsaufwands
 					\ei
-				\ii Vermeidung externer Fragmentierung
+				\ii Vermeidung von Fragmentierung
 				\ii Verbesserung der Laufzeit
 			\ei
 		\end{frame}
@@ -208,7 +208,7 @@
 		\begin{frame}{Fluchtanalyse in KESO}
 			\bi
 				\ii Basierend auf Choi \emph{et al.}, TOPLAS '03: \enquote{Stack allocation and synchronization optimizations for Java using escape analysis}~\cite{choi:03:toplas}
-				\ii Initiale Implementierung in meiner BA
+				\ii Initiale Implementierung in meiner Bachelorarbeit
 					\bi
 						\ii Gute Ergebnisse, aber lange Übersetzungszeiten und keine Laufzeitverbesserung
 						\ii Nur Optimierungen innerhalb einer Methode
@@ -316,7 +316,7 @@
 	\section{Erweiterungen der Fluchtanalyse}
 		\subsection{Scope-Erweiterung}
 			\begin{frame}{Scope-Erweiterung}
-				\textbf{Wie können mehr Objekte automatisch verwaltet werden?}
+				\textbf{Wie können mehr Objekte durch den Compiler verwaltet werden?}
 				\bi
 					\ii Aktueller Stand: Automatische Verwaltung methodenlokaler Objekte
 					\ii Idee: Erweiterung auf Objekte, die eine Ebene flüchten
